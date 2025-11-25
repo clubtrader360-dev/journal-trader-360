@@ -282,6 +282,19 @@ async function loadCoachRegistrationsFromSupabase() {
 // Fonction pour approuver une inscription
 async function approveRegistration(userId) {
     try {
+        // 1. Récupérer l'email de l'utilisateur
+        const { data: user } = await supabase
+            .from('users')
+            .select('email')
+            .eq('uuid', userId)
+            .single();
+
+        if (!user) {
+            alert('❌ Utilisateur introuvable');
+            return;
+        }
+
+        // 2. Mettre à jour le statut
         const { error } = await supabase
             .from('users')
             .update({ status: 'active' })
@@ -293,7 +306,18 @@ async function approveRegistration(userId) {
             return;
         }
 
-        alert('✅ Inscription approuvée!');
+        // 3. Confirmer l'email via RPC
+        const { error: rpcError } = await supabase.rpc('confirm_user_by_email', {
+            user_email: user.email
+        });
+
+        if (rpcError) {
+            console.warn('Impossible de confirmer l\'email automatiquement:', rpcError);
+            alert('✅ Inscription approuvée!\n\n⚠️ Note: L\'utilisateur devra confirmer son email manuellement.');
+        } else {
+            alert('✅ Inscription approuvée et email confirmé!');
+        }
+
         await loadCoachRegistrationsFromSupabase();
 
     } catch (err) {
