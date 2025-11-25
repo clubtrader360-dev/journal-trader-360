@@ -218,7 +218,7 @@ async function loadCoachRegistrationsFromSupabase() {
         console.log('🚫 Étudiants révoqués:', revokedUsers.length);
 
         // Afficher les inscriptions en attente
-        const pendingContainer = document.getElementById('coachPendingRegistrations');
+        const pendingContainer = document.getElementById('coachPendingUsers');
         if (pendingContainer) {
             if (pendingUsers.length === 0) {
                 pendingContainer.innerHTML = '<p class="text-gray-500">Aucune inscription en attente</p>';
@@ -242,44 +242,35 @@ async function loadCoachRegistrationsFromSupabase() {
             }
         }
 
-        // Afficher les étudiants actifs
-        const activeContainer = document.getElementById('coachActiveStudents');
-        if (activeContainer) {
-            activeContainer.innerHTML = activeUsers.map(u => `
-                <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
+        // Afficher tous les étudiants (actifs + révoqués)
+        const allContainer = document.getElementById('coachAllUsers');
+        if (allContainer) {
+            const allStudents = [...activeUsers, ...revokedUsers];
+            if (allStudents.length === 0) {
+                allContainer.innerHTML = '<p class="text-gray-500 text-center py-4">Aucun élève</p>';
+            } else {
+                allContainer.innerHTML = allStudents.map(u => `
+                <div class="flex items-center justify-between p-4 ${u.status === 'active' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} rounded-lg border">
                     <div>
                         <p class="font-semibold">${u.email}</p>
-                        <p class="text-sm text-gray-500">Inscrit le ${new Date(u.created_at).toLocaleDateString('fr-FR')}</p>
+                        <p class="text-sm text-gray-500">${u.status === 'active' ? 'Actif' : 'Suspendu'} - Inscrit le ${new Date(u.created_at).toLocaleDateString('fr-FR')}</p>
                     </div>
                     <div class="space-x-2">
-                        <button onclick="revokeStudent('${u.uuid}')" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
-                            ⏸ Suspendre
-                        </button>
+                        ${u.status === 'active' ? `
+                            <button onclick="revokeStudent('${u.uuid}')" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+                                ⏸ Suspendre
+                            </button>
+                        ` : `
+                            <button onclick="reactivateStudent('${u.uuid}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                                ✓ Réactiver
+                            </button>
+                        `}
                         <button onclick="deleteStudent('${u.uuid}')" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
                             🗑 Supprimer
                         </button>
                     </div>
                 </div>
             `).join('');
-        }
-
-        // Afficher les étudiants révoqués
-        const revokedContainer = document.getElementById('coachRevokedStudents');
-        if (revokedContainer) {
-            if (revokedUsers.length === 0) {
-                revokedContainer.innerHTML = '<p class="text-gray-500">Aucun accès suspendu</p>';
-            } else {
-                revokedContainer.innerHTML = revokedUsers.map(u => `
-                    <div class="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
-                        <div>
-                            <p class="font-semibold">${u.email}</p>
-                            <p class="text-sm text-gray-500">Suspendu</p>
-                        </div>
-                        <button onclick="reactivateStudent('${u.uuid}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
-                            ✓ Réactiver
-                        </button>
-                    </div>
-                `).join('');
             }
         }
 
