@@ -193,12 +193,15 @@ async function loadCoachAccountingFromSupabase() {
 
 // Fonction pour charger les inscriptions en attente depuis Supabase
 async function loadCoachRegistrationsFromSupabase() {
+    console.log('🔄 Chargement des inscriptions depuis Supabase...');
     try {
         // Récupérer tous les utilisateurs
         const { data: allUsers, error } = await supabase
             .from('users')
             .select('*')
             .order('created_at', { ascending: false });
+
+        console.log('📊 Tous les utilisateurs récupérés:', allUsers);
 
         if (error) {
             console.error('Erreur chargement registrations:', error);
@@ -209,6 +212,10 @@ async function loadCoachRegistrationsFromSupabase() {
         const pendingUsers = allUsers.filter(u => u.status === 'pending' && u.role === 'student');
         const activeUsers = allUsers.filter(u => u.status === 'active' && u.role === 'student');
         const revokedUsers = allUsers.filter(u => u.status === 'revoked' && u.role === 'student');
+
+        console.log('⏳ Inscriptions pending:', pendingUsers.length);
+        console.log('✅ Étudiants actifs:', activeUsers.length);
+        console.log('🚫 Étudiants révoqués:', revokedUsers.length);
 
         // Afficher les inscriptions en attente
         const pendingContainer = document.getElementById('coachPendingRegistrations');
