@@ -223,10 +223,10 @@ async function loadCoachRegistrationsFromSupabase() {
                             <p class="text-sm text-gray-500">${new Date(u.created_at).toLocaleDateString('fr-FR')}</p>
                         </div>
                         <div class="space-x-2">
-                            <button onclick="approveRegistration('${u.id}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                            <button onclick="approveRegistration('${u.uuid}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
                                 ✓ Approuver
                             </button>
-                            <button onclick="rejectRegistration('${u.id}')" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                            <button onclick="rejectRegistration('${u.uuid}')" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
                                 ✗ Refuser
                             </button>
                         </div>
@@ -245,10 +245,10 @@ async function loadCoachRegistrationsFromSupabase() {
                         <p class="text-sm text-gray-500">Inscrit le ${new Date(u.created_at).toLocaleDateString('fr-FR')}</p>
                     </div>
                     <div class="space-x-2">
-                        <button onclick="revokeStudent('${u.id}')" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+                        <button onclick="revokeStudent('${u.uuid}')" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
                             ⏸ Suspendre
                         </button>
-                        <button onclick="deleteStudent('${u.id}')" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                        <button onclick="deleteStudent('${u.uuid}')" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
                             🗑 Supprimer
                         </button>
                     </div>
@@ -268,7 +268,7 @@ async function loadCoachRegistrationsFromSupabase() {
                             <p class="font-semibold">${u.email}</p>
                             <p class="text-sm text-gray-500">Suspendu</p>
                         </div>
-                        <button onclick="reactivateStudent('${u.id}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
+                        <button onclick="reactivateStudent('${u.uuid}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
                             ✓ Réactiver
                         </button>
                     </div>
@@ -287,7 +287,7 @@ async function approveRegistration(userId) {
         const { error } = await supabase
             .from('users')
             .update({ status: 'active' })
-            .eq('id', userId);
+            .eq('uuid', userId);
 
         if (error) {
             console.error('Erreur approbation:', error);
@@ -315,7 +315,7 @@ async function rejectRegistration(userId) {
         const { error } = await supabase
             .from('users')
             .delete()
-            .eq('id', userId);
+            .eq('uuid', userId);
 
         if (error) {
             console.error('Erreur rejet:', error);
@@ -342,7 +342,7 @@ async function revokeStudent(userId) {
         const { error } = await supabase
             .from('users')
             .update({ status: 'revoked' })
-            .eq('id', userId);
+            .eq('uuid', userId);
 
         if (error) {
             console.error('Erreur révocation:', error);
@@ -365,7 +365,7 @@ async function reactivateStudent(userId) {
         const { error } = await supabase
             .from('users')
             .update({ status: 'active' })
-            .eq('id', userId);
+            .eq('uuid', userId);
 
         if (error) {
             console.error('Erreur réactivation:', error);
@@ -392,7 +392,7 @@ async function deleteStudent(userId) {
         const { error } = await supabase
             .from('users')
             .delete()
-            .eq('id', userId);
+            .eq('uuid', userId);
 
         if (error) {
             console.error('Erreur suppression student:', error);
