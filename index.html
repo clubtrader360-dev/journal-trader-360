@@ -2084,7 +2084,7 @@
                 document.getElementById('userInfo').textContent = currentUser.email;
                 
                 // Charger les données de l'élève
-                loadUserData(currentUser.id);
+                loadUserDataFromSupabase(currentUser.uuid);
                 updateAccountsList();
                 updateDashboard();
                 updateCalendar();
