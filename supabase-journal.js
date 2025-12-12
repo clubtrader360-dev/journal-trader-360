@@ -1,4 +1,12 @@
-// Fonction pour ajouter une entrée de journal avec Supabase
+/**
+ * =================================================================
+ * JOURNAL TRADER 360 - JOURNAL & ACCOUNTING MODULE
+ * Version: DEFINITIVE 1.0
+ * Convention: TOUJOURS utiliser user_id = currentUser.uuid
+ * =================================================================
+ */
+
+// ===== FONCTION AJOUT JOURNAL ENTRY =====
 async function addJournalEntry() {
     const date = document.getElementById('journalDate').value;
     const content = document.getElementById('journalContent').value.trim();
@@ -14,11 +22,13 @@ async function addJournalEntry() {
     }
 
     const entryData = {
-        user_id: currentUser.uuid,
+        user_id: currentUser.uuid,  // ⚠️ UTILISER UUID
         date: date,
         content: content,
         created_at: new Date().toISOString()
     };
+
+    console.log('📓 Ajout journal entry pour UUID:', currentUser.uuid);
 
     try {
         const { data, error } = await supabase
@@ -28,34 +38,39 @@ async function addJournalEntry() {
             .single();
 
         if (error) {
-            console.error('Erreur ajout journal entry:', error);
-            alert('❌ Erreur lors de l\'ajout de l\'entrée');
+            console.error('❌ Erreur ajout journal entry:', error);
+            alert('❌ Erreur lors de l\'ajout de l\'entrée: ' + error.message);
             return;
         }
 
         console.log('✅ Journal entry ajouté:', data);
 
-        // Recharger les données
         await loadUserDataFromSupabase(currentUser.uuid);
         displayJournal();
         
-        // Réinitialiser le formulaire
         document.getElementById('journalDate').value = '';
         document.getElementById('journalContent').value = '';
         
         alert('✅ Entrée de journal ajoutée avec succès!');
 
     } catch (err) {
-        console.error('Erreur addJournalEntry:', err);
+        console.error('❌ Erreur addJournalEntry:', err);
         alert('❌ Une erreur est survenue');
     }
 }
 
-// Fonction pour supprimer une entrée de journal avec Supabase
+// ===== FONCTION SUPPRESSION JOURNAL ENTRY =====
 async function deleteJournalEntry(entryId) {
     if (!confirm('❌ Voulez-vous vraiment supprimer cette entrée ?')) {
         return;
     }
+
+    if (!currentUser || !currentUser.uuid) {
+        alert('❌ Erreur: utilisateur non connecté');
+        return;
+    }
+
+    console.log('🗑️ Suppression journal entry ID:', entryId, 'pour UUID:', currentUser.uuid);
 
     try {
         const { error } = await supabase
@@ -65,8 +80,8 @@ async function deleteJournalEntry(entryId) {
             .eq('user_id', currentUser.uuid);
 
         if (error) {
-            console.error('Erreur suppression journal entry:', error);
-            alert('❌ Erreur lors de la suppression');
+            console.error('❌ Erreur suppression journal entry:', error);
+            alert('❌ Erreur lors de la suppression: ' + error.message);
             return;
         }
 
@@ -78,12 +93,12 @@ async function deleteJournalEntry(entryId) {
         alert('✅ Entrée supprimée avec succès!');
 
     } catch (err) {
-        console.error('Erreur deleteJournalEntry:', err);
+        console.error('❌ Erreur deleteJournalEntry:', err);
         alert('❌ Une erreur est survenue');
     }
 }
 
-// Fonction pour ajouter un coût de compte avec Supabase
+// ===== FONCTION AJOUT ACCOUNT COST =====
 async function addAccountCost() {
     const accountName = document.getElementById('accountCostName').value.trim();
     const cost = parseFloat(document.getElementById('accountCostAmount').value);
@@ -100,12 +115,14 @@ async function addAccountCost() {
     }
 
     const costData = {
-        user_id: currentUser.uuid,
+        user_id: currentUser.uuid,  // ⚠️ UTILISER UUID
         account_name: accountName,
         cost: cost,
         date: date,
         created_at: new Date().toISOString()
     };
+
+    console.log('💸 Ajout account cost pour UUID:', currentUser.uuid);
 
     try {
         const { data, error } = await supabase
@@ -115,8 +132,8 @@ async function addAccountCost() {
             .single();
 
         if (error) {
-            console.error('Erreur ajout account cost:', error);
-            alert('❌ Erreur lors de l\'ajout du coût');
+            console.error('❌ Erreur ajout account cost:', error);
+            alert('❌ Erreur lors de l\'ajout du coût: ' + error.message);
             return;
         }
 
@@ -125,7 +142,6 @@ async function addAccountCost() {
         await loadUserDataFromSupabase(currentUser.uuid);
         displayAccountCosts();
         
-        // Réinitialiser le formulaire
         document.getElementById('accountCostName').value = '';
         document.getElementById('accountCostAmount').value = '';
         document.getElementById('accountCostDate').value = '';
@@ -134,16 +150,23 @@ async function addAccountCost() {
         alert('✅ Coût ajouté avec succès!');
 
     } catch (err) {
-        console.error('Erreur addAccountCost:', err);
+        console.error('❌ Erreur addAccountCost:', err);
         alert('❌ Une erreur est survenue');
     }
 }
 
-// Fonction pour supprimer un coût de compte avec Supabase
+// ===== FONCTION SUPPRESSION ACCOUNT COST =====
 async function deleteAccountCost(costId) {
     if (!confirm('❌ Voulez-vous vraiment supprimer ce coût ?')) {
         return;
     }
+
+    if (!currentUser || !currentUser.uuid) {
+        alert('❌ Erreur: utilisateur non connecté');
+        return;
+    }
+
+    console.log('🗑️ Suppression account cost ID:', costId, 'pour UUID:', currentUser.uuid);
 
     try {
         const { error } = await supabase
@@ -153,8 +176,8 @@ async function deleteAccountCost(costId) {
             .eq('user_id', currentUser.uuid);
 
         if (error) {
-            console.error('Erreur suppression account cost:', error);
-            alert('❌ Erreur lors de la suppression');
+            console.error('❌ Erreur suppression account cost:', error);
+            alert('❌ Erreur lors de la suppression: ' + error.message);
             return;
         }
 
@@ -166,12 +189,12 @@ async function deleteAccountCost(costId) {
         alert('✅ Coût supprimé avec succès!');
 
     } catch (err) {
-        console.error('Erreur deleteAccountCost:', err);
+        console.error('❌ Erreur deleteAccountCost:', err);
         alert('❌ Une erreur est survenue');
     }
 }
 
-// Fonction pour ajouter un payout avec Supabase
+// ===== FONCTION AJOUT PAYOUT =====
 async function addPayout() {
     const accountName = document.getElementById('payoutAccount').value.trim();
     const amount = parseFloat(document.getElementById('payoutAmount').value);
@@ -188,12 +211,14 @@ async function addPayout() {
     }
 
     const payoutData = {
-        user_id: currentUser.uuid,
+        user_id: currentUser.uuid,  // ⚠️ UTILISER UUID
         account_name: accountName,
         amount: amount,
         date: date,
         created_at: new Date().toISOString()
     };
+
+    console.log('💰 Ajout payout pour UUID:', currentUser.uuid);
 
     try {
         const { data, error } = await supabase
@@ -203,8 +228,8 @@ async function addPayout() {
             .single();
 
         if (error) {
-            console.error('Erreur ajout payout:', error);
-            alert('❌ Erreur lors de l\'ajout du payout');
+            console.error('❌ Erreur ajout payout:', error);
+            alert('❌ Erreur lors de l\'ajout du payout: ' + error.message);
             return;
         }
 
@@ -213,7 +238,6 @@ async function addPayout() {
         await loadUserDataFromSupabase(currentUser.uuid);
         displayPayouts();
         
-        // Réinitialiser le formulaire
         document.getElementById('payoutAccount').value = '';
         document.getElementById('payoutAmount').value = '';
         document.getElementById('payoutDate').value = '';
@@ -222,16 +246,23 @@ async function addPayout() {
         alert('✅ Payout ajouté avec succès!');
 
     } catch (err) {
-        console.error('Erreur addPayout:', err);
+        console.error('❌ Erreur addPayout:', err);
         alert('❌ Une erreur est survenue');
     }
 }
 
-// Fonction pour supprimer un payout avec Supabase
+// ===== FONCTION SUPPRESSION PAYOUT =====
 async function deletePayout(payoutId) {
     if (!confirm('❌ Voulez-vous vraiment supprimer ce payout ?')) {
         return;
     }
+
+    if (!currentUser || !currentUser.uuid) {
+        alert('❌ Erreur: utilisateur non connecté');
+        return;
+    }
+
+    console.log('🗑️ Suppression payout ID:', payoutId, 'pour UUID:', currentUser.uuid);
 
     try {
         const { error } = await supabase
@@ -241,8 +272,8 @@ async function deletePayout(payoutId) {
             .eq('user_id', currentUser.uuid);
 
         if (error) {
-            console.error('Erreur suppression payout:', error);
-            alert('❌ Erreur lors de la suppression');
+            console.error('❌ Erreur suppression payout:', error);
+            alert('❌ Erreur lors de la suppression: ' + error.message);
             return;
         }
 
@@ -254,12 +285,12 @@ async function deletePayout(payoutId) {
         alert('✅ Payout supprimé avec succès!');
 
     } catch (err) {
-        console.error('Erreur deletePayout:', err);
+        console.error('❌ Erreur deletePayout:', err);
         alert('❌ Une erreur est survenue');
     }
 }
 
-// Fonctions pour afficher les costs et payouts
+// ===== FONCTIONS AFFICHAGE =====
 function displayAccountCosts() {
     const tbody = document.getElementById('accountCostsTable');
     
@@ -268,7 +299,7 @@ function displayAccountCosts() {
             <tr>
                 <td colspan="4" class="text-center py-8 text-gray-500">
                     <i class="fas fa-inbox text-4xl mb-2 opacity-30"></i>
-                    <p>Aucun compte enregistré</p>
+                    <p>Aucun coût enregistré</p>
                 </td>
             </tr>
         `;
@@ -322,4 +353,4 @@ function displayPayouts() {
     `).join('');
 }
 
-console.log('✅ Journal + Costs + Payouts Supabase chargé');
+console.log('✅ Journal & Accounting Module chargé (VERSION DEFINITIVE)');
