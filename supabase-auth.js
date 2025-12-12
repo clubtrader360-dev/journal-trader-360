@@ -1,53 +1,63 @@
-// Remplacer la fonction login() existante
+/**
+ * =================================================================
+ * JOURNAL TRADER 360 - AUTHENTICATION MODULE
+ * Version: DEFINITIVE 1.0
+ * Convention: TOUJOURS utiliser UUID (jamais ID)
+ * =================================================================
+ */
+
+// ===== FONCTION LOGIN ÉLÈVE =====
 async function login() {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
 
+    // Validation des champs
     if (!email || !password) {
         showError('loginError', 'Veuillez saisir votre email et mot de passe');
         return;
     }
 
     try {
-        // Connexion avec Supabase
+        console.log('🔐 Tentative de connexion:', email);
+
+        // 1. Authentification Supabase
         const { data, error } = await supabase.auth.signInWithPassword({
             email: email,
             password: password
         });
 
         if (error) {
-            console.error('Erreur login Supabase:', error);
+            console.error('❌ Erreur Supabase Auth:', error);
             showError('loginError', 'Email ou mot de passe incorrect');
             return;
         }
 
-        // Récupérer les données utilisateur depuis la table users
-        console.log('🔍 Recherche user avec UUID:', data.user.id);
-        
+        console.log('✅ Authentification réussie, UUID:', data.user.id);
+
+        // 2. Récupérer les données utilisateur depuis public.users
         const { data: userData, error: userError } = await supabase
             .from('users')
             .select('*')
             .eq('uuid', data.user.id)
             .single();
 
-        console.log('📊 Résultat requête users:', { userData, userError });
-
         if (userError) {
             console.error('❌ Erreur récupération user:', userError);
-            console.error('❌ Code erreur:', userError.code);
-            console.error('❌ Message:', userError.message);
-            console.error('❌ Details:', userError.details);
-            showError('loginError', 'Erreur lors de la récupération des données: ' + userError.message);
+            showError('loginError', 'Erreur lors de la récupération des données utilisateur');
+            await supabase.auth.signOut();
             return;
         }
 
         if (!userData) {
-            console.error('❌ Aucun utilisateur trouvé dans public.users avec UUID:', data.user.id);
-            showError('loginError', 'Utilisateur non trouvé dans la base de données');
+            console.error('❌ Utilisateur introuvable dans public.users avec UUID:', data.user.id);
+            showError('loginError', 'Votre profil est incomplet. Contactez le support.');
+            await supabase.auth.signOut();
             return;
         }
 
-        // Vérifier le statut
+        console.log('✅ Utilisateur trouvé:', userData.email, 'Status:', userData.status);
+
+        // 3. Vérifier le statut
         if (userData.status === 'pending') {
             showError('loginError', '⏳ Votre compte est en attente de validation par le coach.');
             await supabase.auth.signOut();
@@ -60,25 +70,27 @@ async function login() {
             return;
         }
 
-        // Mettre à jour lastLogin
+        // 4. Mettre à jour last_login
         await supabase
             .from('users')
             .update({ last_login: new Date().toISOString() })
             .eq('uuid', userData.uuid);
 
-        // Connexion réussie
+        // 5. Connexion réussie
         currentUser = userData;
         console.log('✅ Connexion élève réussie:', userData.email);
-        await loadUserDataFromSupabase(userData.id);
+        
+        // Charger les données et afficher l'app
+        await loadUserDataFromSupabase(currentUser.uuid);
         showMainApp();
 
     } catch (err) {
-        console.error('Erreur login:', err);
-        showError('loginError', 'Une erreur est survenue');
+        console.error('❌ Erreur critique login:', err);
+        showError('loginError', 'Une erreur est survenue. Réessayez.');
     }
 }
 
-// Remplacer la fonction coachLogin() existante
+// ===== FONCTION LOGIN COACH =====
 async function coachLogin() {
     const email = document.getElementById('coachEmail').value.trim();
     const code = document.getElementById('coachCode').value;
@@ -89,14 +101,16 @@ async function coachLogin() {
     }
 
     try {
-        // Pour le coach, on utilise le code comme mot de passe
+        console.log('👨‍🏫 Tentative connexion coach:', email);
+
+        // Authentification avec le code comme mot de passe
         const { data, error } = await supabase.auth.signInWithPassword({
             email: email,
             password: code
         });
 
         if (error) {
-            console.error('Erreur coach login:', error);
+            console.error('❌ Erreur coach auth:', error);
             showError('coachError', 'Email ou code incorrect');
             return;
         }
@@ -108,8 +122,8 @@ async function coachLogin() {
             .eq('uuid', data.user.id)
             .single();
 
-        if (userError || userData.role !== 'coach') {
-            console.error('Pas un coach:', userError);
+        if (userError || !userData || userData.role !== 'coach') {
+            console.error('❌ Pas un coach:', userError);
             showError('coachError', 'Accès coach non autorisé');
             await supabase.auth.signOut();
             return;
@@ -121,86 +135,18 @@ async function coachLogin() {
         showMainApp();
 
     } catch (err) {
-        console.error('Erreur coach login:', err);
+        console.error('❌ Erreur coach login:', err);
         showError('coachError', 'Une erreur est survenue');
     }
 }
 
-// Nouvelle fonction pour charger les données depuis Supabase
-async function loadUserDataFromSupabase(userId) {
-    try {
-        // Charger les trades
-        const { data: trades, error: tradesError } = await supabase
-            .from('trades')
-            .select('*')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false });
-
-        if (!tradesError && trades) {
-            allTrades = trades;
-        }
-
-        // Charger les accounts
-        const { data: accounts, error: accountsError } = await supabase
-            .from('accounts')
-            .select('*')
-            .eq('user_id', userId);
-
-        if (!accountsError && accounts) {
-            tradingAccounts = accounts;
-        }
-
-        // Charger les journal entries
-        const { data: entries, error: entriesError } = await supabase
-            .from('journal_entries')
-            .select('*')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false });
-
-        if (!entriesError && entries) {
-            journalEntries = entries;
-        }
-
-        // Charger les account costs
-        const { data: costs, error: costsError } = await supabase
-            .from('account_costs')
-            .select('*')
-            .eq('user_id', userId);
-
-        if (!costsError && costs) {
-            accountCosts = costs;
-        }
-
-        // Charger les payouts
-        const { data: payouts, error: payoutsError } = await supabase
-            .from('payouts')
-            .select('*')
-            .eq('user_id', userId);
-
-        if (!payoutsError && payouts) {
-            userPayouts = payouts;
-        }
-
-        console.log('✅ Données chargées depuis Supabase');
-
-    } catch (err) {
-        console.error('Erreur chargement données:', err);
-    }
-}
-
-// Fonction logout
-async function logout() {
-    await supabase.auth.signOut();
-    currentUser = null;
-    window.location.reload();
-}
-
-// Remplacer la fonction register() existante
+// ===== FONCTION INSCRIPTION =====
 async function register() {
     const email = document.getElementById('registerEmail').value.trim();
     const password = document.getElementById('registerPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
 
+    // Validations
     if (!email || !password || !confirmPassword) {
         showError('registerError', 'Veuillez remplir tous les champs');
         return;
@@ -217,7 +163,9 @@ async function register() {
     }
 
     try {
-        // Créer l'utilisateur dans Supabase Auth avec auto-confirmation
+        console.log('📝 Inscription:', email);
+
+        // 1. Créer l'utilisateur dans Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email: email,
             password: password,
@@ -230,16 +178,20 @@ async function register() {
         });
 
         if (authError) {
-            console.error('Erreur signup:', authError);
+            console.error('❌ Erreur signup:', authError);
             if (authError.message.includes('already registered')) {
                 showError('registerError', 'Un compte existe déjà avec cet email');
+            } else if (authError.message.includes('For security purposes')) {
+                showError('registerError', 'Trop de tentatives. Attendez 60 secondes.');
             } else {
-                showError('registerError', 'Erreur lors de l\'inscription: ' + authError.message);
+                showError('registerError', 'Erreur: ' + authError.message);
             }
             return;
         }
 
-        // Créer l'entrée dans la table users avec status='pending'
+        console.log('✅ Auth créé, UUID:', authData.user.id);
+
+        // 2. Créer l'entrée dans public.users avec status='pending'
         const { data: userData, error: userError } = await supabase
             .from('users')
             .insert([{
@@ -254,26 +206,132 @@ async function register() {
             .single();
 
         if (userError) {
-            console.error('Erreur création user dans table:', userError);
+            console.error('❌ Erreur création user dans table:', userError);
             showError('registerError', 'Erreur lors de la création du profil');
             return;
         }
 
-        console.log('✅ Inscription réussie:', userData);
+        console.log('✅ Inscription complète:', userData);
 
-        // Déconnecter immédiatement (l'utilisateur ne peut pas se connecter tant qu'il n'est pas approuvé)
+        // 3. Déconnecter immédiatement
         await supabase.auth.signOut();
 
-        // Message pour l'élève
+        // 4. Message de succès
         alert('✅ Inscription réussie !\n\nVotre demande a été envoyée au coach.\nVous recevrez un accès dès validation.');
 
         // Retour au formulaire de connexion
         showLoginForm();
 
     } catch (err) {
-        console.error('Erreur register:', err);
+        console.error('❌ Erreur register:', err);
         showError('registerError', 'Une erreur est survenue');
     }
 }
 
-console.log('✅ Auth Supabase chargé');
+// ===== FONCTION CHARGEMENT DONNÉES UTILISATEUR =====
+async function loadUserDataFromSupabase(userUuid) {
+    try {
+        console.log('📊 Chargement données pour UUID:', userUuid);
+
+        // Charger les trades
+        const { data: trades, error: tradesError } = await supabase
+            .from('trades')
+            .select('*')
+            .eq('user_id', userUuid)
+            .order('created_at', { ascending: false });
+
+        if (!tradesError && trades) {
+            allTrades = trades;
+            console.log('✅ Trades chargés:', trades.length);
+        }
+
+        // Charger les accounts
+        const { data: accounts, error: accountsError } = await supabase
+            .from('accounts')
+            .select('*')
+            .eq('user_id', userUuid);
+
+        if (!accountsError && accounts) {
+            tradingAccounts = accounts;
+            console.log('✅ Accounts chargés:', accounts.length);
+        }
+
+        // Charger les journal entries
+        const { data: entries, error: entriesError } = await supabase
+            .from('journal_entries')
+            .select('*')
+            .eq('user_id', userUuid)
+            .order('created_at', { ascending: false });
+
+        if (!entriesError && entries) {
+            journalEntries = entries;
+            console.log('✅ Journal entries chargés:', entries.length);
+        }
+
+        // Charger les account costs
+        const { data: costs, error: costsError } = await supabase
+            .from('account_costs')
+            .select('*')
+            .eq('user_id', userUuid);
+
+        if (!costsError && costs) {
+            accountCosts = costs;
+            console.log('✅ Account costs chargés:', costs.length);
+        }
+
+        // Charger les payouts
+        const { data: payouts, error: payoutsError } = await supabase
+            .from('payouts')
+            .select('*')
+            .eq('user_id', userUuid);
+
+        if (!payoutsError && payouts) {
+            userPayouts = payouts;
+            console.log('✅ Payouts chargés:', payouts.length);
+        }
+
+        console.log('✅ Toutes les données chargées depuis Supabase');
+
+    } catch (err) {
+        console.error('❌ Erreur chargement données:', err);
+    }
+}
+
+// ===== FONCTION LOGOUT =====
+async function logout() {
+    await supabase.auth.signOut();
+    currentUser = null;
+    window.location.reload();
+}
+
+// ===== FONCTIONS HELPERS UI =====
+function showError(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.classList.remove('hidden');
+        setTimeout(() => {
+            errorElement.classList.add('hidden');
+        }, 5000);
+    }
+}
+
+function showLoginForm() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('coachLoginForm').style.display = 'none';
+}
+
+function showRegisterForm() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+    document.getElementById('coachLoginForm').style.display = 'none';
+}
+
+function showCoachLogin() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('coachLoginForm').style.display = 'block';
+}
+
+console.log('✅ Auth Module chargé (VERSION DEFINITIVE)');
