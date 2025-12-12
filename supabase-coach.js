@@ -393,3 +393,8 @@ async function loadCoachAccountingFromSupabase() {
 }
 
 console.log('✅ Coach Module chargé (VERSION DEFINITIVE)');
+
+// ✅ EXPORTS GLOBAUX
+window.loadCoachDashboard = loadCoachDashboard;
+window.showStudentDetail = showStudentDetail;
+console.log('✅ supabase-coach.js - Fonctions exportées');
