@@ -3573,6 +3573,7 @@
         }
 
         function initTraderScoreChart() {
+            if (traderScoreChart) traderScoreChart.destroy();
             const ctx = document.getElementById('traderScoreChart').getContext('2d');
             traderScoreChart = new Chart(ctx, {
                 type: 'radar',
@@ -3610,6 +3611,7 @@
         }
 
         function initTradeTimeChart() {
+            if (tradeTimeChart) tradeTimeChart.destroy();
             const ctx = document.getElementById('tradeTimeChart').getContext('2d');
             tradeTimeChart = new Chart(ctx, {
                 type: 'scatter',
@@ -5666,32 +5668,6 @@
     
 
     <!-- Scripts Supabase - Chargés APRÈS toutes les fonctions -->
-
-    <!-- Fonctions wrapper pour appeler celles de supabase-trades.js -->
-    <script>
-        // Ces fonctions sont définies ICI pour que le HTML puisse les appeler
-        // Elles appellent les vraies fonctions de supabase-trades.js
-        
-        function addAccount() {
-            // Cette fonction sera redéfinie par supabase-trades.js
-            console.log('⚠️ addAccount() appelée depuis index.html, attend supabase-trades.js...');
-        }
-        
-        function addTrade() {
-            // Cette fonction sera redéfinie par supabase-trades.js
-            console.log('⚠️ addTrade() appelée depuis index.html, attend supabase-trades.js...');
-        }
-        
-        function deleteAccount(accountId) {
-            // Cette fonction sera redéfinie par supabase-trades.js
-            console.log('⚠️ deleteAccount() appelée depuis index.html, attend supabase-trades.js...');
-        }
-        
-        function deleteTrade(tradeId) {
-            // Cette fonction sera redéfinie par supabase-trades.js
-            console.log('⚠️ deleteTrade() appelée depuis index.html, attend supabase-trades.js...');
-        }
-    </script>
 
     <script src="supabase-config.js"></script>
     <script src="supabase-auth.js"></script>
