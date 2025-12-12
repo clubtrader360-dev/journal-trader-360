@@ -1899,6 +1899,7 @@
             document.getElementById('addAccountModal').style.display = 'block';
         }
 
+        function addAccount_DISABLED() { return; // DÉSACTIVÉ - Voir supabase-trades.js
             const name = document.getElementById('accountName').value.trim();
             const size = document.getElementById('accountSize').value.trim();
 
@@ -1962,6 +1963,7 @@
             alert(`✅ Compte "${newAccount.name}" créé avec succès !\n\nVous pouvez maintenant l'utiliser pour vos trades.`);
         }
 
+        function deleteAccount_DISABLED(accountId) { return; // DÉSACTIVÉ - Voir supabase-trades.js
             const account = accounts.find(a => a.id === accountId);
             if (!account) {
                 alert('Compte non trouvé');
@@ -2200,6 +2202,7 @@
         }
 
         // Trade functions
+        function addTrade_DISABLED() { return; // DÉSACTIVÉ - Voir supabase-trades.js
             const modal = document.getElementById('addTradeModal');
             const editingId = modal.dataset.editingId;
             const isEditing = editingId && editingId !== '';
@@ -2454,6 +2457,7 @@
             document.getElementById('addTradeModal').style.display = 'block';
         }
         
+        function deleteTrade_DISABLED(tradeId) { return; // DÉSACTIVÉ - Voir supabase-trades.js
             if (confirm('Êtes-vous sûr de vouloir supprimer ce trade ?')) {
                 // FIX: Trouver l'index du trade par son ID (pas par position dans le tableau filtré)
                 const tradeIdFloat = parseFloat(tradeId); // Gérer les IDs décimaux (trades CSV)
