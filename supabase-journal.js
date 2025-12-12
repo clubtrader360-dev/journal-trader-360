@@ -354,3 +354,8 @@ function displayPayouts() {
 }
 
 console.log('✅ Journal & Accounting Module chargé (VERSION DEFINITIVE)');
+
+// ✅ EXPORTS GLOBAUX
+window.addJournalEntry = addJournalEntry;
+window.deleteJournalEntry = deleteJournalEntry;
+console.log('✅ supabase-journal.js - Fonctions exportées');
