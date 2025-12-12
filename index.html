@@ -13,7 +13,6 @@
     LOGS DE DEBUG AJOUTÉS:
     1. Dans addTrade() : Collecte de exitTime depuis le formulaire
     2. Dans addTrade() : Vérification tradeData avant sauvegarde
-    3. Dans addTrade() : Vérification après sauvegarde localStorage
     4. Dans loadFromStorage() : Vérification trades chargés au démarrage
     5. Dans updateDurationChart() : Calcul de durée pour chaque trade
     
@@ -3544,15 +3543,9 @@
             calendarDisplay.showWinRate = document.getElementById('showWinRate').checked;
             
             // Sauvegarder les préférences
-            localStorage.setItem('calendarDisplay', JSON.stringify(calendarDisplay));
-            
-            // Rafraîchir le calendrier
-            updateCalendar();
-        }
         
         // Charger les préférences au démarrage
         function loadCalendarPreferences() {
-            const saved = localStorage.getItem('calendarDisplay');
             if (saved) {
                 calendarDisplay = JSON.parse(saved);
                 document.getElementById('showPnl').checked = calendarDisplay.showPnl;
@@ -4242,14 +4235,10 @@
                     accountCosts: accountCosts,
                     payouts: payouts
                 };
-                localStorage.setItem('trader360_data', JSON.stringify(userData));
-                console.log('✅ Données sauvegardées (mode compatibilité)');
-            }
         }
 
         function loadFromStorage() {
             // Charger depuis la clé simple
-            const userData = localStorage.getItem('trader360_data');
             
             if (userData) {
                 try {
@@ -4281,68 +4270,15 @@
                 }
             } else {
                 // Essayer de charger depuis les clés individuelles (compatibilité)
-                trades = JSON.parse(localStorage.getItem('trades') || '[]');
-                accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
-                journalEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
                 console.log('🔄 Chargé depuis clés individuelles:', trades.length, 'trades');
             }
         }
 
         // ===== FONCTIONS MULTI-UTILISATEURS =====
         
-        function loadAllUsers() {
-            const usersData = localStorage.getItem('club_trader_360_users');
-            allUsers = usersData ? JSON.parse(usersData) : [];
-            return allUsers;
-        }
         
-        function saveAllUsers() {
-            localStorage.setItem('club_trader_360_users', JSON.stringify(allUsers));
-        }
         
-        function loadUserData(userId) {
-            const userDataKey = `club_trader_360_user_${userId}_data`;
-            const userData = localStorage.getItem(userDataKey);
-            
-            if (userData) {
-                try {
-                    const parsed = JSON.parse(userData);
-                    trades = parsed.trades || [];
-                    journalEntries = parsed.journalEntries || [];
-                    accounts = parsed.accounts || [];
-                    accountCosts = parsed.accountCosts || [];
-                    payouts = parsed.payouts || [];
-                    console.log(`✅ Données utilisateur ${userId} chargées:`, trades.length, 'trades');
-                } catch (e) {
-                    console.error('❌ Erreur chargement données utilisateur:', e);
-                    // Initialiser avec données vides
-                    trades = [];
-                    journalEntries = [];
-                    accounts = [];
-                    accountCosts = [];
-                    payouts = [];
-                }
-            } else {
-                // Première connexion - initialiser avec données vides
-                trades = [];
-                journalEntries = [];
-                accounts = [];
-                accountCosts = [];
-                payouts = [];
-                console.log('🆕 Nouvel utilisateur - données initialisées');
-            }
-        }
         
-        function saveUserData(userId) {
-            const userDataKey = `club_trader_360_user_${userId}_data`;
-            const userData = {
-                trades: trades,
-                journalEntries: journalEntries,
-                accounts: accounts,
-                accountCosts: accountCosts,
-                payouts: payouts
-            };
-                    }
         
         function getAllStudentsData() {
             // Fonction pour le coach : récupérer toutes les données de tous les élèves actifs
@@ -4353,7 +4289,6 @@
             const allStudentsData = [];
             activeStudents.forEach(student => {
                 const userDataKey = `club_trader_360_user_${student.id}_data`;
-                                                const userData = localStorage.getItem(userDataKey);
                                 
                 if (userData) {
                     try {
@@ -4556,7 +4491,6 @@
         }
         
         function loadCoachAccounting() {
-            // Charger depuis Supabase au lieu de localStorage
             loadCoachAccountingFromSupabase();
             return; // Exit early - fonction Supabase gère tout
             
@@ -4880,7 +4814,6 @@
             
             // Supprimer ses données
             const userDataKey = `club_trader_360_user_${userId}_data`;
-            localStorage.removeItem(userDataKey);
             
             alert(`🗑️ Élève ${user.email} supprimé définitivement`);
             loadCoachStudents();
@@ -4900,7 +4833,6 @@
             
             // Charger les données de trading de l'élève
             const userDataKey = `club_trader_360_user_${userId}_data`;
-            const userData = localStorage.getItem(userDataKey);
             let studentTrades = [];
             let studentAccounts = [];
             
