@@ -361,3 +361,12 @@ function showCoachLogin() {
 }
 
 console.log('✅ Auth Module chargé (VERSION DEFINITIVE)');
+
+// ✅ EXPORTS GLOBAUX - Rendre les fonctions accessibles depuis HTML
+window.register = register;
+window.login = login;
+window.coachLogin = coachLogin;
+window.logout = logout;
+window.loadUserDataFromSupabase = loadUserDataFromSupabase;
+
+console.log('✅ supabase-auth.js - Fonctions exportées globalement');
