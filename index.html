@@ -718,12 +718,6 @@
         }
     </style>
     <!-- Supabase Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
-    <script src="supabase-auth.js"></script>
-    <script src="supabase-trades.js"></script>
-    <script src="supabase-journal.js"></script>
-    <script src="supabase-coach.js"></script>
 </head>
 <body>
     <!-- Auth Screen -->
@@ -2049,11 +2043,8 @@
             errorEl.classList.remove('hidden');
         }
 
-        // register() déplacé vers supabase-auth.js
 
-        // login() déplacé vers supabase-auth.js
 
-        // coachLogin() déplacé vers supabase-auth.js
 
         function logout() {
             currentUser = null;
@@ -2856,7 +2847,6 @@
         }
 
         // Fonction pour supprimer une note
-        // deleteJournalEntry déplacé vers supabase-journal.js
 
         // Dashboard functions
 
@@ -5669,6 +5659,14 @@
         </div>
     </div>
     
+    <!-- Supabase Scripts - Chargés après toutes les fonctions -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-auth.js"></script>
+    <script src="supabase-trades.js"></script>
+    <script src="supabase-journal.js"></script>
+    <script src="supabase-coach.js"></script>
+
 </body>
 </html>
     <script id="html_badge_script1">
@@ -5913,13 +5911,9 @@
             document.getElementById('addPayoutModal').style.display = 'block';
         }
 
-        // addAccountCost déplacé vers supabase-journal.js
 
-        // addPayout déplacé vers supabase-journal.js
 
-        // deleteAccountCost déplacé vers supabase-journal.js
 
-        // deletePayout déplacé vers supabase-journal.js
 
         function updateAccountingSection() {
             // Calculs
