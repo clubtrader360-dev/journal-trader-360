@@ -1898,6 +1898,15 @@
             document.getElementById('addAccountModal').style.display = 'block';
         }
 
+        function addAccount_DISABLED() { return; // DÉSACTIVÉ - Voir supabase-trades.js
+            const name = document.getElementById('accountName').value.trim();
+            const size = document.getElementById('accountSize').value.trim();
+
+            if (!name || !size) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+
             const colors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#06b6d4', '#84cc16', '#f97316'];
             
             // Générer un ID sécurisé
@@ -1952,6 +1961,13 @@
             // Notification de succès
             alert(`✅ Compte "${newAccount.name}" créé avec succès !\n\nVous pouvez maintenant l'utiliser pour vos trades.`);
         }
+
+        function deleteAccount_DISABLED(accountId) { return; // DÉSACTIVÉ - Voir supabase-trades.js
+            const account = accounts.find(a => a.id === accountId);
+            if (!account) {
+                alert('Compte non trouvé');
+                return;
+            }
             
             // Compter le nombre de trades associés à ce compte
             const associatedTrades = trades.filter(t => t.accountId === accountId);
@@ -2184,6 +2200,18 @@
             }
         }
 
+        // Trade functions
+        function addTrade_DISABLED() { return; // DÉSACTIVÉ - Voir supabase-trades.js
+            const modal = document.getElementById('addTradeModal');
+            const editingId = modal.dataset.editingId;
+            const isEditing = editingId && editingId !== '';
+            
+            const accountValue = document.getElementById('tradeAccount').value;
+            
+            // DEBUG: Logs détaillés
+                        console.log('accountValue brut:', accountValue, 'type:', typeof accountValue);
+            console.log('Comptes disponibles:', accounts.map(a => ({ id: a.id, name: a.name })));
+            
             // Vérifier si le select existe
             const selectElement = document.getElementById('tradeAccount');
             console.log('Select element:', selectElement);
