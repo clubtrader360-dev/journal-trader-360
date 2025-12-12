@@ -2090,6 +2090,8 @@
                 
                 // Charger les données de l'élève
                 await loadUserDataFromSupabase(currentUser.uuid);
+                displayAccounts();
+                displayTrades();
                 updateAccountsList();
                 updateDashboard();
                 updateCalendar();
@@ -4233,7 +4235,7 @@
         function saveToStorage() {
             // Si utilisateur connecté, sauvegarder ses données spécifiques
             if (currentUser && currentUser.role === 'student') {
-                saveUserData(currentUser.id);
+                saveUserData(currentUser.uuid);
                 console.log('✅ Données utilisateur sauvegardées:', trades.length, 'trades,', accounts.length, 'comptes');
             } else {
                 // Sauvegarde générique (compatibilité ancienne version)
