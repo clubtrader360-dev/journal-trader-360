@@ -1758,9 +1758,9 @@
         // Global variables
         let currentUser = null;
         let allUsers = []; // Tous les utilisateurs (élèves + coach)
-        let trades = [];
+        let allTrades = [];
         let journalEntries = [];
-        let accounts = [];
+        let tradingAccounts = [];
         let currentMonth = new Date().getMonth();
         let currentYear = new Date().getFullYear();
         let traderScoreChart = null;
@@ -1788,12 +1788,12 @@
         // FONCTION HELPER: Obtenir les trades filtrés par compte
         function getFilteredTrades() {
             // Si aucun compte n'existe, retourner tous les trades
-            if (accounts.length === 0) {
+            if (tradingAccounts.length === 0) {
                 return trades;
             }
             // Sinon, filtrer par comptes actifs
-            const activeAccountIds = accounts.filter(a => a.active).map(a => a.id);
-            return trades.filter(t => activeAccountIds.includes(t.accountId));
+            const activeAccountIds = tradingAccounts.filter(a => a.active).map(a => a.id);
+            return allTrades.filter(t => activeAccountIds.includes(t.accountId));
         }
 
         // Initialize app
@@ -1813,11 +1813,11 @@
             updateRecentTrades();
             updateProtectionAnalysis();
             
-            console.log('✅ Application chargée - Trades:', trades.length);
+            console.log('✅ Application chargée - Trades:', allTrades.length);
         });
 
         function initializeDefaultAccounts() {
-            if (accounts.length === 0) {
+            if (tradingAccounts.length === 0) {
                 accounts = [
                     { id: 1, name: 'Compte 50K', size: '50000', active: true, color: '#ef4444' },
                     { id: 2, name: 'Compte 150K', size: '150000', active: true, color: '#22c55e' }
@@ -1859,7 +1859,7 @@
             const container = document.getElementById('accountsList');
             const tradeAccountSelect = document.getElementById('tradeAccount');
             
-            container.innerHTML = accounts.map(account => `
+            container.innerHTML = tradingAccounts.map(account => `
                 <div class="account-item">
                     <input type="checkbox" class="account-checkbox" ${account.active ? 'checked' : ''} 
                            onchange="toggleAccount(${account.id})">
@@ -1876,7 +1876,7 @@
 
             if (tradeAccountSelect) {
                 tradeAccountSelect.innerHTML = '<option value="">Sélectionner un compte...</option>' +
-                    accounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
+                    tradingAccounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
             }
         }
 
@@ -1888,7 +1888,7 @@
         }
 
         function toggleAccount(accountId) {
-            const account = accounts.find(a => a.id === accountId);
+            const account = tradingAccounts.find(a => a.id === accountId);
             if (account) {
                 account.active = !account.active;
                 saveToStorage();
@@ -1915,19 +1915,19 @@
             const colors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#06b6d4', '#84cc16', '#f97316'];
             
             // Générer un ID sécurisé
-            const maxId = accounts.length > 0 ? Math.max(...accounts.map(a => a.id)) : 0;
+            const maxId = tradingAccounts.length > 0 ? Math.max(...tradingAccounts.map(a => a.id)) : 0;
             const newAccount = {
                 id: maxId + 1,
                 name: name,
                 size: size.replace(/[^0-9]/g, ''),
                 active: true,
-                color: colors[accounts.length % colors.length]
+                color: colors[tradingAccounts.length % colors.length]
             };
 
             console.log('🆕 DEBUG addAccount - Nouveau compte créé:', newAccount);
             
             accounts.push(newAccount);
-            console.log('🆕 Comptes après ajout:', accounts.map(a => ({ id: a.id, name: a.name })));
+            console.log('🆕 Comptes après ajout:', tradingAccounts.map(a => ({ id: a.id, name: a.name })));
             
             saveToStorage();
             updateAccountsList();
@@ -1938,7 +1938,7 @@
             
             if (tradeAccountSelect) {
                 tradeAccountSelect.innerHTML = '<option value="">Sélectionner un compte...</option>' +
-                    accounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
+                    tradingAccounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
                 
                 console.log('🆕 HTML du select mis à jour:', tradeAccountSelect.innerHTML);
                 
@@ -1957,7 +1957,7 @@
                 if (tradeAccountSelect2) {
                     console.log('🔄 Mise à jour FINALE du select après fermeture modal');
                     tradeAccountSelect2.innerHTML = '<option value="">Sélectionner un compte...</option>' +
-                        accounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
+                        tradingAccounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
                     tradeAccountSelect2.value = newAccount.id;
                     console.log('🔄 Valeur finale du select:', tradeAccountSelect2.value);
                 }
@@ -1968,14 +1968,14 @@
         }
 
         function deleteAccount(accountId) { return; // DÉSACTIVÉ - Voir supabase-trades.js
-            const account = accounts.find(a => a.id === accountId);
+            const account = tradingAccounts.find(a => a.id === accountId);
             if (!account) {
                 alert('Compte non trouvé');
                 return;
             }
             
             // Compter le nombre de trades associés à ce compte
-            const associatedTrades = trades.filter(t => t.accountId === accountId);
+            const associatedTrades = allTrades.filter(t => t.accountId === accountId);
             const tradesCount = associatedTrades.length;
             
             // Message de confirmation détaillé
@@ -1988,12 +1988,12 @@
             }
             
             // Supprimer tous les trades associés à ce compte
-            const initialTradesCount = trades.length;
-            trades = trades.filter(t => t.accountId !== accountId);
-            const deletedTradesCount = initialTradesCount - trades.length;
+            const initialTradesCount = allTrades.length;
+            trades = allTrades.filter(t => t.accountId !== accountId);
+            const deletedTradesCount = initialTradesCount - allTrades.length;
             
             // Supprimer le compte
-            accounts = accounts.filter(a => a.id !== accountId);
+            accounts = tradingAccounts.filter(a => a.id !== accountId);
             
             // Supprimer les coûts associés au compte
             accountCosts = accountCosts.filter(c => c.accountId !== accountId);
@@ -2215,7 +2215,7 @@
             
             // DEBUG: Logs détaillés
                         console.log('accountValue brut:', accountValue, 'type:', typeof accountValue);
-            console.log('Comptes disponibles:', accounts.map(a => ({ id: a.id, name: a.name })));
+            console.log('Comptes disponibles:', tradingAccounts.map(a => ({ id: a.id, name: a.name })));
             
             // Vérifier si le select existe
             const selectElement = document.getElementById('tradeAccount');
@@ -2239,13 +2239,13 @@
                 return;
             }
             
-            const account = accounts.find(a => a.id === accountId);
+            const account = tradingAccounts.find(a => a.id === accountId);
             console.log('Compte trouvé:', account);
             
             if (!account) {
                 console.error('❌ Compte non trouvé dans le tableau accounts');
                 console.log('Recherche avec ID:', accountId);
-                console.log('Tous les IDs disponibles:', accounts.map(a => a.id));
+                console.log('Tous les IDs disponibles:', tradingAccounts.map(a => a.id));
                 alert('Compte non trouvé. Veuillez réessayer.');
                 return;
             }
@@ -2314,16 +2314,16 @@
 
             if (isEditing) {
                 // Modifier le trade existant
-                // FIX: Utiliser parseFloat pour gérer les IDs décimaux (trades CSV)
+                // FIX: Utiliser parseFloat pour gérer les IDs décimaux (allTrades CSV)
                 const editId = parseFloat(editingId);
-                const index = trades.findIndex(t => t.id === editId);
+                const index = allTrades.findIndex(t => t.id === editId);
                 if (index !== -1) {
                     tradeData.id = editId; // Garder l'ancien ID (avec décimales)
-                    trades[index] = tradeData;
+                    allTrades[index] = tradeData;
                     console.log('✅ Trade modifié avec succès - ID:', editId);
                 } else {
                     console.error('❌ Trade non trouvé pour édition - ID recherché:', editId);
-                    console.log('IDs disponibles:', trades.map(t => t.id));
+                    console.log('IDs disponibles:', allTrades.map(t => t.id));
                 }
                 delete modal.dataset.editingId;
             } else {
@@ -2333,8 +2333,8 @@
             saveToStorage();
             
             // DEBUG: Verification apres sauvegarde
-            console.log('🔍 DEBUG - Nombre de trades dans le tableau:', trades.length);
-            console.log('🔍 DEBUG - Dernier trade ajouté:', trades[trades.length - 1]);
+            console.log('🔍 DEBUG - Nombre de trades dans le tableau:', allTrades.length);
+            console.log('🔍 DEBUG - Dernier trade ajouté:', allTrades[allTrades.length - 1]);
             
             // Fermer la modale AVANT les mises à jour
             closeModal('addTradeModal');
@@ -2342,7 +2342,7 @@
             // IMPORTANT: Petit délai pour s'assurer que le DOM est prêt
             setTimeout(() => {
                 console.log('⏰ DEBUT du rafraîchissement après ajout trade...');
-                console.log('⏰ Trades disponibles:', trades.length);
+                console.log('⏰ Trades disponibles:', allTrades.length);
                 
                 // Forcer le rafraîchissement complet de TOUS les modules
                 refreshAllModules();
@@ -2354,8 +2354,8 @@
         function updateTradesTable() {
             console.log("  → updateTradesTable() appelée");
             const tbody = document.getElementById('tradesTableBody');
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
-            let filteredTrades = trades.filter(trade => activeAccounts.includes(trade.accountId));
+            const activeAccounts = tradingAccounts.filter(a => a.active).map(a => a.id);
+            let filteredTrades = allTrades.filter(trade => activeAccounts.includes(trade.accountId));
             
             // Trier par date et heure (du plus récent au plus ancien)
             filteredTrades = filteredTrades.sort((a, b) => {
@@ -2377,7 +2377,7 @@
 
             tbody.innerHTML = filteredTrades.map((trade, index) => {
                 const pnlClass = trade.pnl >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
-                const account = accounts.find(a => a.id === trade.accountId);
+                const account = tradingAccounts.find(a => a.id === trade.accountId);
                 return `
                     <tr class="trade-row border-b hover:bg-gray-50">
                         <td class="px-6 py-4 text-sm">${trade.date}</td>
@@ -2414,7 +2414,7 @@
         }
 
         function editTrade(tradeId) {
-            const trade = trades.find(t => t.id === tradeId);
+            const trade = allTrades.find(t => t.id === tradeId);
             if (!trade) {
                 alert('Trade non trouvé');
                 return;
@@ -2464,8 +2464,8 @@
         function deleteTrade(tradeId) { return; // DÉSACTIVÉ - Voir supabase-trades.js
             if (confirm('Êtes-vous sûr de vouloir supprimer ce trade ?')) {
                 // FIX: Trouver l'index du trade par son ID (pas par position dans le tableau filtré)
-                const tradeIdFloat = parseFloat(tradeId); // Gérer les IDs décimaux (trades CSV)
-                const index = trades.findIndex(t => t.id === tradeIdFloat);
+                const tradeIdFloat = parseFloat(tradeId); // Gérer les IDs décimaux (allTrades CSV)
+                const index = allTrades.findIndex(t => t.id === tradeIdFloat);
                 
                 if (index !== -1) {
                     console.log('🗑️ Suppression du trade ID:', tradeIdFloat, 'à l\'index:', index);
@@ -2671,7 +2671,7 @@
             filterJournalByDate(newDateString);
             
             // Afficher les trades de la nouvelle date
-            const dayTrades = trades.filter(t => t.date.split('T')[0] === newDateString);
+            const dayTrades = allTrades.filter(t => t.date.split('T')[0] === newDateString);
             displayTradesForDate(newDateString, dayTrades);
         }
         
@@ -2682,7 +2682,7 @@
             
             // Effacer l'affichage des trades du jour
             const tradesDisplay = document.getElementById('dailyTradesDisplay');
-            if (tradesDisplay) {
+            if (allTradesDisplay) {
                 tradesDisplay.innerHTML = '';
             }
         }
@@ -2701,7 +2701,7 @@
                     // Insérer avant le conteneur des notes
                     const journalEntries = document.getElementById('journalEntries');
                     if (journalEntries && journalEntries.parentNode) {
-                        journalEntries.parentNode.insertBefore(tradesDisplay, journalEntries);
+                        journalEntries.parentNode.insertBefore(allTradesDisplay, journalEntries);
                     }
                 }
             }
@@ -2868,15 +2868,15 @@
         function refreshAllModules() {
             console.log('═══════════════════════════════════════');
             console.log('🔄 REFRESH - Début du rafraîchissement...');
-            console.log('🔄 REFRESH - Nombre total de trades:', trades.length);
+            console.log('🔄 REFRESH - Nombre total de trades:', allTrades.length);
             console.log('🔄 REFRESH - Array trades:', trades);
             
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccounts = tradingAccounts.filter(a => a.active).map(a => a.id);
             console.log('🔄 REFRESH - Comptes actifs:', activeAccounts);
             console.log('🔄 REFRESH - Tous les comptes:', accounts);
             
             const filteredTrades = activeAccounts.length > 0 
-                ? trades.filter(trade => activeAccounts.includes(trade.accountId))
+                ? allTrades.filter(trade => activeAccounts.includes(trade.accountId))
                 : trades;
             
             console.log('🔄 REFRESH - Trades filtrés:', filteredTrades.length);
@@ -2940,12 +2940,12 @@
         function updateDashboard() {
             console.log("  → updateDashboard() appelée");
             // Si aucun compte actif, utiliser tous les trades
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccounts = tradingAccounts.filter(a => a.active).map(a => a.id);
             const filteredTrades = activeAccounts.length === 0 
                 ? trades 
-                : trades.filter(trade => activeAccounts.includes(trade.accountId));
+                : allTrades.filter(trade => activeAccounts.includes(trade.accountId));
 
-            console.log('📊 updateDashboard - Trades filtrés:', filteredTrades.length, 'sur', trades.length, 'total');
+            console.log('📊 updateDashboard - Trades filtrés:', filteredTrades.length, 'sur', allTrades.length, 'total');
 
             if (filteredTrades.length === 0) {
                 resetDashboard();
@@ -2977,7 +2977,7 @@
                 tradesByDay[trade.date] += trade.pnl;
             });
             
-            const dayResults = Object.values(tradesByDay);
+            const dayResults = Object.values(allTradesByDay);
             const winningDays = dayResults.filter(d => d > 0).length;
             const dayWinRate = dayResults.length > 0 ? (winningDays / dayResults.length) * 100 : 0;
 
@@ -3033,7 +3033,7 @@
             
             // Filtrer par comptes actifs
             const filteredTrades = getFilteredTrades();
-            const activeAccountIds = accounts.length > 0 ? accounts.filter(a => a.active).map(a => a.id) : [];
+            const activeAccountIds = tradingAccounts.length > 0 ? tradingAccounts.filter(a => a.active).map(a => a.id) : [];
             
             for (let i = 0; i < 42; i++) {
                 const date = new Date(startDate.getTime());
@@ -3141,8 +3141,8 @@
         // NOUVELLE FONCTION: Calcul des statistiques mensuelles
         function updateMonthlyStats() {
             // Filtrer par comptes actifs
-            const activeAccountIds = accounts.filter(a => a.active).map(a => a.id);
-            const filteredTrades = trades.filter(trade => activeAccountIds.includes(trade.accountId));
+            const activeAccountIds = tradingAccounts.filter(a => a.active).map(a => a.id);
+            const filteredTrades = allTrades.filter(trade => activeAccountIds.includes(trade.accountId));
             
             // Filtrer les trades du mois courant
             const monthTrades = filteredTrades.filter(trade => {
@@ -3192,8 +3192,8 @@
             const lastDay = new Date(currentYear, currentMonth + 1, 0);
             
             // Filtrer par comptes actifs
-            const activeAccountIds = accounts.filter(a => a.active).map(a => a.id);
-            const filteredTrades = trades.filter(trade => activeAccountIds.includes(trade.accountId));
+            const activeAccountIds = tradingAccounts.filter(a => a.active).map(a => a.id);
+            const filteredTrades = allTrades.filter(trade => activeAccountIds.includes(trade.accountId));
             
             // Grouper les trades par semaine du mois
             const weekData = [
@@ -3323,9 +3323,9 @@
             if (!container) return;
             
             // Récupérer les comptes actifs
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccounts = tradingAccounts.filter(a => a.active).map(a => a.id);
             let filteredTrades = activeAccounts.length > 0 
-                ? trades.filter(trade => activeAccounts.includes(trade.accountId))
+                ? allTrades.filter(trade => activeAccounts.includes(trade.accountId))
                 : trades;
             
             if (filteredTrades.length === 0) {
@@ -3405,9 +3405,9 @@
             if (!container) return;
             
             // Récupérer les comptes actifs
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccounts = tradingAccounts.filter(a => a.active).map(a => a.id);
             let filteredTrades = activeAccounts.length > 0 
-                ? trades.filter(trade => activeAccounts.includes(trade.accountId))
+                ? allTrades.filter(trade => activeAccounts.includes(trade.accountId))
                 : trades;
             
             if (filteredTrades.length === 0) {
@@ -3430,7 +3430,7 @@
                     trade.protections && trade.protections.includes(protType)
                 );
                 
-                if (tradesWithProt.length > 0) {
+                if (allTradesWithProt.length > 0) {
                     const winners = tradesWithProt.filter(t => t.pnl > 0);
                     const losers = tradesWithProt.filter(t => t.pnl < 0);
                     const winRate = (winners.length / tradesWithProt.length) * 100;
@@ -3452,7 +3452,7 @@
                 !trade.protections || trade.protections.length === 0
             );
             
-            if (tradesWithoutProt.length > 0) {
+            if (allTradesWithoutProt.length > 0) {
                 const winners = tradesWithoutProt.filter(t => t.pnl > 0);
                 const losers = tradesWithoutProt.filter(t => t.pnl < 0);
                 const winRate = (winners.length / tradesWithoutProt.length) * 100;
@@ -3577,6 +3577,7 @@
         }
 
         function initTraderScoreChart() {
+            if (traderScoreChart) traderScoreChart.destroy();
             const ctx = document.getElementById('traderScoreChart').getContext('2d');
             traderScoreChart = new Chart(ctx, {
                 type: 'radar',
@@ -3614,6 +3615,7 @@
         }
 
         function initTradeTimeChart() {
+            if (tradeTimeChart) tradeTimeChart.destroy();
             const ctx = document.getElementById('tradeTimeChart').getContext('2d');
             tradeTimeChart = new Chart(ctx, {
                 type: 'scatter',
@@ -3657,6 +3659,7 @@
         }
 
         function initDailyPnlChart() {
+            if (dailyPnlChart) dailyPnlChart.destroy();
             const ctx = document.getElementById('dailyPnlChart').getContext('2d');
             dailyPnlChart = new Chart(ctx, {
                 type: 'bar',
@@ -3689,6 +3692,7 @@
         }
 
         function initCumulativePnlChart() {
+            if (cumulativePnlChart) cumulativePnlChart.destroy();
             const ctx = document.getElementById('cumulativePnlChart').getContext('2d');
             cumulativePnlChart = new Chart(ctx, {
                 type: 'line',
@@ -3716,6 +3720,7 @@
         }
 
         function initDrawdownChart() {
+            if (drawdownChart) drawdownChart.destroy();
             const ctx = document.getElementById('drawdownChart').getContext('2d');
             drawdownChart = new Chart(ctx, {
                 type: 'line',
@@ -3783,6 +3788,7 @@
         }
 
         function initDurationChart() {
+            if (durationChart) durationChart.destroy();
             const ctx = document.getElementById('durationChart').getContext('2d');
             durationChart = new Chart(ctx, {
                 type: 'scatter',
@@ -3828,12 +3834,12 @@
         function updateCharts() {
             console.log("  → updateCharts() appelée");
             // Si aucun compte actif, utiliser tous les trades
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccounts = tradingAccounts.filter(a => a.active).map(a => a.id);
             const filteredTrades = activeAccounts.length === 0 
                 ? trades 
-                : trades.filter(trade => activeAccounts.includes(trade.accountId));
+                : allTrades.filter(trade => activeAccounts.includes(trade.accountId));
             
-            console.log('📈 updateCharts - Trades filtrés:', filteredTrades.length, 'sur', trades.length, 'total');
+            console.log('📈 updateCharts - Trades filtrés:', filteredTrades.length, 'sur', allTrades.length, 'total');
             
             if (filteredTrades.length === 0) {
                 // Pas de données, réinitialiser
@@ -3993,7 +3999,7 @@
             const winData = [];
             const lossData = [];
             
-            Object.keys(tradesByHour).forEach(hour => {
+            Object.keys(allTradesByHour).forEach(hour => {
                 const hourData = tradesByHour[hour];
                 if (hourData.wins > 0) {
                     winData.push({ x: parseInt(hour), y: hourData.pnl > 0 ? hourData.pnl : 100 });
@@ -4022,7 +4028,7 @@
             });
             
             // Trier les dates
-            const sortedDates = Object.keys(tradesByDay).sort();
+            const sortedDates = Object.keys(allTradesByDay).sort();
             const labels = sortedDates.map(date => {
                 const d = new Date(date);
                 return `${d.getMonth()+1}/${d.getDate()}`;
@@ -4120,9 +4126,9 @@
             console.log('⏱️ Duration chart mis à jour:', winData.length, 'gagnants,', lossData.length, 'perdants');
         }
 
-        function calculateProfitFactor(trades) {
-            const winningTrades = trades.filter(t => t.pnl > 0);
-            const losingTrades = trades.filter(t => t.pnl < 0);
+        function calculateProfitFactor(allTrades) {
+            const winningTrades = allTrades.filter(t => t.pnl > 0);
+            const losingTrades = allTrades.filter(t => t.pnl < 0);
             
             const grossProfit = winningTrades.reduce((sum, trade) => sum + trade.pnl, 0);
             const grossLoss = Math.abs(losingTrades.reduce((sum, trade) => sum + trade.pnl, 0));
@@ -4234,7 +4240,7 @@
             // Si utilisateur connecté, sauvegarder ses données spécifiques
             if (currentUser && currentUser.role === 'student') {
                 saveUserData(currentUser.uuid);
-                console.log('✅ Données utilisateur sauvegardées:', trades.length, 'trades,', accounts.length, 'comptes');
+                console.log('✅ Données utilisateur sauvegardées:', allTrades.length, 'trades,', tradingAccounts.length, 'comptes');
             } else {
                 // Sauvegarde générique (compatibilité ancienne version)
                 const userData = {
@@ -4261,21 +4267,21 @@
                     accounts = parsed.accounts || [];
                     accountCosts = parsed.accountCosts || [];
                     payouts = parsed.payouts || [];
-                    console.log('✅ Données chargées:', trades.length, 'trades,', accounts.length, 'comptes,', accountCosts.length, 'coûts,', payouts.length, 'payouts');
+                    console.log('✅ Données chargées:', allTrades.length, 'trades,', tradingAccounts.length, 'comptes,', accountCosts.length, 'coûts,', payouts.length, 'payouts');
                     
                     // DEBUG: Verification exitTime dans les trades chargés
-                    if (trades.length > 0) {
+                    if (allTrades.length > 0) {
                         console.log('DEBUG loadFromStorage - Premier trade:', {
-                            id: trades[0].id,
-                            entryTime: trades[0].entryTime,
-                            exitTime: trades[0].exitTime,
-                            hasExitTime: !!trades[0].exitTime
+                            id: allTrades[0].id,
+                            entryTime: allTrades[0].entryTime,
+                            exitTime: allTrades[0].exitTime,
+                            hasExitTime: !!allTrades[0].exitTime
                         });
                         console.log('DEBUG loadFromStorage - Dernier trade:', {
-                            id: trades[trades.length-1].id,
-                            entryTime: trades[trades.length-1].entryTime,
-                            exitTime: trades[trades.length-1].exitTime,
-                            hasExitTime: !!trades[trades.length-1].exitTime
+                            id: allTrades[allTrades.length-1].id,
+                            entryTime: allTrades[allTrades.length-1].entryTime,
+                            exitTime: allTrades[allTrades.length-1].exitTime,
+                            hasExitTime: !!allTrades[allTrades.length-1].exitTime
                         });
                     }
                 } catch (e) {
@@ -4286,7 +4292,7 @@
                 trades = JSON.parse(localStorage.getItem('trades') || '[]');
                 accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
                 journalEntries = JSON.parse(localStorage.getItem('journalEntries') || '[]');
-                console.log('🔄 Chargé depuis clés individuelles:', trades.length, 'trades');
+                console.log('🔄 Chargé depuis clés individuelles:', allTrades.length, 'trades');
             }
         }
 
@@ -4314,7 +4320,7 @@
                     accounts = parsed.accounts || [];
                     accountCosts = parsed.accountCosts || [];
                     payouts = parsed.payouts || [];
-                    console.log(`✅ Données utilisateur ${userId} chargées:`, trades.length, 'trades');
+                    console.log(`✅ Données utilisateur ${userId} chargées:`, allTrades.length, 'trades');
                 } catch (e) {
                     console.error('❌ Erreur chargement données utilisateur:', e);
                     // Initialiser avec données vides
@@ -4422,10 +4428,10 @@
             
             studentsData.forEach(studentData => {
                 const trades = studentData.data.trades || [];
-                totalTrades += trades.length;
-                totalWins += trades.filter(t => t.pnl > 0).length;
-                totalLosses += trades.filter(t => t.pnl < 0).length;
-                totalPnL += trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+                totalTrades += allTrades.length;
+                totalWins += allTrades.filter(t => t.pnl > 0).length;
+                totalLosses += allTrades.filter(t => t.pnl < 0).length;
+                totalPnL += allTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
             });
             
             const globalWinRate = totalTrades > 0 ? ((totalWins / totalTrades) * 100).toFixed(1) : 0;
@@ -4462,10 +4468,10 @@
                     const student = studentData.user;
                     const trades = studentData.data.trades || [];
                     const accounts = studentData.data.accounts || [];
-                    const wins = trades.filter(t => t.pnl > 0).length;
-                    const winRate = trades.length > 0 ? ((wins / trades.length) * 100).toFixed(1) : 0;
-                    const pnl = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
-                    const avgPnL = trades.length > 0 ? (pnl / trades.length).toFixed(2) : 0;
+                    const wins = allTrades.filter(t => t.pnl > 0).length;
+                    const winRate = allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(1) : 0;
+                    const pnl = allTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+                    const avgPnL = allTrades.length > 0 ? (pnl / allTrades.length).toFixed(2) : 0;
                     
                     return `
                         <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
@@ -4474,10 +4480,10 @@
                                 <div class="text-sm text-gray-600">${student.email}</div>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-gray-700">${accounts.length}</span>
+                                <span class="text-gray-700">${tradingAccounts.length}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="font-semibold">${trades.length}</span>
+                                <span class="font-semibold">${allTrades.length}</span>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
@@ -4518,9 +4524,9 @@
                 const student = studentData.user;
                 const trades = studentData.data.trades || [];
                 const accounts = studentData.data.accounts || [];
-                const wins = trades.filter(t => t.pnl > 0).length;
-                const winRate = trades.length > 0 ? ((wins / trades.length) * 100).toFixed(1) : 0;
-                const pnl = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+                const wins = allTrades.filter(t => t.pnl > 0).length;
+                const winRate = allTrades.length > 0 ? ((wins / allTrades.length) * 100).toFixed(1) : 0;
+                const pnl = allTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
                 
                 return `
                     <tr class="border-b border-gray-200 hover:bg-gray-50">
@@ -4528,11 +4534,11 @@
                             <div class="font-semibold">${student.name}</div>
                             <div class="text-sm text-gray-600">${student.email}</div>
                         </td>
-                        <td class="px-6 py-4">${accounts.length} compte(s)</td>
+                        <td class="px-6 py-4">${tradingAccounts.length} compte(s)</td>
                         <td class="px-6 py-4">
                             <span class="text-green-600 font-semibold">${winRate}%</span>
                         </td>
-                        <td class="px-6 py-4">${trades.length}</td>
+                        <td class="px-6 py-4">${allTrades.length}</td>
                         <td class="px-6 py-4">
                             <span class="${pnl >= 0 ? 'text-green-600' : 'text-red-600'} font-semibold">$${pnl.toFixed(2)}</span>
                         </td>
@@ -5005,13 +5011,13 @@
         
         // Fonction pour voir les détails d'un trade
         function viewTrade(tradeId) {
-            const trade = trades.find(t => t.id === tradeId);
+            const trade = allTrades.find(t => t.id === tradeId);
             if (!trade) {
                 alert('Trade non trouvé');
                 return;
             }
             
-            const account = accounts.find(a => a.id === trade.accountId);
+            const account = tradingAccounts.find(a => a.id === trade.accountId);
             const pnlClass = trade.pnl >= 0 ? 'text-green-600' : 'text-red-600';
             
             let html = `
@@ -5688,13 +5694,13 @@
             console.log("  → updateBanner() appelée");
             // Si aucun compte n'existe, utiliser tous les trades
             let filteredTrades;
-            if (accounts.length === 0) {
+            if (tradingAccounts.length === 0) {
                 console.log('⚠️ Aucun compte défini, utilisation de tous les trades');
-                filteredTrades = trades;
+                filteredTrades = allTrades;
             } else {
-                const activeAccountIds = accounts.filter(a => a.active).map(a => a.id);
+                const activeAccountIds = tradingAccounts.filter(a => a.active).map(a => a.id);
                 console.log('📁 Comptes actifs:', activeAccountIds);
-                filteredTrades = trades.filter(t => activeAccountIds.includes(t.accountId));
+                filteredTrades = allTrades.filter(t => activeAccountIds.includes(t.accountId));
             }
 
             console.log('📊 Trades filtrés pour le bandeau:', filteredTrades.length);
@@ -5733,7 +5739,7 @@
                 tradesByDay[trade.date] += trade.pnl;
             });
             
-            const dayResults = Object.values(tradesByDay);
+            const dayResults = Object.values(allTradesByDay);
             const winningDays = dayResults.filter(d => d > 0).length;
             const losingDays = dayResults.filter(d => d < 0).length;
             const neutralDays = dayResults.filter(d => d === 0).length;
@@ -6113,7 +6119,7 @@
             // Remplir la liste des comptes
             const select = document.getElementById('csvTargetAccount');
             select.innerHTML = '<option value="">Choisir un compte...</option>';
-            accounts.forEach(account => {
+            tradingAccounts.forEach(account => {
                 select.innerHTML += `<option value="${account.id}">${account.name}</option>`;
             });
             
@@ -6164,7 +6170,7 @@
                     return;
                 }
 
-                const account = accounts.find(a => a.id === accountId);
+                const account = tradingAccounts.find(a => a.id === accountId);
                 if (!account) {
                     alert('Compte non trouvé');
                     return;
