@@ -82,7 +82,20 @@ async function login() {
         
         // Charger les données et afficher l'app
         await loadUserDataFromSupabase(currentUser.uuid);
-        showMainApp();
+        // Déclencher un événement au lieu d'appeler directement
+        if (typeof showMainApp === 'function') {
+            showMainApp();
+        } else {
+            console.error('❌ showMainApp n'est pas définie - attente...');
+            // Réessayer après un court délai
+            setTimeout(() => {
+                if (typeof showMainApp === 'function') {
+                    showMainApp();
+                } else {
+                    console.error('❌ showMainApp toujours pas définie après délai');
+                }
+            }, 100);
+        }
 
     } catch (err) {
         console.error('❌ Erreur critique login:', err);
@@ -132,7 +145,20 @@ async function coachLogin() {
         // Connexion coach réussie
         currentUser = userData;
         console.log('✅ Connexion coach réussie:', userData.email);
-        showMainApp();
+        // Déclencher un événement au lieu d'appeler directement
+        if (typeof showMainApp === 'function') {
+            showMainApp();
+        } else {
+            console.error('❌ showMainApp n'est pas définie - attente...');
+            // Réessayer après un court délai
+            setTimeout(() => {
+                if (typeof showMainApp === 'function') {
+                    showMainApp();
+                } else {
+                    console.error('❌ showMainApp toujours pas définie après délai');
+                }
+            }, 100);
+        }
 
     } catch (err) {
         console.error('❌ Erreur coach login:', err);
