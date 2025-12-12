@@ -1750,6 +1750,7 @@
     </button>
 
     <script>
+        console.log("🔧 DÉBUT DU SCRIPT PRINCIPAL");
         // Global variables
         let currentUser = null;
         let allUsers = []; // Tous les utilisateurs (élèves + coach)
@@ -2094,6 +2095,7 @@
 
         // Rendre showMainApp globale
         window.showMainApp = showMainApp;
+        console.log("✅ showMainApp rendue globale:", typeof window.showMainApp);
 
         // Navigation
         function showSection(sectionName) {
@@ -5164,7 +5166,7 @@
             }
         }
 
-</script>
+    </script>
 
     <!-- Modal pour voir les détails du trade -->
     <div id="viewTradeModal" class="view-modal">
