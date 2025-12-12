@@ -22,15 +22,28 @@ async function login() {
         }
 
         // Récupérer les données utilisateur depuis la table users
+        console.log('🔍 Recherche user avec UUID:', data.user.id);
+        
         const { data: userData, error: userError } = await supabase
             .from('users')
             .select('*')
             .eq('uuid', data.user.id)
             .single();
 
+        console.log('📊 Résultat requête users:', { userData, userError });
+
         if (userError) {
-            console.error('Erreur récupération user:', userError);
-            showError('loginError', 'Erreur lors de la récupération des données');
+            console.error('❌ Erreur récupération user:', userError);
+            console.error('❌ Code erreur:', userError.code);
+            console.error('❌ Message:', userError.message);
+            console.error('❌ Details:', userError.details);
+            showError('loginError', 'Erreur lors de la récupération des données: ' + userError.message);
+            return;
+        }
+
+        if (!userData) {
+            console.error('❌ Aucun utilisateur trouvé dans public.users avec UUID:', data.user.id);
+            showError('loginError', 'Utilisateur non trouvé dans la base de données');
             return;
         }
 
@@ -204,10 +217,16 @@ async function register() {
     }
 
     try {
-        // Créer l'utilisateur dans Supabase Auth
+        // Créer l'utilisateur dans Supabase Auth avec auto-confirmation
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email: email,
-            password: password
+            password: password,
+            options: {
+                emailRedirectTo: window.location.origin,
+                data: {
+                    role: 'student'
+                }
+            }
         });
 
         if (authError) {
