@@ -1,14 +1,6 @@
-/**
- * =================================================================
- * JOURNAL TRADER 360 - TRADES MODULE
- * Version: DEFINITIVE 1.0
- * Convention: TOUJOURS utiliser user_id = currentUser.uuid
- * =================================================================
- */
-
-// ===== FONCTION AJOUT TRADE =====
+// Remplacer la fonction addTrade() pour utiliser Supabase
 async function addTrade() {
-    // Récupérer les valeurs du formulaire
+    // Récupérer les valeurs du formulaire (même code qu'avant)
     const date = document.getElementById('tradeDate').value;
     const entryTime = document.getElementById('tradeEntryTime').value;
     const exitTime = document.getElementById('tradeExitTime').value;
@@ -19,7 +11,7 @@ async function addTrade() {
     const contracts = parseInt(document.getElementById('tradeContracts').value);
     const account = document.getElementById('tradeAccount').value;
 
-    // Validations
+    // Validations (même code qu'avant)
     if (!date || !entryTime || !exitTime || !symbol || !direction || !entryPrice || !exitPrice || !contracts || !account) {
         alert('⚠️ Veuillez remplir tous les champs obligatoires');
         return;
@@ -32,7 +24,6 @@ async function addTrade() {
 
     if (!currentUser || !currentUser.uuid) {
         alert('❌ Erreur: utilisateur non connecté');
-        console.error('❌ currentUser invalide:', currentUser);
         return;
     }
 
@@ -49,7 +40,7 @@ async function addTrade() {
 
     // Préparer les données du trade
     const tradeData = {
-        user_id: currentUser.uuid,  // ⚠️ UTILISER UUID
+        user_id: currentUser.uuid,
         date: date,
         entry_time: entryTime,
         exit_time: exitTime,
@@ -64,8 +55,6 @@ async function addTrade() {
         created_at: new Date().toISOString()
     };
 
-    console.log('📝 Ajout trade pour UUID:', currentUser.uuid);
-
     try {
         // Insérer dans Supabase
         const { data, error } = await supabase
@@ -75,8 +64,8 @@ async function addTrade() {
             .single();
 
         if (error) {
-            console.error('❌ Erreur insertion trade:', error);
-            alert('❌ Erreur lors de l\'ajout du trade: ' + error.message);
+            console.error('Erreur insertion trade:', error);
+            alert('❌ Erreur lors de l\'ajout du trade');
             return;
         }
 
@@ -96,23 +85,16 @@ async function addTrade() {
         alert('✅ Trade ajouté avec succès!');
 
     } catch (err) {
-        console.error('❌ Erreur addTrade:', err);
+        console.error('Erreur addTrade:', err);
         alert('❌ Une erreur est survenue');
     }
 }
 
-// ===== FONCTION SUPPRESSION TRADE =====
+// Remplacer deleteTrade() pour utiliser Supabase
 async function deleteTrade(tradeId) {
     if (!confirm('❌ Voulez-vous vraiment supprimer ce trade ?')) {
         return;
     }
-
-    if (!currentUser || !currentUser.uuid) {
-        alert('❌ Erreur: utilisateur non connecté');
-        return;
-    }
-
-    console.log('🗑️ Suppression trade ID:', tradeId, 'pour UUID:', currentUser.uuid);
 
     try {
         const { error } = await supabase
@@ -122,8 +104,8 @@ async function deleteTrade(tradeId) {
             .eq('user_id', currentUser.uuid); // Sécurité RLS
 
         if (error) {
-            console.error('❌ Erreur suppression trade:', error);
-            alert('❌ Erreur lors de la suppression: ' + error.message);
+            console.error('Erreur suppression trade:', error);
+            alert('❌ Erreur lors de la suppression');
             return;
         }
 
@@ -137,37 +119,30 @@ async function deleteTrade(tradeId) {
         alert('✅ Trade supprimé avec succès!');
 
     } catch (err) {
-        console.error('❌ Erreur deleteTrade:', err);
+        console.error('Erreur deleteTrade:', err);
         alert('❌ Une erreur est survenue');
     }
 }
 
-// ===== FONCTION AJOUT ACCOUNT =====
+// Fonction pour ajouter un account avec Supabase
 async function addAccount() {
     const name = document.getElementById('accountName').value.trim();
-    const type = document.getElementById('accountType').value;
-    const balance = parseFloat(document.getElementById('accountBalance').value);
+    const type = 'prop_firm'; // Type par défaut car champ absent du formulaire
+    const balance = parseFloat(document.getElementById('accountSize').value);
 
-    if (!name || !type || isNaN(balance)) {
+    if (!name || isNaN(balance)) {
         alert('⚠️ Veuillez remplir tous les champs');
         return;
     }
 
-    if (!currentUser || !currentUser.uuid) {
-        alert('❌ Erreur: utilisateur non connecté');
-        return;
-    }
-
     const accountData = {
-        user_id: currentUser.uuid,  // ⚠️ UTILISER UUID
+        user_id: currentUser.uuid,
         name: name,
         type: type,
         initial_balance: balance,
         current_balance: balance,
         created_at: new Date().toISOString()
     };
-
-    console.log('💰 Ajout compte pour UUID:', currentUser.uuid);
 
     try {
         const { data, error } = await supabase
@@ -177,8 +152,8 @@ async function addAccount() {
             .single();
 
         if (error) {
-            console.error('❌ Erreur ajout account:', error);
-            alert('❌ Erreur lors de l\'ajout du compte: ' + error.message);
+            console.error('Erreur ajout account:', error);
+            alert('❌ Erreur lors de l\'ajout du compte');
             return;
         }
 
@@ -192,23 +167,16 @@ async function addAccount() {
         alert('✅ Compte ajouté avec succès!');
 
     } catch (err) {
-        console.error('❌ Erreur addAccount:', err);
+        console.error('Erreur addAccount:', err);
         alert('❌ Une erreur est survenue');
     }
 }
 
-// ===== FONCTION SUPPRESSION ACCOUNT =====
+// Fonction pour supprimer un account avec Supabase
 async function deleteAccount(accountId) {
     if (!confirm('❌ Voulez-vous vraiment supprimer ce compte ?')) {
         return;
     }
-
-    if (!currentUser || !currentUser.uuid) {
-        alert('❌ Erreur: utilisateur non connecté');
-        return;
-    }
-
-    console.log('🗑️ Suppression compte ID:', accountId, 'pour UUID:', currentUser.uuid);
 
     try {
         const { error } = await supabase
@@ -218,8 +186,8 @@ async function deleteAccount(accountId) {
             .eq('user_id', currentUser.uuid);
 
         if (error) {
-            console.error('❌ Erreur suppression account:', error);
-            alert('❌ Erreur lors de la suppression: ' + error.message);
+            console.error('Erreur suppression account:', error);
+            alert('❌ Erreur lors de la suppression');
             return;
         }
 
@@ -231,9 +199,9 @@ async function deleteAccount(accountId) {
         alert('✅ Compte supprimé avec succès!');
 
     } catch (err) {
-        console.error('❌ Erreur deleteAccount:', err);
+        console.error('Erreur deleteAccount:', err);
         alert('❌ Une erreur est survenue');
     }
 }
 
-console.log('✅ Trades Module chargé (VERSION DEFINITIVE)');
+console.log('✅ Trades Supabase chargé');
