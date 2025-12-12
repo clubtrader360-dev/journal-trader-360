@@ -235,3 +235,10 @@ async function deleteAccount(accountId) {
 }
 
 console.log('✅ Trades Module chargé (VERSION DEFINITIVE)');
+
+// ✅ EXPORTS GLOBAUX pour éviter "addAccount is not defined"
+window.addAccount = addAccount;
+window.addTrade = addTrade;
+window.deleteAccount = deleteAccount;
+window.deleteTrade = deleteTrade;
+console.log('✅ supabase-trades.js - Fonctions exportées');
