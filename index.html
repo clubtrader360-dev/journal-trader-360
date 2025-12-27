@@ -774,6 +774,17 @@ window.addEventListener('load', function() {
                 attach('showLoginBtn', window.showLoginForm, 'ShowLogin');
                 attach('logoutBtn', window.logout, 'Logout');
                 attach('logoutBtnCoach', window.logout, 'LogoutCoach');
+            
+            // Attacher addAccount
+            const addAccountBtn = document.getElementById('addAccountBtn');
+            if (addAccountBtn) {
+                addAccountBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log("[ADDACCOUNT] Ajout compte...");
+                    window.addAccount();
+                });
+                console.log("[OK] Bouton AddAccount attache");
+            }
                 
                 console.log("[SUCCESS] Tous les evenements sont attaches");
                 
