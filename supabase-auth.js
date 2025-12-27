@@ -147,8 +147,8 @@
             const coachApp = document.getElementById('coachApp');
             
             if (authScreen) authScreen.style.display = 'none';
-            if (mainApp) mainApp.style.display = 'flex';  // Afficher l'interface élève
-            if (coachApp) coachApp.style.display = 'none';  // Masquer l'interface coach
+            if (mainApp) mainApp.style.display = 'none';  // Masquer l'interface élève
+            if (coachApp) coachApp.style.display = 'flex';  // Afficher l'interface COACH
 
             if (typeof loadCoachRegistrationsFromSupabase === 'function') {
                 await loadCoachRegistrationsFromSupabase();
