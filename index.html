@@ -1829,7 +1829,7 @@ window.addEventListener('load', function() {
     <script>
         console.log(" DÉBUT DU SCRIPT PRINCIPAL");
         // Global variables
-        let currentUser = null;
+        // let window.currentUser = null;  // SUPPRIMÉ - Utiliser window.currentUser uniquement
         let allUsers = []; // Tous les utilisateurs (élèves + coach)
         let trades = [];
         let journalEntries = [];
@@ -2142,7 +2142,7 @@ window.addEventListener('load', function() {
         // coachLogin() déplacé vers supabase-auth.js
 
         function logout() {
-            currentUser = null;
+            window.currentUser = null;
             document.getElementById('authScreen').style.display = 'flex';
             document.getElementById('mainApp').style.display = 'none';
             
@@ -2157,11 +2157,11 @@ window.addEventListener('load', function() {
             document.getElementById('authScreen').style.display = 'none';
             
             // Vérifier si c'est le coach ou un élève
-            if (currentUser.role === 'coach') {
+            if (window.currentUser.role === 'coach') {
                 // Afficher l'interface Coach
                 document.getElementById('mainApp').style.display = 'none';
                 document.getElementById('coachApp').style.display = 'flex';
-                document.getElementById('coachUserInfo').textContent = currentUser.email;
+                document.getElementById('coachUserInfo').textContent = window.currentUser.email;
                 
                 // Charger les données pour le dashboard coach
                 loadCoachDashboard();
@@ -2169,10 +2169,10 @@ window.addEventListener('load', function() {
                 // Afficher l'interface Élève (normale)
                 document.getElementById('mainApp').style.display = 'flex';
                 document.getElementById('coachApp').style.display = 'none';
-                document.getElementById('userInfo').textContent = currentUser.email;
+                document.getElementById('userInfo').textContent = window.currentUser.email;
                 
                 // Charger les données de l'élève
-                loadUserDataFromSupabase(currentUser.uuid);
+                loadUserDataFromSupabase(window.currentUser.uuid);
                 updateAccountsList();
                 updateDashboard();
                 updateCalendar();
