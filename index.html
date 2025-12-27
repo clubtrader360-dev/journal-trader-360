@@ -740,8 +740,8 @@
                     <input type="password" id="loginPassword" placeholder="Votre mot de passe">
                 </div>
                 <button id="loginBtn" class="trader-btn w-full mb-4">Se connecter</button>
-                <button onclick="showRegisterForm()" class="trader-btn-secondary w-full mb-4">Créer un compte</button>
-                <button onclick="showCoachLogin()" class="trader-btn-secondary w-full">Connexion Coach</button>
+                <button id="showRegisterBtn" data-action="showRegisterForm" class="trader-btn-secondary w-full mb-4">Créer un compte</button>
+                <button id="showCoachLoginBtn" data-action="showCoachLogin" class="trader-btn-secondary w-full">Connexion Coach</button>
                 <div id="loginError" class="text-red-500 text-sm mt-4 hidden"></div>
             </div>
             
@@ -760,7 +760,7 @@
                     <input type="password" id="confirmPassword" placeholder="Confirmez votre mot de passe">
                 </div>
                 <button id="registerBtn" class="trader-btn w-full mb-4">S'inscrire</button>
-                <button onclick="showLoginForm()" class="trader-btn-secondary w-full">Retour à la connexion</button>
+                <button class="showLoginBtn" data-action="showLoginForm" class="trader-btn-secondary w-full">Retour à la connexion</button>
                 <div id="registerError" class="text-red-500 text-sm mt-4 hidden"></div>
             </div>
             
@@ -775,7 +775,7 @@
                     <input type="password" id="coachCode" placeholder="trader3602025">
                 </div>
                 <button id="coachLoginBtn" class="trader-btn w-full mb-4">Connexion Coach</button>
-                <button onclick="showLoginForm()" class="trader-btn-secondary w-full">Retour</button>
+                <button class="showLoginBtn" data-action="showLoginForm" class="trader-btn-secondary w-full">Retour</button>
                 <div id="coachError" class="text-red-500 text-sm mt-4 hidden"></div>
             </div>
         </div>
@@ -816,7 +816,7 @@
                 <div class="sidebar-item" onclick="showSection('accounting')">
                     <i class="fas fa-wallet mr-3"></i>Comptabilité
                 </div>
-                <div class="sidebar-item" onclick="logout()" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
+                <div class="sidebar-item" class="logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
                     <i class="fas fa-sign-out-alt mr-3"></i>Déconnexion
                 </div>
             </nav>
@@ -1387,7 +1387,7 @@
                 </div>
                 
                 <div class="flex gap-4 mt-6">
-                    <button type="button" onclick="addAccount()" class="trader-btn flex-1">Ajouter</button>
+                    <button type="button" id="addAccountBtn" data-action="addAccount" class="trader-btn flex-1">Ajouter</button>
                     <button type="button" onclick="closeModal('addAccountModal')" class="trader-btn-secondary flex-1">Annuler</button>
                 </div>
             </form>
@@ -1505,7 +1505,7 @@
                 </div>
                 
                 <div class="flex gap-4 mt-6">
-                    <button type="button" onclick="addTrade()" class="trader-btn flex-1">Ajouter le Trade</button>
+                    <button type="button" id="addTradeBtn" data-action="addTrade" class="trader-btn flex-1">Ajouter le Trade</button>
                     <button type="button" onclick="closeModal('addTradeModal')" class="trader-btn-secondary flex-1">Annuler</button>
                 </div>
             </form>
@@ -5301,7 +5301,7 @@
             </nav>
 
             <nav class="mt-6">
-                <div class="sidebar-item" onclick="logout()" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
+                <div class="sidebar-item" class="logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
                     <i class="fas fa-sign-out-alt mr-3"></i>Déconnexion
                 </div>
             </nav>
@@ -5611,6 +5611,91 @@
     <script src="supabase-trades.js"></script>
     <script src="supabase-journal.js"></script>
     <script src="supabase-coach.js"></script>
+
+<!-- ========================================== -->
+<!-- SCRIPT D'ATTACHEMENT ROBUSTE DES ÉVÉNEMENTS -->
+<!-- ========================================== -->
+<script>
+(function() {
+    console.log('🚀 Script de connexion initialisé');
+    
+    // Liste des fonctions requises
+    const requiredFunctions = [
+        'login', 'register', 'coachLogin', 'logout',
+        'showRegisterForm', 'showLoginForm', 'showCoachLogin',
+        'addAccount', 'addTrade', 'deleteAccount', 'deleteTrade'
+    ];
+    
+    let checkAttempts = 0;
+    const maxAttempts = 50; // 5 secondes
+    
+    // Vérifier et attacher les événements
+    function checkAndAttachEvents() {
+        checkAttempts++;
+        
+        // Vérifier combien de fonctions sont chargées
+        const loadedFunctions = requiredFunctions.filter(fn => typeof window[fn] === 'function');
+        const allLoaded = loadedFunctions.length === requiredFunctions.length;
+        
+        console.log(`🔄 [${checkAttempts}/${maxAttempts}] Fonctions chargées: ${loadedFunctions.length}/${requiredFunctions.length}`);
+        
+        if (allLoaded) {
+            clearInterval(checkInterval);
+            console.log('✅ Toutes les fonctions sont chargées !');
+            attachAllEvents();
+        } else if (checkAttempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            console.error('❌ Timeout: Certaines fonctions ne sont pas chargées');
+            console.error('   Fonctions manquantes:', requiredFunctions.filter(fn => typeof window[fn] !== 'function'));
+            // Attacher quand même ce qui est disponible
+            attachAllEvents();
+        }
+    }
+    
+    // Attacher tous les événements
+    function attachAllEvents() {
+        console.log('🔗 Attachement des événements...');
+        
+        // Fonction helper pour attacher un événement
+        function attachEvent(selector, action, isClass = false) {
+            const elements = isClass ? 
+                document.querySelectorAll(`.${selector}`) : 
+                [document.getElementById(selector)];
+            
+            elements.forEach(el => {
+                if (el && typeof window[action] === 'function') {
+                    el.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log(`🎯 Action: ${action}`);
+                        window[action]();
+                    });
+                    console.log(`   ✅ ${selector} → ${action}`);
+                }
+            });
+        }
+        
+        // Attacher les événements de connexion
+        attachEvent('loginBtn', 'login');
+        attachEvent('registerBtn', 'register');
+        attachEvent('coachLoginBtn', 'coachLogin');
+        attachEvent('showRegisterBtn', 'showRegisterForm');
+        attachEvent('showLoginBtn', 'showLoginForm', true); // classe
+        attachEvent('showCoachLoginBtn', 'showCoachLogin');
+        attachEvent('logoutBtn', 'logout', true); // classe
+        
+        // Attacher les événements de trading
+        attachEvent('addAccountBtn', 'addAccount');
+        attachEvent('addTradeBtn', 'addTrade');
+        
+        console.log('🎉 Tous les événements sont attachés !');
+    }
+    
+    // Démarrer la vérification
+    const checkInterval = setInterval(checkAndAttachEvents, 100);
+    
+})();
+</script>
+
 
 <!-- Script d'attachement robuste des événements -->
 <script>
