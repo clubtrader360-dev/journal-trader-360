@@ -13,7 +13,6 @@
     LOGS DE DEBUG AJOUTÉS:
     1. Dans addTrade() : Collecte de exitTime depuis le formulaire
     2. Dans addTrade() : Vérification tradeData avant sauvegarde
-    4. Dans loadFromStorage() : Vérification trades chargés au démarrage
     5. Dans updateDurationChart() : Calcul de durée pour chaque trade
     
     INSTRUCTIONS:
@@ -22,7 +21,6 @@
     3. Observer les logs dans la console
     4. Partager les logs pour diagnostic
     
-    Rechercher dans console: "DEBUG addTrade", "DEBUG loadFromStorage", "DEBUG Duration"
     -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
@@ -1849,7 +1847,7 @@ window.addEventListener('load', function() {
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
-            loadFromStorage();
+            // Données chargées depuis Supabase
             setCurrentDate();
             setupStarRatings();
             initializeDefaultAccounts();
@@ -1873,7 +1871,7 @@ window.addEventListener('load', function() {
                     { id: 1, name: 'Compte 50K', size: '50000', active: true, color: '#ef4444' },
                     { id: 2, name: 'Compte 150K', size: '150000', active: true, color: '#22c55e' }
                 ];
-                saveToStorage();
+                // Données auto-sauvegardées dans Supabase
             }
             updateAccountsList();
         }
@@ -1942,7 +1940,7 @@ window.addEventListener('load', function() {
             const account = accounts.find(a => a.id === accountId);
             if (account) {
                 account.active = !account.active;
-                saveToStorage();
+                // Données auto-sauvegardées dans Supabase
                 updateDashboard();
                 updateBanner(); // Mise à jour des barres visuelles
                 updateCharts();
@@ -1980,7 +1978,7 @@ window.addEventListener('load', function() {
             accounts.push(newAccount);
             console.log('🆕 Comptes après ajout:', accounts.map(a => ({ id: a.id, name: a.name })));
             
-            saveToStorage();
+            // Données auto-sauvegardées dans Supabase
             updateAccountsList();
             
             // Mettre à jour le select dans le modal addTradeModal s'il est ouvert
@@ -2056,7 +2054,7 @@ window.addEventListener('load', function() {
             console.log(`🗑️ ${deletedTradesCount} trade(s) supprimé(s)`);
             
             // Sauvegarder et rafraîchir
-            saveToStorage();
+            // Données auto-sauvegardées dans Supabase
             updateAccountsList();
             refreshAllModules();
             
@@ -2393,7 +2391,7 @@ window.addEventListener('load', function() {
                 // Ajouter un nouveau trade
                 trades.push(tradeData);
             }
-            saveToStorage();
+            // Données auto-sauvegardées dans Supabase
             
             // DEBUG: Verification apres sauvegarde
             console.log('🔍 DEBUG - Nombre de trades dans le tableau:', trades.length);
@@ -2533,7 +2531,7 @@ window.addEventListener('load', function() {
                 if (index !== -1) {
                     console.log('🗑️ Suppression du trade ID:', tradeIdFloat, 'à l\'index:', index);
                     trades.splice(index, 1);
-                    saveToStorage();
+                    // Données auto-sauvegardées dans Supabase
                     
                     console.log('🗑️ Trade supprimé, rafraîchissement...');
                     refreshAllModules();
@@ -2576,7 +2574,7 @@ window.addEventListener('load', function() {
                         reader.onload = function(e) {
                             noteData.image = e.target.result;
                             journalEntries[index] = noteData;
-                            saveToStorage();
+                            // Données auto-sauvegardées dans Supabase
                             updateJournalEntries();
                             closeModal('addNoteModal');
                             delete modal.dataset.editingTimestamp;
@@ -2584,7 +2582,7 @@ window.addEventListener('load', function() {
                         reader.readAsDataURL(imageFile);
                     } else {
                         journalEntries[index] = noteData;
-                        saveToStorage();
+                        // Données auto-sauvegardées dans Supabase
                         updateJournalEntries();
                         closeModal('addNoteModal');
                         delete modal.dataset.editingTimestamp;
@@ -2597,14 +2595,14 @@ window.addEventListener('load', function() {
                     reader.onload = function(e) {
                         noteData.image = e.target.result;
                         journalEntries.push(noteData);
-                        saveToStorage();
+                        // Données auto-sauvegardées dans Supabase
                         updateJournalEntries();
                         closeModal('addNoteModal');
                     };
                     reader.readAsDataURL(imageFile);
                 } else {
                     journalEntries.push(noteData);
-                    saveToStorage();
+                    // Données auto-sauvegardées dans Supabase
                     updateJournalEntries();
                     closeModal('addNoteModal');
                 }
@@ -3611,6 +3609,7 @@ window.addEventListener('load', function() {
             calendarDisplay.showWinRate = document.getElementById('showWinRate').checked;
             
             // Sauvegarder les préférences
+        }
         
         // Charger les préférences au démarrage
         function loadCalendarPreferences() {
@@ -4289,58 +4288,6 @@ window.addEventListener('load', function() {
         }
 
         // Storage functions
-        function saveToStorage() {
-            // Si utilisateur connecté, sauvegarder ses données spécifiques
-            if (currentUser && currentUser.role === 'student') {
-                saveUserData(currentUser.id);
-                console.log('✅ Données utilisateur sauvegardées:', trades.length, 'trades,', accounts.length, 'comptes');
-            } else {
-                // Sauvegarde générique (compatibilité ancienne version)
-                const userData = {
-                    trades: trades,
-                    journalEntries: journalEntries,
-                    accounts: accounts,
-                    accountCosts: accountCosts,
-                    payouts: payouts
-                };
-        }
-
-        function loadFromStorage() {
-            // Charger depuis la clé simple
-            
-            if (userData) {
-                try {
-                    const parsed = JSON.parse(userData);
-                    trades = parsed.trades || [];
-                    journalEntries = parsed.journalEntries || [];
-                    accounts = parsed.accounts || [];
-                    accountCosts = parsed.accountCosts || [];
-                    payouts = parsed.payouts || [];
-                    console.log('✅ Données chargées:', trades.length, 'trades,', accounts.length, 'comptes,', accountCosts.length, 'coûts,', payouts.length, 'payouts');
-                    
-                    // DEBUG: Verification exitTime dans les trades chargés
-                    if (trades.length > 0) {
-                        console.log('DEBUG loadFromStorage - Premier trade:', {
-                            id: trades[0].id,
-                            entryTime: trades[0].entryTime,
-                            exitTime: trades[0].exitTime,
-                            hasExitTime: !!trades[0].exitTime
-                        });
-                        console.log('DEBUG loadFromStorage - Dernier trade:', {
-                            id: trades[trades.length-1].id,
-                            entryTime: trades[trades.length-1].entryTime,
-                            exitTime: trades[trades.length-1].exitTime,
-                            hasExitTime: !!trades[trades.length-1].exitTime
-                        });
-                    }
-                } catch (e) {
-                    console.error('❌ Erreur chargement:', e);
-                }
-            } else {
-                // Essayer de charger depuis les clés individuelles (compatibilité)
-                console.log('🔄 Chargé depuis clés individuelles:', trades.length, 'trades');
-            }
-        }
 
         // ===== FONCTIONS MULTI-UTILISATEURS =====
         
