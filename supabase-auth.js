@@ -62,9 +62,11 @@
 
             const authScreen = document.getElementById('authScreen');
             const mainApp = document.getElementById('mainApp');
+            const coachApp = document.getElementById('coachApp');
             
             if (authScreen) authScreen.style.display = 'none';
-            if (mainApp) mainApp.style.display = 'flex';
+            if (mainApp) mainApp.style.display = 'none';  // Masquer l'interface élève
+            if (coachApp) coachApp.style.display = 'flex';  // Afficher l'interface coach
 
             if (typeof loadUserDataFromSupabase === 'function') {
                 await loadUserDataFromSupabase(userData.uuid);
@@ -127,12 +129,14 @@
 
             const authScreen = document.getElementById('authScreen');
             const mainApp = document.getElementById('mainApp');
+            const coachApp = document.getElementById('coachApp');
             
             if (authScreen) authScreen.style.display = 'none';
-            if (mainApp) mainApp.style.display = 'flex';
+            if (mainApp) mainApp.style.display = 'none';  // Masquer l'interface élève
+            if (coachApp) coachApp.style.display = 'flex';  // Afficher l'interface coach
 
-            if (typeof loadCoachStudents === 'function') {
-                await loadCoachStudents(coachData.uuid);
+            if (typeof loadCoachRegistrationsFromSupabase === 'function') {
+                await loadCoachRegistrationsFromSupabase();
             }
             if (typeof refreshAllModules === 'function') {
                 refreshAllModules();
