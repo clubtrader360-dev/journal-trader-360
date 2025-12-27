@@ -2153,37 +2153,6 @@ window.addEventListener('load', function() {
             showLoginForm();
         }
 
-        function showMainApp() {
-            document.getElementById('authScreen').style.display = 'none';
-            
-            // Vérifier si c'est le coach ou un élève
-            if (window.currentUser.role === 'coach') {
-                // Afficher l'interface Coach
-                document.getElementById('mainApp').style.display = 'none';
-                document.getElementById('coachApp').style.display = 'flex';
-                document.getElementById('coachUserInfo').textContent = window.currentUser.email;
-                
-                // Charger les données pour le dashboard coach
-                loadCoachDashboard();
-            } else {
-                // Afficher l'interface Élève (normale)
-                document.getElementById('mainApp').style.display = 'flex';
-                document.getElementById('coachApp').style.display = 'none';
-                document.getElementById('userInfo').textContent = window.currentUser.email;
-                
-                // Charger les données de l'élève
-                loadUserDataFromSupabase(window.currentUser.uuid);
-                updateAccountsList();
-                updateDashboard();
-                updateCalendar();
-                initCharts();
-            }
-        }
-
-        // Rendre showMainApp globale
-        window.showMainApp = showMainApp;
-        console.log("[OK] showMainApp rendue globale:", typeof window.showMainApp);
-
         // Navigation
         function showSection(sectionName) {
             document.querySelectorAll('.section').forEach(section => {
