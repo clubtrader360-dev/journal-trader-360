@@ -1874,7 +1874,7 @@ window.addEventListener('load', function() {
             // Données chargées depuis Supabase
             setCurrentDate();
             setupStarRatings();
-            initializeDefaultAccounts();
+            // initializeDefaultAccounts();  // DÉSACTIVÉ - Utiliser Supabase
             // loadCalendarPreferences(); // Supprimée // Charger les préférences d'affichage
             
             // Initialiser les graphiques et mettre à jour tout
@@ -1889,6 +1889,7 @@ window.addEventListener('load', function() {
             console.log('[OK] Application chargée - Trades:', trades.length);
         });
 
+        /* DÉSACTIVÉ - Utiliser Supabase uniquement
         function initializeDefaultAccounts() {
             if (accounts.length === 0) {
                 accounts = [
@@ -1899,6 +1900,7 @@ window.addEventListener('load', function() {
             }
             updateAccountsList();
         }
+        */ // Fin initializeDefaultAccounts
 
         function setCurrentDate() {
             const today = new Date().toISOString().split('T')[0];
