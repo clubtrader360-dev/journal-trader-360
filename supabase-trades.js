@@ -249,12 +249,70 @@
         }
     }
 
+
+    // ========================================
+    // FONCTION : DELETE ACCOUNT
+    // ========================================
+    async function deleteAccount(accountId) {
+        if (!accountId) {
+            alert('[ERROR] ID du compte manquant');
+            return;
+        }
+
+        const confirmed = confirm('Êtes-vous sûr de vouloir supprimer ce compte et tous ses trades associés ?');
+        if (!confirmed) return;
+
+        try {
+            console.log('[DELETE] Suppression compte ID:', accountId);
+
+            // 1. Supprimer tous les trades associés
+            const { error: tradesError } = await supabase
+                .from('trades')
+                .delete()
+                .eq('account_id', accountId);
+
+            if (tradesError) {
+                console.error('[ERROR] Erreur suppression trades:', tradesError);
+                alert('Erreur lors de la suppression des trades: ' + tradesError.message);
+                return;
+            }
+
+            // 2. Supprimer le compte
+            const { error: accountError } = await supabase
+                .from('accounts')
+                .delete()
+                .eq('id', accountId);
+
+            if (accountError) {
+                console.error('[ERROR] Erreur suppression compte:', accountError);
+                alert('Erreur lors de la suppression du compte: ' + accountError.message);
+                return;
+            }
+
+            console.log('[OK] Compte supprimé avec succès');
+            alert('Compte supprimé avec succès !');
+
+            // Recharger les comptes et trades
+            if (typeof loadAccounts === 'function') {
+                await loadAccounts();
+            }
+            if (typeof loadTrades === 'function') {
+                await loadTrades();
+            }
+
+        } catch (err) {
+            console.error('[ERROR] Exception deleteAccount:', err);
+            alert('Erreur lors de la suppression: ' + err.message);
+        }
+    }
+
     // ===== EXPORT DES FONCTIONS =====
     window.addTrade = addTrade;
     window.loadTrades = loadTrades;
     window.addAccount = addAccount;
     window.loadAccounts = loadAccounts;
+    window.deleteAccount = deleteAccount;
 
-    console.log('[OK] Fonctions trades exportées: addTrade, loadTrades, addAccount, loadAccounts');
+    console.log('[OK] Fonctions trades exportées: addTrade, loadTrades, addAccount, loadAccounts, deleteAccount');
 
 })();
