@@ -160,29 +160,41 @@
 
     // ===== FONCTION AJOUT COMPTE =====
     async function addAccount() {
-        const accountNumber = document.getElementById('accountNumber').value.trim();
-        const accountType = document.getElementById('accountType').value;
-        const initialBalance = parseFloat(document.getElementById('initialBalance').value);
+        const accountName = document.getElementById('accountName');
+        const accountSize = document.getElementById('accountSize');
 
-        if (!accountNumber || !accountType || !initialBalance) {
-            alert('[WARN] Veuillez remplir tous les champs');
+        if (!accountName || !accountSize) {
+            alert('[ERROR] Formulaire non trouvé');
+            console.error('[ERROR] IDs manquants: accountName ou accountSize');
+            return;
+        }
+
+        const name = accountName.value.trim();
+        const sizeStr = accountSize.value.trim();
+
+        if (!name || !sizeStr) {
+            alert('Veuillez remplir tous les champs');
             return;
         }
 
         if (!currentUser || !currentUser.uuid) {
             alert('[ERROR] Erreur: utilisateur non connecté');
+            console.error('[ERROR] currentUser invalide:', currentUser);
             return;
         }
 
+        // Parser la taille (supporte "100K" ou "100000")
+        let size = parseFloat(sizeStr.replace(/[kK]/, '')) * (sizeStr.match(/[kK]/) ? 1000 : 1);
+
         const accountData = {
             user_id: currentUser.uuid,
-            account_number: accountNumber,
-            account_type: accountType,
-            initial_balance: initialBalance,
-            current_balance: initialBalance
+            name: name,  // Utilise le nom comme numéro
+            type: 'Trading',  // Type par défaut
+            initial_balance: size,
+            current_balance: size
         };
 
-        console.log(' Ajout compte pour UUID:', currentUser.uuid, accountData);
+        console.log('[SAVE] Ajout compte pour UUID:', currentUser.uuid, accountData);
 
         try {
             const { data, error } = await supabase
@@ -193,61 +205,70 @@
 
             if (error) {
                 console.error('[ERROR] Erreur insertion compte:', error);
-                alert('[ERROR] Erreur lors de l\'ajout du compte: ' + error.message);
+                alert('Erreur lors de l\'ajout du compte: ' + error.message);
                 return;
             }
 
             console.log('[OK] Compte ajouté:', data);
-            alert('[OK] Compte ajouté avec succès !');
+            alert('Compte ajouté avec succès !');
 
-            // Fermer modal et reset
-            document.getElementById('accountModal').style.display = 'none';
-            document.getElementById('addAccountForm').reset();
+            // Réinitialiser le formulaire
+            accountName.value = '';
+            accountSize.value = '';
 
-            // Rafraîchir
+            // Fermer le modal
+            const modal = document.getElementById('addAccountModal');
+            if (modal) modal.style.display = 'none';
+
+            // Recharger les comptes
             if (typeof loadAccounts === 'function') {
-                loadAccounts();
+                await loadAccounts();
             }
 
         } catch (err) {
             console.error('[ERROR] Exception addAccount:', err);
-            alert('[ERROR] Erreur système: ' + err.message);
+            alert('Erreur lors de l\'ajout: ' + err.message);
         }
     }
 
     // ===== FONCTION CHARGEMENT COMPTES =====
     async function loadAccounts() {
-        if (!currentUser || !currentUser.uuid) {
-            console.warn('[WARN] loadAccounts appelé mais currentUser invalide');
+        if (!window.currentUser || !window.currentUser.uuid) {
+            console.log('[WARN] loadAccounts appelé mais currentUser invalide');
             return;
         }
-
-        console.log(' Chargement des comptes pour UUID:', currentUser.uuid);
 
         try {
             const { data, error } = await supabase
                 .from('accounts')
                 .select('*')
-                .eq('user_id', currentUser.uuid);
+                .eq('user_id', window.currentUser.uuid)
+                .order('created_at', { ascending: false });
 
             if (error) {
-                console.error('[ERROR] Erreur chargement comptes:', error);
+                console.error('[ERROR] Erreur loadAccounts:', error);
                 return;
             }
 
             console.log('[OK] Comptes chargés:', data.length);
 
-            // Mettre à jour le select du formulaire de trade
+            // Mettre à jour le select dans le formulaire de trade
             const tradeAccountSelect = document.getElementById('tradeAccount');
             if (tradeAccountSelect) {
                 tradeAccountSelect.innerHTML = '<option value="">Sélectionner un compte</option>' +
-                    data.map(acc => `<option value="${acc.account_number}">${acc.account_number} (${acc.account_type})</option>`).join('');
+                    data.map(acc => `<option value="${acc.name}">${acc.name} (${acc.type})</option>`).join('');
+            }
+
+            // Mettre à jour l'affichage des comptes (si fonction existe)
+            if (typeof window.renderAccounts === 'function') {
+                window.renderAccounts(data);
             }
 
         } catch (err) {
             console.error('[ERROR] Exception loadAccounts:', err);
         }
     }
+
 
 
     // ========================================
@@ -293,11 +314,16 @@
             alert('Compte supprimé avec succès !');
 
             // Recharger les comptes et trades
-            if (typeof loadAccounts === 'function') {
-                await loadAccounts();
+            if (typeof window.loadAccounts === 'function') {
+                await window.loadAccounts();
             }
-            if (typeof loadTrades === 'function') {
-                await loadTrades();
+            if (typeof window.loadTrades === 'function') {
+                await window.loadTrades();
+            }
+            
+            // Rafraîchir l'affichage du dashboard
+            if (typeof window.updateDashboard === 'function') {
+                window.updateDashboard();
             }
 
         } catch (err) {
