@@ -5612,6 +5612,79 @@
     <script src="supabase-journal.js"></script>
     <script src="supabase-coach.js"></script>
 
+<!-- Script d'attachement robuste des événements -->
+<script>
+(function() {
+    console.log('🔍 Script de connexion chargé');
+    
+    let attempts = 0;
+    const maxAttempts = 100; // 10 secondes max
+    
+    // Vérifier toutes les 100ms
+    const checkInterval = setInterval(function() {
+        attempts++;
+        
+        console.log(`🔄 Tentative ${attempts}/${maxAttempts} - Vérification des fonctions...`);
+        
+        // Vérifier si les fonctions existent
+        if (typeof login === 'function' && 
+            typeof register === 'function' && 
+            typeof coachLogin === 'function') {
+            
+            clearInterval(checkInterval);
+            console.log('✅ Fonctions trouvées ! Attachement des événements...');
+            
+            // Attacher les événements
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('🔐 Tentative de connexion...');
+                    login();
+                });
+                console.log('✅ Bouton Login attaché');
+            } else {
+                console.error('❌ Bouton loginBtn non trouvé');
+            }
+            
+            const registerBtn = document.getElementById('registerBtn');
+            if (registerBtn) {
+                registerBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('📝 Tentative d'inscription...');
+                    register();
+                });
+                console.log('✅ Bouton Register attaché');
+            }
+            
+            const coachLoginBtn = document.getElementById('coachLoginBtn');
+            if (coachLoginBtn) {
+                coachLoginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('👨‍🏫 Tentative de connexion coach...');
+                    coachLogin();
+                });
+                console.log('✅ Bouton Coach Login attaché');
+            }
+            
+            console.log('🎉 Tous les événements sont attachés !');
+            
+        } else {
+            console.log(`   login: ${typeof login}, register: ${typeof register}, coachLogin: ${typeof coachLogin}`);
+        }
+        
+        if (attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            console.error('❌ Timeout : Les fonctions n'ont pas été chargées après 10 secondes');
+            console.error('   Vérifiez que les scripts Supabase se chargent correctement');
+        }
+        
+    }, 100);
+    
+})();
+</script>
+
+
 <!-- Script d'attachement des événements -->
 <script>
 // Attendre que tout soit chargé
