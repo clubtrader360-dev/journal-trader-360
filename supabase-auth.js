@@ -57,6 +57,21 @@
                 return;
             }
 
+            // Vérifier le statut de l'utilisateur
+            if (userData.status === 'revoked') {
+                console.warn('⚠️ Compte révoqué');
+                alert('Votre compte a été désactivé. Contactez un administrateur.');
+                await supabase.auth.signOut();
+                return;
+            }
+
+            if (userData.status === 'pending') {
+                console.warn('⚠️ Compte en attente de validation');
+                alert('Votre compte est en attente de validation par un coach. Vous recevrez une notification une fois approuvé.');
+                await supabase.auth.signOut();
+                return;
+            }
+
             window.currentUser = userData;
             console.log('✅ Connexion élève réussie:', userData.email);
 
@@ -65,8 +80,8 @@
             const coachApp = document.getElementById('coachApp');
             
             if (authScreen) authScreen.style.display = 'none';
-            if (mainApp) mainApp.style.display = 'none';  // Masquer l'interface élève
-            if (coachApp) coachApp.style.display = 'flex';  // Afficher l'interface coach
+            if (mainApp) mainApp.style.display = 'flex';  // Afficher l'interface élève
+            if (coachApp) coachApp.style.display = 'none';  // Masquer l'interface coach
 
             if (typeof loadUserDataFromSupabase === 'function') {
                 await loadUserDataFromSupabase(userData.uuid);
@@ -132,8 +147,8 @@
             const coachApp = document.getElementById('coachApp');
             
             if (authScreen) authScreen.style.display = 'none';
-            if (mainApp) mainApp.style.display = 'none';  // Masquer l'interface élève
-            if (coachApp) coachApp.style.display = 'flex';  // Afficher l'interface coach
+            if (mainApp) mainApp.style.display = 'flex';  // Afficher l'interface élève
+            if (coachApp) coachApp.style.display = 'none';  // Masquer l'interface coach
 
             if (typeof loadCoachRegistrationsFromSupabase === 'function') {
                 await loadCoachRegistrationsFromSupabase();
@@ -194,6 +209,7 @@
                     uuid: data.user.id,
                     email: registerEmail,
                     role: 'student',
+                    status: 'pending',
                     created_at: new Date().toISOString()
                 });
 
