@@ -723,6 +723,8 @@
 <script src="supabase-auth.js"></script>
 <script src="supabase-trades.js"></script>
 <script src="supabase-journal.js"></script>
+<script src="supabase-payouts.js"></script>
+<script src="supabase-account-costs.js"></script>
 <script src="supabase-coach.js"></script>
 
 <script>
@@ -2118,11 +2120,7 @@ window.addEventListener('load', function() {
 
         
         
-        // ===== EXPORTS GLOBAUX DES FONCTIONS UI =====
-        window.showLoginForm = showLoginForm;
-        window.showRegisterForm = showRegisterForm;
-        window.showCoachLogin = showCoachLogin;
-        console.log("[OK] Fonctions UI exportées globalement");
+        // ===== EXPORTS GLOBAUX DES FONCTIONS UI =====console.log("[OK] Fonctions UI exportées globalement");
 
         function clearErrors() {
             document.querySelectorAll('[id$="Error"]').forEach(el => {
@@ -2205,7 +2203,97 @@ window.addEventListener('load', function() {
             modal.style.display = 'block';
         }
 
-        function closeModal(modalId) {
+        function showImportCSVModal() {
+            document.getElementById('importCSVModal').style.display = 'block';
+        }function showAddAccountCostModal() {
+            document.getElementById('addAccountCostModal').style.display = 'block';
+        }function showAddPayoutModal() {
+            document.getElementById('addPayoutModal').style.display = 'block';
+        }
+
+        function addAccountCost() {
+            const accountId = document.getElementById('costAccountId').value;
+            const costType = document.getElementById('costType').value;
+            const costAmount = parseFloat(document.getElementById('costAmount').value);
+            const costDescription = document.getElementById('costDescription').value.trim();
+            
+            if (!accountId || !costType || !costAmount) {
+                alert('Veuillez remplir tous les champs obligatoires');
+                return;
+            }
+            
+            console.log('[UI] Ajout coût:', { accountId, costType, costAmount, costDescription });
+            
+            // TODO: Ajouter à Supabase quand la table sera créée
+            alert(`Coût ajouté: ${costAmount}€ (${costType})
+Fonctionnalité à connecter à Supabase`);
+            
+            // Réinitialiser le formulaire
+            document.getElementById('costAmount').value = '';
+            document.getElementById('costDescription').value = '';
+            
+            closeModal('addAccountCostModal');
+        }
+
+        function addPayout() {
+            const accountId = document.getElementById('payoutAccountId').value;
+            const payoutAmount = parseFloat(document.getElementById('payoutAmount').value);
+            const payoutDate = document.getElementById('payoutDate').value;
+            const payoutNotes = document.getElementById('payoutNotes').value.trim();
+            
+            if (!accountId || !payoutAmount || !payoutDate) {
+                alert('Veuillez remplir tous les champs obligatoires');
+                return;
+            }
+            
+            console.log('[UI] Ajout payout:', { accountId, payoutAmount, payoutDate, payoutNotes });
+            
+            // TODO: Ajouter à Supabase quand la table sera créée
+            alert(`Payout ajouté: ${payoutAmount}€
+Date: ${payoutDate}
+Fonctionnalité à connecter à Supabase`);
+            
+            // Réinitialiser le formulaire
+            document.getElementById('payoutAmount').value = '';
+            document.getElementById('payoutDate').value = '';
+            document.getElementById('payoutNotes').value = '';
+            
+            closeModal('addPayoutModal');
+        }
+
+        function cancelCSVImport() {
+            console.log('[UI] cancelCSVImport appelée');
+            closeModal('importCSVModal');
+        }
+
+        function confirmCSVImport() {
+            console.log('[UI] confirmCSVImport appelée');
+            alert('Fonctionnalité "Import CSV" à implémenter');
+            closeModal('importCSVModal');
+        }
+
+        function deleteJournalEntry(timestamp) {
+            console.log('[UI] deleteJournalEntry appelée pour:', timestamp);
+            
+            if (!window.currentUser || !window.currentUser.uuid) {
+                alert('Utilisateur non connecté');
+                return;
+            }
+            
+            if (!confirm('Supprimer cette entrée de journal ?')) {
+                return;
+            }
+            
+            // Appeler la fonction dans supabase-journal.js si elle existe
+            if (typeof window.deleteJournalEntry !== 'undefined') {
+                window.deleteJournalEntry(timestamp);
+            } else {
+                // Fallback: suppression locale en attendant l'implémentation Supabase
+                journalEntries = journalEntries.filter(entry => entry.timestamp !== timestamp);
+                updateJournalDisplay();
+                console.log('[OK] Entrée supprimée localement');
+            }
+        }function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.style.display = 'none';
