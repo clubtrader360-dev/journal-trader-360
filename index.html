@@ -728,6 +728,118 @@
 <script src="supabase-coach.js"></script>
 
 <script>
+// ========================================
+// FONCTIONS MODALES GLOBALES
+// ========================================
+
+// Afficher la modale d'ajout de compte
+function showAddAccountModal() {
+    const modal = document.getElementById('addAccountModal');
+    if (modal) {
+        modal.style.display = 'block';
+        console.log('[OK] Modale addAccountModal affichée');
+    } else {
+        console.error('[ERROR] Modale addAccountModal introuvable');
+    }
+}
+
+// Afficher la modale d'ajout de trade
+function showAddTradeModal() {
+    const modal = document.getElementById('addTradeModal');
+    if (modal) {
+        modal.style.display = 'block';
+        console.log('[OK] Modale addTradeModal affichée');
+    } else {
+        console.error('[ERROR] Modale addTradeModal introuvable');
+    }
+}
+
+// Afficher la modale d'ajout de note
+function showAddNoteModal() {
+    const modal = document.getElementById('addNoteModal');
+    if (modal) {
+        modal.style.display = 'block';
+        console.log('[OK] Modale addNoteModal affichée');
+    } else {
+        console.error('[ERROR] Modale addNoteModal introuvable');
+    }
+}
+
+// Afficher la modale d'import CSV
+function showImportCSVModal() {
+    const modal = document.getElementById('importCSVModal');
+    if (modal) {
+        modal.style.display = 'block';
+        console.log('[OK] Modale importCSVModal affichée');
+    } else {
+        console.error('[ERROR] Modale importCSVModal introuvable');
+    }
+}
+
+// Afficher la modale d'ajout de coût
+function showAddAccountCostModal() {
+    const modal = document.getElementById('addAccountCostModal');
+    if (modal) {
+        modal.style.display = 'block';
+        console.log('[OK] Modale addAccountCostModal affichée');
+    } else {
+        console.error('[ERROR] Modale addAccountCostModal introuvable');
+    }
+}
+
+// Afficher la modale d'ajout de payout
+function showAddPayoutModal() {
+    const modal = document.getElementById('addPayoutModal');
+    if (modal) {
+        modal.style.display = 'block';
+        console.log('[OK] Modale addPayoutModal affichée');
+    } else {
+        console.error('[ERROR] Modale addPayoutModal introuvable');
+    }
+}
+
+// Fermer une modale
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+        console.log('[OK] Modale fermée:', modalId);
+    }
+}
+
+// Fermer la modale de visualisation de trade
+function closeViewTradeModal() {
+    const modal = document.getElementById('viewTradeModal');
+    if (modal) {
+        modal.style.display = 'none';
+        console.log('[OK] Modale viewTradeModal fermée');
+    }
+}
+
+// Fermer la modale de visualisation de journal
+function closeViewJournalModal() {
+    const modal = document.getElementById('viewJournalModal');
+    if (modal) {
+        modal.style.display = 'none';
+        console.log('[OK] Modale viewJournalModal fermée');
+    }
+}
+
+// Exposer toutes les fonctions globalement
+window.showAddAccountModal = showAddAccountModal;
+window.showAddTradeModal = showAddTradeModal;
+window.showAddNoteModal = showAddNoteModal;
+window.showImportCSVModal = showImportCSVModal;
+window.showAddAccountCostModal = showAddAccountCostModal;
+window.showAddPayoutModal = showAddPayoutModal;
+window.closeModal = closeModal;
+window.closeViewTradeModal = closeViewTradeModal;
+window.closeViewJournalModal = closeViewJournalModal;
+
+console.log('[OK] Fonctions modales exposées globalement');
+</script>
+
+<script>
     // Fonction pour attacher les événements aux boutons
     function attach(id, fn, name) {
         const btn = document.getElementById(id);
