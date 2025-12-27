@@ -732,22 +732,22 @@
         if (btn) {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('📝 Tentative de ' + name + '...');
+                console.log('[REGISTER] Tentative de ' + name + '...');
                 if (typeof fn === 'function') {
                     fn();
                 } else {
-                    console.error('❌ Fonction ' + name + ' non disponible');
+                    console.error('[ERROR] Fonction ' + name + ' non disponible');
                 }
             });
-            console.log('✅ Bouton ' + name + ' attaché');
+            console.log('[OK] Bouton ' + name + ' attaché');
         } else {
-            console.warn('⚠️ Bouton ' + id + ' introuvable dans le DOM');
+            console.warn('[WARN] Bouton ' + id + ' introuvable dans le DOM');
         }
     }
 
-// 🎯 SCRIPT UNIQUE - Ultra simple
+// [SUCCESS] SCRIPT UNIQUE - Ultra simple
 window.addEventListener('load', function() {
-    console.log('🔧 Chargement terminé, attente Supabase (800ms)...');
+    console.log(' Chargement terminé, attente Supabase (800ms)...');
     
     // Attendre que les fonctions Supabase soient chargées (boucle robuste)
         let attempts = 0;
@@ -755,7 +755,7 @@ window.addEventListener('load', function() {
         
         const checkInterval = setInterval(function() {
             attempts++;
-            console.log(`🔄 Tentative ${attempts}/${maxAttempts} - Vérification des fonctions...`);
+            console.log(` Tentative ${attempts}/${maxAttempts} - Vérification des fonctions...`);
             
             // Vérifier que toutes les fonctions nécessaires existent
             if (typeof window.login === 'function' && 
@@ -763,7 +763,7 @@ window.addEventListener('load', function() {
                 typeof window.coachLogin === 'function') {
                 
                 clearInterval(checkInterval);
-                console.log('✅ Fonctions trouvées ! Attachement des événements...');
+                console.log('[OK] Fonctions trouvées ! Attachement des événements...');
                 
                 // Attacher les événements
                 attach('loginBtn', window.login, 'Login');
@@ -775,11 +775,11 @@ window.addEventListener('load', function() {
                 attach('logoutBtn', window.logout, 'Logout');
                 attach('logoutBtnCoach', window.logout, 'LogoutCoach');
                 
-                console.log('🎯 Tous les événements sont attachés !');
+                console.log('[SUCCESS] Tous les evenements sont attaches');
                 
             } else if (attempts >= maxAttempts) {
                 clearInterval(checkInterval);
-                console.error('❌ Timeout : les fonctions Supabase ne sont pas chargées après 10 secondes');
+                console.error('[ERROR] Timeout : les fonctions Supabase ne sont pas chargées après 10 secondes');
                 console.error('Vérifiez que les scripts supabase-*.js sont bien chargés');
             }
         }, 100); // Vérifier toutes les 100ms
@@ -983,7 +983,7 @@ window.addEventListener('load', function() {
                                     <span id="currentMonth" class="text-xl font-bold">January 2025</span>
                                     <div class="text-sm text-gray-600 mt-1">
                                         Ce mois-ci &nbsp;&nbsp;&nbsp; Stats mensuelles: <span id="monthlyPnl" class="font-semibold">$0.00</span> &nbsp; <span id="monthlyDays">0 jours</span> &nbsp; 
-                                        <button onclick="updateCalendar(); console.log('🔄 Calendrier manuellement rafraîchi');" class="text-blue-600 hover:text-blue-800" title="Rafraîchir le calendrier">
+                                        <button onclick="updateCalendar(); console.log(' Calendrier manuellement rafraîchi');" class="text-blue-600 hover:text-blue-800" title="Rafraîchir le calendrier">
                                             <i class="fas fa-sync-alt"></i>
                                         </button>
                                         <button onclick="toggleCalendarSettings()" class="text-gray-600 hover:text-gray-800" title="Paramètres d'affichage">
@@ -1497,7 +1497,7 @@ window.addEventListener('load', function() {
                     <div class="form-group" id="manualPnLGroup" style="display: none;">
                         <label>P&L Manuel ($) <span style="color: #ac862b;">*</span></label>
                         <input type="number" step="0.01" id="manualPnL" placeholder="Ex: 150.00 ou -75.50">
-                        <small style="color: #666; font-size: 0.85em; display: block; margin-top: 4px;">💡 Entrez le montant gagné (positif) ou perdu (négatif)</small>
+                        <small style="color: #666; font-size: 0.85em; display: block; margin-top: 4px;"> Entrez le montant gagné (positif) ou perdu (négatif)</small>
                     </div>
                     <div class="form-group">
                         <label>Type</label>
@@ -1622,17 +1622,17 @@ window.addEventListener('load', function() {
                 <div class="form-group">
                     <label>Évaluation de la session</label>
                     <div class="flex gap-2">
-                        <button type="button" class="star-rating" data-rating="1">⭐</button>
-                        <button type="button" class="star-rating" data-rating="2">⭐</button>
-                        <button type="button" class="star-rating" data-rating="3">⭐</button>
-                        <button type="button" class="star-rating" data-rating="4">⭐</button>
-                        <button type="button" class="star-rating" data-rating="5">⭐</button>
+                        <button type="button" class="star-rating" data-rating="1"></button>
+                        <button type="button" class="star-rating" data-rating="2"></button>
+                        <button type="button" class="star-rating" data-rating="3"></button>
+                        <button type="button" class="star-rating" data-rating="4"></button>
+                        <button type="button" class="star-rating" data-rating="5"></button>
                     </div>
                     <input type="hidden" id="sessionRating" value="0">
                 </div>
                 
                 <div class="form-group">
-                    <label>📷 Ajouter une image (plan de trading, screenshot...)</label>
+                    <label> Ajouter une image (plan de trading, screenshot...)</label>
                     <input type="file" id="noteImage" accept="image/*" onchange="previewImage(this)">
                     <div id="imagePreview" class="mt-4 hidden">
                         <img id="previewImg" src="" alt="Preview" class="max-w-full h-48 object-contain border rounded">
@@ -1816,7 +1816,7 @@ window.addEventListener('load', function() {
     </button>
 
     <script>
-        console.log("🔧 DÉBUT DU SCRIPT PRINCIPAL");
+        console.log(" DÉBUT DU SCRIPT PRINCIPAL");
         // Global variables
         let currentUser = null;
         let allUsers = []; // Tous les utilisateurs (élèves + coach)
@@ -1875,7 +1875,7 @@ window.addEventListener('load', function() {
             updateRecentTrades();
             updateProtectionAnalysis();
             
-            console.log('✅ Application chargée - Trades:', trades.length);
+            console.log('[OK] Application chargée - Trades:', trades.length);
         });
 
         function initializeDefaultAccounts() {
@@ -1986,29 +1986,29 @@ window.addEventListener('load', function() {
                 color: colors[accounts.length % colors.length]
             };
 
-            console.log('🆕 DEBUG addAccount - Nouveau compte créé:', newAccount);
+            console.log(' DEBUG addAccount - Nouveau compte créé:', newAccount);
             
             accounts.push(newAccount);
-            console.log('🆕 Comptes après ajout:', accounts.map(a => ({ id: a.id, name: a.name })));
+            console.log(' Comptes après ajout:', accounts.map(a => ({ id: a.id, name: a.name })));
             
             // Données auto-sauvegardées dans Supabase
             updateAccountsList();
             
             // Mettre à jour le select dans le modal addTradeModal s'il est ouvert
             const tradeAccountSelect = document.getElementById('tradeAccount');
-            console.log('🆕 Select trouvé:', tradeAccountSelect ? 'OUI' : 'NON');
+            console.log(' Select trouvé:', tradeAccountSelect ? 'OUI' : 'NON');
             
             if (tradeAccountSelect) {
                 tradeAccountSelect.innerHTML = '<option value="">Sélectionner un compte...</option>' +
                     accounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
                 
-                console.log('🆕 HTML du select mis à jour:', tradeAccountSelect.innerHTML);
+                console.log(' HTML du select mis à jour:', tradeAccountSelect.innerHTML);
                 
                 // Sélectionner automatiquement le nouveau compte
                 tradeAccountSelect.value = newAccount.id;
-                console.log('🆕 Valeur du select après sélection:', tradeAccountSelect.value);
+                console.log(' Valeur du select après sélection:', tradeAccountSelect.value);
             } else {
-                console.error('❌ Select #tradeAccount NOT FOUND!');
+                console.error('[ERROR] Select #tradeAccount NOT FOUND!');
             }
             
             closeModal('addAccountModal');
@@ -2017,16 +2017,16 @@ window.addEventListener('load', function() {
             setTimeout(() => {
                 const tradeAccountSelect2 = document.getElementById('tradeAccount');
                 if (tradeAccountSelect2) {
-                    console.log('🔄 Mise à jour FINALE du select après fermeture modal');
+                    console.log(' Mise à jour FINALE du select après fermeture modal');
                     tradeAccountSelect2.innerHTML = '<option value="">Sélectionner un compte...</option>' +
                         accounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
                     tradeAccountSelect2.value = newAccount.id;
-                    console.log('🔄 Valeur finale du select:', tradeAccountSelect2.value);
+                    console.log(' Valeur finale du select:', tradeAccountSelect2.value);
                 }
             }, 100);
             
             // Notification de succès
-            alert(`✅ Compte "${newAccount.name}" créé avec succès !\n\nVous pouvez maintenant l'utiliser pour vos trades.`);
+            alert(`[OK] Compte "${newAccount.name}" créé avec succès !\n\nVous pouvez maintenant l'utiliser pour vos trades.`);
         }
 
         function deleteAccount_DISABLED(accountId) { return; // DÉSACTIVÉ - Voir supabase-trades.js
@@ -2042,7 +2042,7 @@ window.addEventListener('load', function() {
             
             // Message de confirmation détaillé
             const confirmMessage = tradesCount > 0 
-                ? `⚠️ ATTENTION !⚠️\n\nÊtes-vous sûr de vouloir supprimer le compte "${account.name}" ?\n\nCette action supprimera également ${tradesCount} trade(s) associé(s) à ce compte.\n\nCette action est IRRÉVERSIBLE !`
+                ? `[WARN] ATTENTION ![WARN]\n\nÊtes-vous sûr de vouloir supprimer le compte "${account.name}" ?\n\nCette action supprimera également ${tradesCount} trade(s) associé(s) à ce compte.\n\nCette action est IRRÉVERSIBLE !`
                 : `Êtes-vous sûr de vouloir supprimer le compte "${account.name}" ?`;
             
             if (!confirm(confirmMessage)) {
@@ -2063,8 +2063,8 @@ window.addEventListener('load', function() {
             // Supprimer les payouts associés au compte
             payouts = payouts.filter(p => p.accountId !== accountId);
             
-            console.log(`🗑️ Compte supprimé: ${account.name}`);
-            console.log(`🗑️ ${deletedTradesCount} trade(s) supprimé(s)`);
+            console.log(` Compte supprimé: ${account.name}`);
+            console.log(` ${deletedTradesCount} trade(s) supprimé(s)`);
             
             // Sauvegarder et rafraîchir
             // Données auto-sauvegardées dans Supabase
@@ -2073,8 +2073,8 @@ window.addEventListener('load', function() {
             
             // Notification de succès
             const successMessage = deletedTradesCount > 0
-                ? `✅ Compte "${account.name}" et ${deletedTradesCount} trade(s) supprimé(s) avec succès`
-                : `✅ Compte "${account.name}" supprimé avec succès`;
+                ? `[OK] Compte "${account.name}" et ${deletedTradesCount} trade(s) supprimé(s) avec succès`
+                : `[OK] Compte "${account.name}" supprimé avec succès`;
             
             alert(successMessage);
         }
@@ -2107,7 +2107,7 @@ window.addEventListener('load', function() {
         window.showLoginForm = showLoginForm;
         window.showRegisterForm = showRegisterForm;
         window.showCoachLogin = showCoachLogin;
-        console.log('✅ Fonctions UI exportées globalement');
+        console.log('[OK] Fonctions UI exportées globalement');
 
         function clearErrors() {
             document.querySelectorAll('[id$="Error"]').forEach(el => {
@@ -2169,7 +2169,7 @@ window.addEventListener('load', function() {
 
         // Rendre showMainApp globale
         window.showMainApp = showMainApp;
-        console.log("✅ showMainApp rendue globale:", typeof window.showMainApp);
+        console.log("[OK] showMainApp rendue globale:", typeof window.showMainApp);
 
         // Navigation
         function showSection(sectionName) {
@@ -2234,12 +2234,12 @@ window.addEventListener('load', function() {
                 if (form) {
                     // NE PAS reset le select du compte
                     const currentAccountValue = document.getElementById('tradeAccount').value;
-                    console.log('💾 closeModal - Sauvegarde valeur compte:', currentAccountValue);
+                    console.log('[SAVE] closeModal - Sauvegarde valeur compte:', currentAccountValue);
                     form.reset();
                     // Restaurer la valeur du compte après reset
                     if (currentAccountValue) {
                         document.getElementById('tradeAccount').value = currentAccountValue;
-                        console.log('💾 closeModal - Valeur compte restaurée:', document.getElementById('tradeAccount').value);
+                        console.log('[SAVE] closeModal - Valeur compte restaurée:', document.getElementById('tradeAccount').value);
                     }
                 }
                 setCurrentDate();
@@ -2298,7 +2298,7 @@ window.addEventListener('load', function() {
             
             // Meilleure validation
             if (!accountValue || accountValue === "" || accountValue === "0") {
-                console.error('❌ Validation échouée: accountValue vide ou 0');
+                console.error('[ERROR] Validation échouée: accountValue vide ou 0');
                 alert('Veuillez sélectionner un compte');
                 return;
             }
@@ -2307,7 +2307,7 @@ window.addEventListener('load', function() {
             console.log('accountId après parseInt:', accountId, 'isNaN:', isNaN(accountId));
             
             if (isNaN(accountId)) {
-                console.error('❌ Validation échouée: accountId est NaN');
+                console.error('[ERROR] Validation échouée: accountId est NaN');
                 console.log('Tentative avec parseFloat:', parseFloat(accountValue));
                 alert('Compte invalide. Veuillez sélectionner un compte valide.');
                 return;
@@ -2317,14 +2317,14 @@ window.addEventListener('load', function() {
             console.log('Compte trouvé:', account);
             
             if (!account) {
-                console.error('❌ Compte non trouvé dans le tableau accounts');
+                console.error('[ERROR] Compte non trouvé dans le tableau accounts');
                 console.log('Recherche avec ID:', accountId);
                 console.log('Tous les IDs disponibles:', accounts.map(a => a.id));
                 alert('Compte non trouvé. Veuillez réessayer.');
                 return;
             }
             
-            console.log('✅ Validation compte réussie:', account.name);
+            console.log('[OK] Validation compte réussie:', account.name);
 
             // Collecter les protections cochées
             const protections = [];
@@ -2394,9 +2394,9 @@ window.addEventListener('load', function() {
                 if (index !== -1) {
                     tradeData.id = editId; // Garder l'ancien ID (avec décimales)
                     trades[index] = tradeData;
-                    console.log('✅ Trade modifié avec succès - ID:', editId);
+                    console.log('[OK] Trade modifié avec succès - ID:', editId);
                 } else {
-                    console.error('❌ Trade non trouvé pour édition - ID recherché:', editId);
+                    console.error('[ERROR] Trade non trouvé pour édition - ID recherché:', editId);
                     console.log('IDs disponibles:', trades.map(t => t.id));
                 }
                 delete modal.dataset.editingId;
@@ -2407,8 +2407,8 @@ window.addEventListener('load', function() {
             // Données auto-sauvegardées dans Supabase
             
             // DEBUG: Verification apres sauvegarde
-            console.log('🔍 DEBUG - Nombre de trades dans le tableau:', trades.length);
-            console.log('🔍 DEBUG - Dernier trade ajouté:', trades[trades.length - 1]);
+            console.log(' DEBUG - Nombre de trades dans le tableau:', trades.length);
+            console.log(' DEBUG - Dernier trade ajouté:', trades[trades.length - 1]);
             
             // Fermer la modale AVANT les mises à jour
             closeModal('addTradeModal');
@@ -2421,7 +2421,7 @@ window.addEventListener('load', function() {
                 // Forcer le rafraîchissement complet de TOUS les modules
                 refreshAllModules();
                 
-                console.log('✅ Trade ajouté et tous les modules rafraîchis');
+                console.log('[OK] Trade ajouté et tous les modules rafraîchis');
             }, 100);
         }
 
@@ -2542,14 +2542,14 @@ window.addEventListener('load', function() {
                 const index = trades.findIndex(t => t.id === tradeIdFloat);
                 
                 if (index !== -1) {
-                    console.log('🗑️ Suppression du trade ID:', tradeIdFloat, 'à l\'index:', index);
+                    console.log(' Suppression du trade ID:', tradeIdFloat, 'à l\'index:', index);
                     trades.splice(index, 1);
                     // Données auto-sauvegardées dans Supabase
                     
-                    console.log('🗑️ Trade supprimé, rafraîchissement...');
+                    console.log(' Trade supprimé, rafraîchissement...');
                     refreshAllModules();
                 } else {
-                    console.error('❌ Trade non trouvé pour suppression - ID:', tradeIdFloat);
+                    console.error('[ERROR] Trade non trouvé pour suppression - ID:', tradeIdFloat);
                     alert('Erreur: Trade non trouvé');
                 }
             }
@@ -2659,7 +2659,7 @@ window.addEventListener('load', function() {
                 let html = `
                     <div class="mb-4 flex justify-between items-center bg-blue-50 p-3 rounded">
                         <div>
-                            <span class="text-blue-800 font-semibold">📅 Notes du ${formatDateFR(dateString)}</span>
+                            <span class="text-blue-800 font-semibold">[DATE] Notes du ${formatDateFR(dateString)}</span>
                             <span class="text-blue-600 ml-2">(${filtered.length} note${filtered.length > 1 ? 's' : ''})</span>
                         </div>
                         <div class="flex gap-2">
@@ -2679,7 +2679,7 @@ window.addEventListener('load', function() {
                 html += filtered
                     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
                     .map(entry => {
-                        const stars = '⭐'.repeat(entry.rating);
+                        const stars = ''.repeat(entry.rating);
                         return `
                             <div class="border-b pb-4 mb-4 last:border-b-0">
                                 <div class="flex justify-between items-start mb-2">
@@ -2794,7 +2794,7 @@ window.addEventListener('load', function() {
                 <div class="trader-card p-4 bg-gradient-to-r ${dayPnl >= 0 ? 'from-green-50 to-white' : 'from-red-50 to-white'}">
                     <div class="flex justify-between items-center mb-3">
                         <h3 class="text-lg font-bold text-gray-800">
-                            📈 Trades du ${formatDateFR(dateString)}
+                            [CHART] Trades du ${formatDateFR(dateString)}
                         </h3>
                         <div class="${pnlClass} font-bold text-xl">
                             ${dayPnl >= 0 ? '+' : ''}$${dayPnl.toFixed(2)}
@@ -2844,7 +2844,7 @@ window.addEventListener('load', function() {
                 container.innerHTML = journalEntries
                     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
                     .map((entry, index) => {
-                        const stars = '⭐'.repeat(entry.rating);
+                        const stars = ''.repeat(entry.rating);
                         return `
                             <div class="border-b pb-4 mb-4 last:border-b-0">
                                 <div class="flex justify-between items-start mb-2">
@@ -2940,46 +2940,46 @@ window.addEventListener('load', function() {
         // Dashboard functions
 
         function refreshAllModules() {
-            console.log('═══════════════════════════════════════');
-            console.log('🔄 REFRESH - Début du rafraîchissement...');
-            console.log('🔄 REFRESH - Nombre total de trades:', trades.length);
-            console.log('🔄 REFRESH - Array trades:', trades);
+            console.log('');
+            console.log(' REFRESH - Début du rafraîchissement...');
+            console.log(' REFRESH - Nombre total de trades:', trades.length);
+            console.log(' REFRESH - Array trades:', trades);
             
             const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
-            console.log('🔄 REFRESH - Comptes actifs:', activeAccounts);
-            console.log('🔄 REFRESH - Tous les comptes:', accounts);
+            console.log(' REFRESH - Comptes actifs:', activeAccounts);
+            console.log(' REFRESH - Tous les comptes:', accounts);
             
             const filteredTrades = activeAccounts.length > 0 
                 ? trades.filter(trade => activeAccounts.includes(trade.accountId))
                 : trades;
             
-            console.log('🔄 REFRESH - Trades filtrés:', filteredTrades.length);
-            console.log('🔄 REFRESH - Détail trades filtrés:', filteredTrades);
+            console.log(' REFRESH - Trades filtrés:', filteredTrades.length);
+            console.log(' REFRESH - Détail trades filtrés:', filteredTrades);
             
             // Mise à jour de tous les modules
-            console.log('📊 Appel updateTradesTable()...');
+            console.log('[DATA] Appel updateTradesTable()...');
             updateTradesTable();
             
-            console.log('📊 Appel updateDashboard()...');
+            console.log('[DATA] Appel updateDashboard()...');
             updateDashboard();
             
-            console.log('📊 Appel updateBanner()...');
+            console.log('[DATA] Appel updateBanner()...');
             updateBanner();
             
-            console.log('📊 Appel updateCharts()...');
+            console.log('[DATA] Appel updateCharts()...');
             updateCharts();
             
-            console.log('📊 Appel updateCalendar()...');
+            console.log('[DATA] Appel updateCalendar()...');
             updateCalendar();
             
-            console.log('📊 Appel updateRecentTrades()...');
+            console.log('[DATA] Appel updateRecentTrades()...');
             updateRecentTrades();
             
-            console.log('📊 Appel updateProtectionAnalysis()...');
+            console.log('[DATA] Appel updateProtectionAnalysis()...');
             updateProtectionAnalysis();
             
-            console.log('✅ Rafraîchissement terminé');
-            console.log('═══════════════════════════════════════');
+            console.log('[OK] Rafraîchissement terminé');
+            console.log('');
             
             // Notification visuelle
             showNotification('Tous les modules ont été rafraîchis', 'success');
@@ -3071,7 +3071,7 @@ window.addEventListener('load', function() {
             document.getElementById('avgWinLabel').textContent = '$' + avgWin.toFixed(0);
             document.getElementById('avgLossLabel').textContent = '$' + avgLoss.toFixed(0);
             
-            console.log('✅ Banner mis à jour');
+            console.log('[OK] Banner mis à jour');
         }
 
         function updateDashboard() {
@@ -3082,7 +3082,7 @@ window.addEventListener('load', function() {
                 ? trades 
                 : trades.filter(trade => activeAccounts.includes(trade.accountId));
 
-            console.log('📊 updateDashboard - Trades filtrés:', filteredTrades.length, 'sur', trades.length, 'total');
+            console.log('[DATA] updateDashboard - Trades filtrés:', filteredTrades.length, 'sur', trades.length, 'total');
 
             if (filteredTrades.length === 0) {
                 resetDashboard();
@@ -3194,7 +3194,7 @@ window.addEventListener('load', function() {
                     // DEBUG: Logger les comparaisons pour les trades récents (20-21 octobre)
                     if (dateString === '2025-10-20' || tradeDate === '2025-10-20' || 
                         dateString === '2025-10-21' || tradeDate === '2025-10-21') {
-                        console.log(`📅 Calendar check: cellDate=${dateString} vs tradeDate=${tradeDate} => ${isMatch ? '✅ MATCH' : '❌ NO MATCH'}`);
+                        console.log(`[DATE] Calendar check: cellDate=${dateString} vs tradeDate=${tradeDate} => ${isMatch ? '[OK] MATCH' : '[ERROR] NO MATCH'}`);
                     }
                     
                     return isMatch;
@@ -3291,7 +3291,7 @@ window.addEventListener('load', function() {
                 
                 const isMatch = tradeYear === currentYear && tradeMonth === currentMonth;
                 
-                console.log(`📊 Monthly: trade ${tradeDateStr} → year=${tradeYear} month=${tradeMonth} match=${isMatch}`);
+                console.log(`[DATA] Monthly: trade ${tradeDateStr} → year=${tradeYear} month=${tradeMonth} match=${isMatch}`);
                 
                 return isMatch;
             });
@@ -3532,7 +3532,7 @@ window.addEventListener('load', function() {
                 `;
             }).join('');
             
-            console.log('📋 Recent Trades mis à jour:', recentTrades.length, 'trades affichés');
+            console.log(' Recent Trades mis à jour:', recentTrades.length, 'trades affichés');
         }
 
         function updateProtectionAnalysis() {
@@ -3676,7 +3676,7 @@ window.addEventListener('load', function() {
                     `;
                 }).join('');
             
-            console.log('🛡️ Protection Analysis mis à jour:', Object.keys(protectionStats).length, 'protections analysées');
+            console.log(' Protection Analysis mis à jour:', Object.keys(protectionStats).length, 'protections analysées');
         }
 
         function updateCalendarDisplay() {
@@ -3906,7 +3906,7 @@ window.addEventListener('load', function() {
             drawdownChart.data.datasets[0].data = drawdowns;
             drawdownChart.update();
             
-            console.log('📉 Drawdown mis à jour:', drawdowns.length, 'points');
+            console.log(' Drawdown mis à jour:', drawdowns.length, 'points');
         }
 
         function initDurationChart() {
@@ -3960,7 +3960,7 @@ window.addEventListener('load', function() {
                 ? trades 
                 : trades.filter(trade => activeAccounts.includes(trade.accountId));
             
-            console.log('📈 updateCharts - Trades filtrés:', filteredTrades.length, 'sur', trades.length, 'total');
+            console.log('[CHART] updateCharts - Trades filtrés:', filteredTrades.length, 'sur', trades.length, 'total');
             
             if (filteredTrades.length === 0) {
                 // Pas de données, réinitialiser
@@ -4085,15 +4085,15 @@ window.addEventListener('load', function() {
                 document.getElementById('traderScore').textContent = globalScore.toFixed(1);
             }
             
-            console.log('📊 Trader 360 Score Détails:');
+            console.log('[DATA] Trader 360 Score Détails:');
             console.log('  Win Rate:', winRate.toFixed(1) + '%');
             console.log('  Profit Factor:', profitFactor.toFixed(2), '→', profitFactorScore.toFixed(1) + ' pts');
             console.log('  Avg Ratio:', avgRatio.toFixed(2), '→', avgRatioScore.toFixed(1) + ' pts');
             console.log('  Consistency:', consistencyScore.toFixed(1) + ' pts');
             console.log('  Drawdown:', drawdownPct.toFixed(1) + '%', '→', drawdownScore.toFixed(1) + ' pts');
             console.log('  Recovery:', recoveryFactor.toFixed(2), '→', recoveryScore.toFixed(1) + ' pts');
-            console.log('  ═══════════════════════════');
-            console.log('  🎯 SCORE GLOBAL:', globalScore.toFixed(1) + '/100');
+            console.log('  ');
+            console.log('  [SUCCESS] SCORE GLOBAL:', globalScore.toFixed(1) + '/100');
         }
         
         function updateTradeTimeChart(filteredTrades) {
@@ -4197,7 +4197,7 @@ window.addEventListener('load', function() {
             const winData = [];
             const lossData = [];
             
-            console.log('⏱️ DEBUG Duration - Nombre de trades:', filteredTrades.length);
+            console.log('⏱ DEBUG Duration - Nombre de trades:', filteredTrades.length);
             
             filteredTrades.forEach((trade, index) => {
                 // Calculer la vraie durée en minutes si entryTime et exitTime existent
@@ -4244,7 +4244,7 @@ window.addEventListener('load', function() {
             durationChart.data.datasets[1].data = lossData;
             durationChart.update();
             
-            console.log('⏱️ Duration chart mis à jour:', winData.length, 'gagnants,', lossData.length, 'perdants');
+            console.log('⏱ Duration chart mis à jour:', winData.length, 'gagnants,', lossData.length, 'perdants');
         }
 
         function calculateProfitFactor(trades) {
@@ -4368,7 +4368,7 @@ window.addEventListener('load', function() {
             // Fonction pour le coach : récupérer toutes les données de tous les élèves actifs
                         loadAllUsers();
             const activeStudents = allUsers.filter(u => u.role === 'student' && u.status === 'active');
-            console.log('🔍 Élèves actifs trouvés:', activeStudents.length);
+            console.log(' Élèves actifs trouvés:', activeStudents.length);
             
             const allStudentsData = [];
             activeStudents.forEach(student => {
@@ -4382,13 +4382,13 @@ window.addEventListener('load', function() {
                             data: parsed
                         });
                     } catch (e) {
-                        console.error(`❌ Erreur chargement données élève ${student.email}:`, e);
+                        console.error(`[ERROR] Erreur chargement données élève ${student.email}:`, e);
                     }
                 } else {
                     }
             });
             
-            console.log('🔍 Total élèves avec données:', allStudentsData.length);
+            console.log(' Total élèves avec données:', allStudentsData.length);
             return allStudentsData;
         }
         
@@ -4428,7 +4428,7 @@ window.addEventListener('load', function() {
         }
         
         function loadCoachDashboard() {
-            console.log('📊 Chargement dashboard coach...');
+            console.log('[DATA] Chargement dashboard coach...');
             const studentsData = getAllStudentsData();
             
             // Calculer les stats globales
@@ -4519,7 +4519,7 @@ window.addEventListener('load', function() {
         }
         
         function loadCoachStudents() {
-            console.log('👥 Chargement liste élèves...');
+            console.log(' Chargement liste élèves...');
             const studentsData = getAllStudentsData();
             
             if (studentsData.length === 0) {
@@ -4580,7 +4580,7 @@ window.addEventListener('load', function() {
             
             // Code ancien (ne s'exécute plus):
             const studentsData = getAllStudentsData();
-            console.log('💰 Nombre d\'\u00e9tudiants actifs:', studentsData.length);
+            console.log('[MONEY] Nombre d\'\u00e9tudiants actifs:', studentsData.length);
             
             let totalInvested = 0;
             let totalPayouts = 0;
@@ -4595,13 +4595,13 @@ window.addEventListener('load', function() {
                 const payouts = studentData.data.payouts || [];
                 
                 if (costs.length > 0) {
-                    console.log('💰 Détail des coûts:', costs);
+                    console.log('[MONEY] Détail des coûts:', costs);
                     costs.forEach((c, idx) => {
                         console.log(`  - Coût ${idx + 1}:`, c);
                     });
                 }
                                 if (payouts.length > 0) {
-                    console.log('💰 Détail des payouts:', payouts);
+                    console.log('[MONEY] Détail des payouts:', payouts);
                     payouts.forEach((p, idx) => {
                         console.log(`  - Payout ${idx + 1}:`, p);
                     });
@@ -4646,13 +4646,13 @@ window.addEventListener('load', function() {
             const netProfit = totalPayouts - totalInvested;
             const globalROI = totalInvested > 0 ? ((netProfit / totalInvested) * 100).toFixed(1) : 0;
             
-                        console.log('💰 Total investi:', totalInvested);
-            console.log('💰 Total payouts:', totalPayouts);
-            console.log('💰 Bénéfice net:', netProfit);
-            console.log('💰 ROI global:', globalROI + '%');
-            console.log('💰 Nombre de lignes breakdown élèves:', studentAccountingData.length);
-            console.log('💰 Nombre total de coûts:', allCosts.length);
-            console.log('💰 Nombre total de payouts:', allPayouts.length);
+                        console.log('[MONEY] Total investi:', totalInvested);
+            console.log('[MONEY] Total payouts:', totalPayouts);
+            console.log('[MONEY] Bénéfice net:', netProfit);
+            console.log('[MONEY] ROI global:', globalROI + '%');
+            console.log('[MONEY] Nombre de lignes breakdown élèves:', studentAccountingData.length);
+            console.log('[MONEY] Nombre total de coûts:', allCosts.length);
+            console.log('[MONEY] Nombre total de payouts:', allPayouts.length);
                         
             // Mettre à jour les KPIs
             document.getElementById('coachTotalInvested').textContent = '$' + totalInvested.toFixed(2);
@@ -4753,7 +4753,7 @@ window.addEventListener('load', function() {
         }
         
         function loadCoachRegistrations() {
-            console.log('✅ Chargement inscriptions...');
+            console.log('[OK] Chargement inscriptions...');
             // Charger depuis Supabase
             loadCoachRegistrationsFromSupabase();
             return; // Exit early
@@ -4843,7 +4843,7 @@ window.addEventListener('load', function() {
             if (user) {
                 user.status = 'active';
                 saveAllUsers();
-                alert(`✅ Élève ${user.email} validé !`);
+                alert(`[OK] Élève ${user.email} validé !`);
                 loadCoachRegistrations();
             }
         }
@@ -4854,7 +4854,7 @@ window.addEventListener('load', function() {
             loadAllUsers();
             allUsers = allUsers.filter(u => u.id !== userId);
             saveAllUsers();
-            alert('❌ Inscription refusée');
+            alert('[ERROR] Inscription refusée');
             loadCoachRegistrations();
         }
         
@@ -4866,7 +4866,7 @@ window.addEventListener('load', function() {
             if (user) {
                 user.status = 'revoked';
                 saveAllUsers();
-                alert(`⛔ Accès suspendu pour ${user.email}`);
+                alert(` Accès suspendu pour ${user.email}`);
                 loadCoachStudents();
                 loadCoachRegistrations();
             }
@@ -4880,13 +4880,13 @@ window.addEventListener('load', function() {
             if (user) {
                 user.status = 'active';
                 saveAllUsers();
-                alert(`✅ Accès réactivé pour ${user.email}`);
+                alert(`[OK] Accès réactivé pour ${user.email}`);
                 loadCoachRegistrations();
             }
         }
         
         function deleteStudent(userId) {
-            if (!confirm('⚠️ ATTENTION !\n\nSupprimer définitivement cet élève et toutes ses données ?\n\nCette action est IRRÉVERSIBLE !')) return;
+            if (!confirm('[WARN] ATTENTION !\n\nSupprimer définitivement cet élève et toutes ses données ?\n\nCette action est IRRÉVERSIBLE !')) return;
             
             loadAllUsers();
             const user = allUsers.find(u => u.id === userId);
@@ -4899,19 +4899,19 @@ window.addEventListener('load', function() {
             // Supprimer ses données
             const userDataKey = `club_trader_360_user_${userId}_data`;
             
-            alert(`🗑️ Élève ${user.email} supprimé définitivement`);
+            alert(` Élève ${user.email} supprimé définitivement`);
             loadCoachStudents();
             loadCoachRegistrations();
         }
         
         function viewStudentDetails(userId) {
-            console.log('👁️ Affichage détails élève:', userId);
+            console.log(' Affichage détails élève:', userId);
             
             // Charger les données de l'élève
             loadAllUsers();
             const student = allUsers.find(u => u.id === userId);
             if (!student) {
-                alert('❌ Élève non trouvé');
+                alert('[ERROR] Élève non trouvé');
                 return;
             }
             
@@ -5170,7 +5170,7 @@ window.addEventListener('load', function() {
                 return;
             }
             
-            const stars = '⭐'.repeat(entry.rating);
+            const stars = ''.repeat(entry.rating);
             
             let html = `
                 <div class="view-modal-section">
@@ -5311,7 +5311,7 @@ window.addEventListener('load', function() {
             
             <!-- Comptes de l'élève -->
             <div class="trader-card mb-6" style="padding: 24px;">
-                <h3 class="text-lg font-bold mb-3">📊 Comptes Trading</h3>
+                <h3 class="text-lg font-bold mb-3">[DATA] Comptes Trading</h3>
                 <div id="studentDetailAccountsList">
                     <p class="text-gray-500">Aucun compte</p>
                 </div>
@@ -5319,7 +5319,7 @@ window.addEventListener('load', function() {
             
             <!-- Journal des Trades -->
             <div class="trader-card" style="padding: 24px;">
-                <h3 class="text-lg font-bold mb-3">📋 Journal des Trades</h3>
+                <h3 class="text-lg font-bold mb-3"> Journal des Trades</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead>
@@ -5673,7 +5673,7 @@ window.addEventListener('load', function() {
                 </div>
 
                 <div class="trader-card" style="padding: 24px;">
-                    <h2 class="text-xl font-bold mb-4">👥 Tous les Élèves</h2>
+                    <h2 class="text-xl font-bold mb-4"> Tous les Élèves</h2>
                     <div id="coachAllUsers">
                         <p class="text-gray-500 text-center py-4">Aucun élève</p>
                     </div>
@@ -5688,7 +5688,7 @@ window.addEventListener('load', function() {
 
     <script>
 (function() {
-    console.log('🔍 Script de connexion chargé');
+    console.log(' Script de connexion chargé');
     
     let attempts = 0;
     const maxAttempts = 100; // 10 secondes max
@@ -5697,7 +5697,7 @@ window.addEventListener('load', function() {
     const checkInterval = setInterval(function() {
         attempts++;
         
-        console.log(`🔄 Tentative ${attempts}/${maxAttempts} - Vérification des fonctions...`);
+        console.log(` Tentative ${attempts}/${maxAttempts} - Vérification des fonctions...`);
         
         // Vérifier si les fonctions existent sur window
         if (typeof window.login === 'function' && 
@@ -5705,42 +5705,42 @@ window.addEventListener('load', function() {
             typeof window.coachLogin === 'function') {
             
             clearInterval(checkInterval);
-            console.log('✅ Fonctions trouvées ! Attachement des événements...');
+            console.log('[OK] Fonctions trouvées ! Attachement des événements...');
             
             // Attacher les événements
             const loginBtn = document.getElementById('loginBtn');
             if (loginBtn) {
                 loginBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('🔐 Tentative de connexion...');
+                    console.log('[LOGIN] Tentative de connexion...');
                     window.login();
                 });
-                console.log('✅ Bouton Login attaché');
+                console.log('[OK] Bouton Login attache');
             } else {
-                console.error('❌ Bouton loginBtn non trouvé');
+                console.error('[ERROR] Bouton loginBtn non trouve');
             }
             
             const registerBtn = document.getElementById('registerBtn');
             if (registerBtn) {
                 registerBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('📝 Tentative d'inscription...');
+                    console.log('[REGISTER] Tentative d inscription...');
                     window.register();
                 });
-                console.log('✅ Bouton Register attaché');
+                console.log('[OK] Bouton Register attache');
             }
             
             const coachLoginBtn = document.getElementById('coachLoginBtn');
             if (coachLoginBtn) {
                 coachLoginBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('👔 Tentative de connexion coach...');
+                    console.log('[COACH] Tentative de connexion coach...');
                     window.coachLogin();
                 });
-                console.log('✅ Bouton Coach Login attaché');
+                console.log('[OK] Bouton Coach Login attaché');
             }
             
-            console.log('🎉 Tous les événements sont attachés !');
+            console.log(' Tous les événements sont attachés !');
             
         } else {
             console.log(`   login: ${typeof login}, register: ${typeof register}, coachLogin: ${typeof coachLogin}`);
@@ -5748,7 +5748,7 @@ window.addEventListener('load', function() {
         
         if (attempts >= maxAttempts) {
             clearInterval(checkInterval);
-            console.error('❌ Timeout : Les fonctions n'ont pas été chargées après 10 secondes');
+            console.error('[ERROR] Timeout : Les fonctions n'ont pas été chargées après 10 secondes');
             console.error('   Vérifiez que les scripts Supabase se chargent correctement');
         }
         
