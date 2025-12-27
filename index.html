@@ -2035,6 +2035,14 @@
             clearErrors();
         }
 
+        
+        
+        // ===== EXPORTS GLOBAUX DES FONCTIONS UI =====
+        window.showLoginForm = showLoginForm;
+        window.showRegisterForm = showRegisterForm;
+        window.showCoachLogin = showCoachLogin;
+        console.log('✅ Fonctions UI exportées globalement');
+
         function clearErrors() {
             document.querySelectorAll('[id$="Error"]').forEach(el => {
                 el.classList.add('hidden');
