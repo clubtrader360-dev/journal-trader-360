@@ -717,6 +717,25 @@
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+    // Fonction pour attacher les événements aux boutons
+    function attach(id, fn, name) {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('📝 Tentative de ' + name + '...');
+                if (typeof fn === 'function') {
+                    fn();
+                } else {
+                    console.error('❌ Fonction ' + name + ' non disponible');
+                }
+            });
+            console.log('✅ Bouton ' + name + ' attaché');
+        } else {
+            console.warn('⚠️ Bouton ' + id + ' introuvable dans le DOM');
+        }
+    }
+
 // 🎯 SCRIPT UNIQUE - Ultra simple
 window.addEventListener('load', function() {
     console.log('🔧 Chargement terminé, attente Supabase (800ms)...');
