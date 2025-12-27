@@ -75,28 +75,34 @@
             window.currentUser = userData;
             console.log('[OK] Connexion élève réussie:', userData.email);
 
-            // Appeler showMainApp() pour afficher l'interface + email
-            if (typeof window.showMainApp === 'function') {
-                window.showMainApp();
-            } else {
-                // Fallback si showMainApp n'existe pas
-                console.warn('[WARN] showMainApp non trouvée, affichage manuel');
-                const authScreen = document.getElementById('authScreen');
-                const mainApp = document.getElementById('mainApp');
-                const coachApp = document.getElementById('coachApp');
-                const userInfo = document.getElementById('userInfo');
-                
-                if (authScreen) authScreen.style.display = 'none';
-                if (mainApp) mainApp.style.display = 'flex';
-                if (coachApp) coachApp.style.display = 'none';
-                if (userInfo) userInfo.textContent = window.currentUser.email;
+            // Affichage de l'interface (version simple sans showMainApp)
+            const authScreen = document.getElementById('authScreen');
+            const mainApp = document.getElementById('mainApp');
+            const coachApp = document.getElementById('coachApp');
+            const userInfo = document.getElementById('userInfo');
+            
+            // Masquer l'écran d'authentification
+            if (authScreen) authScreen.style.display = 'none';
+            
+            // Afficher l'interface élève
+            if (mainApp) mainApp.style.display = 'flex';
+            if (coachApp) coachApp.style.display = 'none';
+            
+            // Afficher l'email sous le logo
+            if (userInfo) {
+                userInfo.textContent = window.currentUser.email;
+                console.log('[OK] Email affiché:', window.currentUser.email);
             }
-
-            if (typeof loadUserDataFromSupabase === 'function') {
-                await loadUserDataFromSupabase(userData.uuid);
+            
+            // Charger les comptes et trades (si les fonctions existent)
+            if (typeof window.loadAccounts === 'function') {
+                console.log('[OK] Appel window.loadAccounts()');
+                window.loadAccounts();
             }
-            if (typeof refreshAllModules === 'function') {
-                refreshAllModules();
+            
+            if (typeof window.loadTrades === 'function') {
+                console.log('[OK] Appel window.loadTrades()');
+                window.loadTrades();
             }
 
         } catch (err) {
