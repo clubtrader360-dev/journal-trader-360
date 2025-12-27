@@ -395,6 +395,27 @@ async function loadCoachAccountingFromSupabase() {
 console.log('✅ Coach Module chargé (VERSION DEFINITIVE)');
 
 // ✅ EXPORTS GLOBAUX
+
+// Charger le dashboard coach
+async function loadCoachDashboard() {
+    console.log('📊 Chargement du dashboard coach...');
+    try {
+        await loadCoachRegistrationsFromSupabase();
+        await getAllStudentsDataFromSupabase();
+        await loadCoachAccountingFromSupabase();
+        console.log('✅ Dashboard coach chargé');
+    } catch (err) {
+        console.error('❌ Erreur loadCoachDashboard:', err);
+    }
+}
+
+// Afficher le détail d'un étudiant
+function showStudentDetail(studentUuid) {
+    console.log('👤 Affichage détail étudiant:', studentUuid);
+    // Cette fonction doit être implémentée selon vos besoins
+    alert('Fonction showStudentDetail à implémenter pour: ' + studentUuid);
+}
+
 window.loadCoachDashboard = loadCoachDashboard;
 window.showStudentDetail = showStudentDetail;
 console.log('✅ supabase-coach.js - Fonctions exportées');
