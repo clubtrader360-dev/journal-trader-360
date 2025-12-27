@@ -86,7 +86,7 @@ async function login() {
         if (typeof showMainApp === 'function') {
             showMainApp();
         } else {
-            console.error('❌ showMainApp n'est pas définie - attente...');
+            console.error('❌ showMainApp n\'est pas définie - attente...');
             // Réessayer après un court délai
             setTimeout(() => {
                 if (typeof showMainApp === 'function') {
@@ -149,7 +149,7 @@ async function coachLogin() {
         if (typeof showMainApp === 'function') {
             showMainApp();
         } else {
-            console.error('❌ showMainApp n'est pas définie - attente...');
+            console.error('❌ showMainApp n\'est pas définie - attente...');
             // Réessayer après un court délai
             setTimeout(() => {
                 if (typeof showMainApp === 'function') {
@@ -191,7 +191,7 @@ async function register() {
     try {
         console.log('📝 Inscription:', email);
 
-        // 1. Créer l'utilisateur dans Supabase Auth
+        // 1. Créer l\'utilisateur dans Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email: email,
             password: password,
