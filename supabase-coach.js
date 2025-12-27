@@ -7,19 +7,19 @@
  */
 
 (() => {
-    console.log('👔 Chargement supabase-coach.js...');
+    console.log('[COACH] Chargement supabase-coach.js...');
     
     // Récupérer le client Supabase depuis window.supabaseClient (créé par config.js)
     const supabase = window.supabaseClient;
     
     if (!supabase) {
-        console.error('❌ window.supabaseClient manquant (config non chargée ?)');
+        console.error('[ERROR] window.supabaseClient manquant (config non chargée ?)');
         throw new Error('supabaseClient manquant');
     }
 
     // ===== FONCTION CHARGEMENT INSCRIPTIONS =====
     async function loadCoachRegistrationsFromSupabase() {
-        console.log('🔄 Chargement inscriptions depuis Supabase...');
+        console.log(' Chargement inscriptions depuis Supabase...');
         
         try {
             // Récupérer TOUS les utilisateurs
@@ -29,18 +29,18 @@
                 .order('created_at', { ascending: false });
 
             if (error) {
-                console.error('❌ Erreur chargement registrations:', error);
+                console.error('[ERROR] Erreur chargement registrations:', error);
                 return;
             }
 
-            console.log('📊 Utilisateurs récupérés:', allUsers.length);
+            console.log('[DATA] Utilisateurs récupérés:', allUsers.length);
 
             // Filtrer par statut et rôle
             const pendingUsers = allUsers.filter(u => u.status === 'pending' && u.role === 'student');
             const activeUsers = allUsers.filter(u => u.status === 'active' && u.role === 'student');
             const revokedUsers = allUsers.filter(u => u.status === 'revoked' && u.role === 'student');
 
-            console.log('⏳ Pending:', pendingUsers.length, '✅ Active:', activeUsers.length, '🚫 Revoked:', revokedUsers.length);
+            console.log('⏳ Pending:', pendingUsers.length, '[OK] Active:', activeUsers.length, ' Revoked:', revokedUsers.length);
 
             // Afficher les inscriptions en attente
             const pendingContainer = document.getElementById('coachPendingUsers');
@@ -56,10 +56,10 @@
                             </div>
                             <div class="space-x-2">
                                 <button onclick="approveRegistration('${u.uuid}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
-                                    ✓ Approuver
+                                     Approuver
                                 </button>
                                 <button onclick="rejectRegistration('${u.uuid}')" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
-                                    ✗ Refuser
+                                     Refuser
                                 </button>
                             </div>
                         </div>
@@ -80,7 +80,7 @@
                                 <p class="text-sm text-gray-500">Actif depuis ${new Date(u.created_at).toLocaleDateString('fr-FR')}</p>
                             </div>
                             <button onclick="revokeAccess('${u.uuid}')" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
-                                🚫 Révoquer
+                                 Révoquer
                             </button>
                         </div>
                     `).join('');
@@ -100,7 +100,7 @@
                                 <p class="text-sm text-gray-500">Révoqué</p>
                             </div>
                             <button onclick="reactivateUser('${u.uuid}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
-                                ✓ Réactiver
+                                 Réactiver
                             </button>
                         </div>
                     `).join('');
@@ -108,7 +108,7 @@
             }
 
         } catch (err) {
-            console.error('❌ Exception loadCoachRegistrations:', err);
+            console.error('[ERROR] Exception loadCoachRegistrations:', err);
         }
     }
 
@@ -118,7 +118,7 @@
             return;
         }
 
-        console.log('✅ Approbation utilisateur UUID:', uuid);
+        console.log('[OK] Approbation utilisateur UUID:', uuid);
 
         try {
             const { data, error } = await supabase
@@ -129,20 +129,20 @@
                 .single();
 
             if (error) {
-                console.error('❌ Erreur approbation:', error);
-                alert('❌ Erreur lors de l\'approbation: ' + error.message);
+                console.error('[ERROR] Erreur approbation:', error);
+                alert('[ERROR] Erreur lors de l\'approbation: ' + error.message);
                 return;
             }
 
-            console.log('✅ Utilisateur approuvé:', data);
-            alert('✅ Utilisateur approuvé avec succès !');
+            console.log('[OK] Utilisateur approuvé:', data);
+            alert('[OK] Utilisateur approuvé avec succès !');
 
             // Rafraîchir
             loadCoachRegistrationsFromSupabase();
 
         } catch (err) {
-            console.error('❌ Exception approveRegistration:', err);
-            alert('❌ Erreur système: ' + err.message);
+            console.error('[ERROR] Exception approveRegistration:', err);
+            alert('[ERROR] Erreur système: ' + err.message);
         }
     }
 
@@ -152,7 +152,7 @@
             return;
         }
 
-        console.log('🚫 Rejet utilisateur UUID:', uuid);
+        console.log(' Rejet utilisateur UUID:', uuid);
 
         try {
             const { data, error } = await supabase
@@ -162,20 +162,20 @@
                 .select();
 
             if (error) {
-                console.error('❌ Erreur rejet:', error);
-                alert('❌ Erreur lors du rejet: ' + error.message);
+                console.error('[ERROR] Erreur rejet:', error);
+                alert('[ERROR] Erreur lors du rejet: ' + error.message);
                 return;
             }
 
-            console.log('✅ Utilisateur rejeté:', data);
-            alert('✅ Utilisateur rejeté');
+            console.log('[OK] Utilisateur rejeté:', data);
+            alert('[OK] Utilisateur rejeté');
 
             // Rafraîchir
             loadCoachRegistrationsFromSupabase();
 
         } catch (err) {
-            console.error('❌ Exception rejectRegistration:', err);
-            alert('❌ Erreur système: ' + err.message);
+            console.error('[ERROR] Exception rejectRegistration:', err);
+            alert('[ERROR] Erreur système: ' + err.message);
         }
     }
 
@@ -185,7 +185,7 @@
             return;
         }
 
-        console.log('🚫 Révocation utilisateur UUID:', uuid);
+        console.log(' Révocation utilisateur UUID:', uuid);
 
         try {
             const { data, error } = await supabase
@@ -196,20 +196,20 @@
                 .single();
 
             if (error) {
-                console.error('❌ Erreur révocation:', error);
-                alert('❌ Erreur lors de la révocation: ' + error.message);
+                console.error('[ERROR] Erreur révocation:', error);
+                alert('[ERROR] Erreur lors de la révocation: ' + error.message);
                 return;
             }
 
-            console.log('✅ Accès révoqué:', data);
-            alert('✅ Accès révoqué');
+            console.log('[OK] Accès révoqué:', data);
+            alert('[OK] Accès révoqué');
 
             // Rafraîchir
             loadCoachRegistrationsFromSupabase();
 
         } catch (err) {
-            console.error('❌ Exception revokeAccess:', err);
-            alert('❌ Erreur système: ' + err.message);
+            console.error('[ERROR] Exception revokeAccess:', err);
+            alert('[ERROR] Erreur système: ' + err.message);
         }
     }
 
@@ -219,7 +219,7 @@
             return;
         }
 
-        console.log('✅ Réactivation utilisateur UUID:', uuid);
+        console.log('[OK] Réactivation utilisateur UUID:', uuid);
 
         try {
             const { data, error } = await supabase
@@ -230,26 +230,26 @@
                 .single();
 
             if (error) {
-                console.error('❌ Erreur réactivation:', error);
-                alert('❌ Erreur lors de la réactivation: ' + error.message);
+                console.error('[ERROR] Erreur réactivation:', error);
+                alert('[ERROR] Erreur lors de la réactivation: ' + error.message);
                 return;
             }
 
-            console.log('✅ Utilisateur réactivé:', data);
-            alert('✅ Utilisateur réactivé avec succès !');
+            console.log('[OK] Utilisateur réactivé:', data);
+            alert('[OK] Utilisateur réactivé avec succès !');
 
             // Rafraîchir
             loadCoachRegistrationsFromSupabase();
 
         } catch (err) {
-            console.error('❌ Exception reactivateUser:', err);
-            alert('❌ Erreur système: ' + err.message);
+            console.error('[ERROR] Exception reactivateUser:', err);
+            alert('[ERROR] Erreur système: ' + err.message);
         }
     }
 
     // ===== FONCTION STATISTIQUES =====
     async function loadCoachStats() {
-        console.log('📊 Chargement statistiques coach...');
+        console.log('[DATA] Chargement statistiques coach...');
 
         try {
             // Compter les utilisateurs par statut
@@ -259,7 +259,7 @@
                 .eq('role', 'student');
 
             if (error) {
-                console.error('❌ Erreur chargement stats:', error);
+                console.error('[ERROR] Erreur chargement stats:', error);
                 return;
             }
 
@@ -270,7 +270,7 @@
                 revoked: allUsers.filter(u => u.status === 'revoked').length
             };
 
-            console.log('📊 Statistiques:', stats);
+            console.log('[DATA] Statistiques:', stats);
 
             // Afficher dans le dashboard
             const statsContainer = document.getElementById('coachStats');
@@ -298,7 +298,7 @@
             }
 
         } catch (err) {
-            console.error('❌ Exception loadCoachStats:', err);
+            console.error('[ERROR] Exception loadCoachStats:', err);
         }
     }
 
@@ -310,6 +310,6 @@
     window.reactivateUser = reactivateUser;
     window.loadCoachStats = loadCoachStats;
 
-    console.log('✅ Fonctions coach exportées: loadCoachRegistrations, approveRegistration, rejectRegistration, revokeAccess, reactivateUser, loadCoachStats');
+    console.log('[OK] Fonctions coach exportées: loadCoachRegistrations, approveRegistration, rejectRegistration, revokeAccess, reactivateUser, loadCoachStats');
 
 })();
