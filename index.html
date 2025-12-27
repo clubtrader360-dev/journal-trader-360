@@ -1851,7 +1851,7 @@ window.addEventListener('load', function() {
             setCurrentDate();
             setupStarRatings();
             initializeDefaultAccounts();
-            loadCalendarPreferences(); // Charger les préférences d'affichage
+            // loadCalendarPreferences(); // Supprimée // Charger les préférences d'affichage
             
             // Initialiser les graphiques et mettre à jour tout
             initCharts();
@@ -3611,15 +3611,8 @@ window.addEventListener('load', function() {
             // Sauvegarder les préférences
         }
         
-        // Charger les préférences au démarrage
-        function loadCalendarPreferences() {
-            if (saved) {
-                calendarDisplay = JSON.parse(saved);
-                document.getElementById('showPnl').checked = calendarDisplay.showPnl;
-                document.getElementById('showTradeCount').checked = calendarDisplay.showTradeCount;
-                document.getElementById('showWinRate').checked = calendarDisplay.showWinRate;
-            }
-        }
+        // Fonction loadCalendarPreferences supprimée
+        // Préférences par défaut dans calendarDisplay
 
         // Charts functions
         function initCharts() {
