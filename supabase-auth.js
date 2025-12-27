@@ -1,10 +1,22 @@
 /**
  * =================================================================
  * JOURNAL TRADER 360 - AUTHENTICATION MODULE
- * Version: DEFINITIVE 1.0
+ * Version: DEFINITIVE 2.0 - FIXED
  * Convention: TOUJOURS utiliser UUID (jamais ID)
  * =================================================================
  */
+
+console.log('🔗 Chargement supabase-auth.js...');
+
+// ===== VÉRIFICATION SUPABASE =====
+if (!window.supabase) {
+    console.error('❌ ERREUR CRITIQUE: window.supabase non défini !');
+    console.error('❌ Assurez-vous que supabase-config.js est chargé AVANT supabase-auth.js');
+    throw new Error('Supabase client non initialisé');
+}
+
+const supabase = window.supabase;
+console.log('✅ Supabase client récupéré depuis window.supabase');
 
 // ===== FONCTION LOGIN ÉLÈVE =====
 async function login() {
@@ -18,7 +30,7 @@ async function login() {
     }
 
     try {
-        console.log('🔐 Tentative de connexion:', email);
+        console.log('🔐 Tentative de connexion élève:', email);
 
         // 1. Authentification Supabase
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -49,64 +61,46 @@ async function login() {
         }
 
         if (!userData) {
-            console.error('❌ Utilisateur introuvable dans public.users avec UUID:', data.user.id);
-            showError('loginError', 'Votre profil est incomplet. Contactez le support.');
+            console.error('❌ Utilisateur non trouvé dans public.users');
+            showError('loginError', 'Utilisateur non trouvé');
             await supabase.auth.signOut();
             return;
         }
 
-        console.log('✅ Utilisateur trouvé:', userData.email, 'Status:', userData.status);
-
-        // 3. Vérifier le statut
-        if (userData.status === 'pending') {
-            showError('loginError', '⏳ Votre compte est en attente de validation par le coach.');
-            await supabase.auth.signOut();
-            return;
-        }
-        
-        if (userData.status === 'revoked') {
-            showError('loginError', '⛔ Votre accès a été suspendu. Contactez votre coach.');
+        // 3. Vérifier que c'est un élève
+        if (userData.role !== 'student') {
+            console.error('❌ Rôle incorrect:', userData.role);
+            showError('loginError', 'Accès réservé aux élèves');
             await supabase.auth.signOut();
             return;
         }
 
-        // 4. Mettre à jour last_login
-        await supabase
-            .from('users')
-            .update({ last_login: new Date().toISOString() })
-            .eq('uuid', userData.uuid);
+        if (userData.status !== 'active') {
+            console.error('❌ Compte inactif:', userData.status);
+            showError('loginError', 'Votre compte est inactif. Contactez votre coach.');
+            await supabase.auth.signOut();
+            return;
+        }
 
-        // 5. Connexion réussie
-        currentUser = userData;
         console.log('✅ Connexion élève réussie:', userData.email);
-        
-        // Charger les données et afficher l'app
-        await loadUserDataFromSupabase(currentUser.uuid);
-        // Déclencher un événement au lieu d'appeler directement
-        if (typeof showMainApp === 'function') {
-            showMainApp();
-        } else {
-            console.error('❌ showMainApp n\'est pas définie - attente...');
-            // Réessayer après un court délai
-            setTimeout(() => {
-                if (typeof showMainApp === 'function') {
-                    showMainApp();
-                } else {
-                    console.error('❌ showMainApp toujours pas définie après délai');
-                }
-            }, 100);
-        }
+
+        // 4. Charger les données depuis Supabase
+        await loadUserDataFromSupabase(userData.uuid);
+
+        // 5. Définir currentUser et afficher l'app
+        currentUser = userData;
+        showMainApp();
 
     } catch (err) {
-        console.error('❌ Erreur critique login:', err);
-        showError('loginError', 'Une erreur est survenue. Réessayez.');
+        console.error('❌ ERREUR CRITIQUE login:', err);
+        showError('loginError', 'Une erreur critique est survenue');
     }
 }
 
 // ===== FONCTION LOGIN COACH =====
 async function coachLogin() {
     const email = document.getElementById('coachEmail').value.trim();
-    const code = document.getElementById('coachCode').value;
+    const code = document.getElementById('coachCode').value.trim();
 
     if (!email || !code) {
         showError('coachError', 'Veuillez saisir votre email et code');
@@ -114,65 +108,66 @@ async function coachLogin() {
     }
 
     try {
-        console.log('👨‍🏫 Tentative connexion coach:', email);
+        console.log('🔐 Tentative de connexion coach:', email);
 
-        // Authentification avec le code comme mot de passe
+        // 1. Authentification Supabase (code = password)
         const { data, error } = await supabase.auth.signInWithPassword({
             email: email,
             password: code
         });
 
         if (error) {
-            console.error('❌ Erreur coach auth:', error);
+            console.error('❌ Erreur Supabase Auth Coach:', error);
             showError('coachError', 'Email ou code incorrect');
             return;
         }
 
-        // Vérifier que c'est bien un coach
+        console.log('✅ Authentification coach réussie, UUID:', data.user.id);
+
+        // 2. Récupérer les données coach depuis public.users
         const { data: userData, error: userError } = await supabase
             .from('users')
             .select('*')
             .eq('uuid', data.user.id)
             .single();
 
-        if (userError || !userData || userData.role !== 'coach') {
-            console.error('❌ Pas un coach:', userError);
-            showError('coachError', 'Accès coach non autorisé');
+        if (userError || !userData) {
+            console.error('❌ Erreur récupération coach:', userError);
+            showError('coachError', 'Erreur lors de la récupération des données coach');
             await supabase.auth.signOut();
             return;
         }
 
-        // Connexion coach réussie
-        currentUser = userData;
-        console.log('✅ Connexion coach réussie:', userData.email);
-        // Déclencher un événement au lieu d'appeler directement
-        if (typeof showMainApp === 'function') {
-            showMainApp();
-        } else {
-            console.error('❌ showMainApp n\'est pas définie - attente...');
-            // Réessayer après un court délai
-            setTimeout(() => {
-                if (typeof showMainApp === 'function') {
-                    showMainApp();
-                } else {
-                    console.error('❌ showMainApp toujours pas définie après délai');
-                }
-            }, 100);
+        // 3. Vérifier que c'est un coach
+        if (userData.role !== 'coach') {
+            console.error('❌ Rôle incorrect:', userData.role);
+            showError('coachError', 'Accès réservé aux coachs');
+            await supabase.auth.signOut();
+            return;
         }
 
+        console.log('✅ Connexion coach réussie:', userData.email);
+
+        // 4. Charger tous les élèves
+        await loadAllUsers();
+
+        // 5. Définir currentUser et afficher le dashboard coach
+        currentUser = userData;
+        showCoachDashboard();
+
     } catch (err) {
-        console.error('❌ Erreur coach login:', err);
-        showError('coachError', 'Une erreur est survenue');
+        console.error('❌ ERREUR CRITIQUE coachLogin:', err);
+        showError('coachError', 'Une erreur critique est survenue');
     }
 }
 
-// ===== FONCTION INSCRIPTION =====
+// ===== FONCTION REGISTER =====
 async function register() {
     const email = document.getElementById('registerEmail').value.trim();
     const password = document.getElementById('registerPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
+    const confirmPassword = document.getElementById('registerConfirmPassword').value;
 
-    // Validations
+    // Validation des champs
     if (!email || !password || !confirmPassword) {
         showError('registerError', 'Veuillez remplir tous les champs');
         return;
@@ -189,184 +184,81 @@ async function register() {
     }
 
     try {
-        console.log('📝 Inscription:', email);
+        console.log('📝 Tentative d\'inscription:', email);
 
-        // 1. Créer l\'utilisateur dans Supabase Auth
+        // 1. Créer le compte Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email: email,
-            password: password,
-            options: {
-                emailRedirectTo: window.location.origin,
-                data: {
-                    role: 'student'
-                }
-            }
+            password: password
         });
 
         if (authError) {
-            console.error('❌ Erreur signup:', authError);
-            if (authError.message.includes('already registered')) {
-                showError('registerError', 'Un compte existe déjà avec cet email');
-            } else if (authError.message.includes('For security purposes')) {
-                showError('registerError', 'Trop de tentatives. Attendez 60 secondes.');
-            } else {
-                showError('registerError', 'Erreur: ' + authError.message);
-            }
+            console.error('❌ Erreur inscription Supabase:', authError);
+            showError('registerError', 'Erreur lors de l\'inscription: ' + authError.message);
             return;
         }
 
-        console.log('✅ Auth créé, UUID:', authData.user.id);
+        console.log('✅ Compte Supabase créé, UUID:', authData.user.id);
 
-        // 2. Créer l'entrée dans public.users avec status='pending'
+        // 2. Créer l'entrée dans public.users
         const { data: userData, error: userError } = await supabase
             .from('users')
             .insert([{
                 uuid: authData.user.id,
                 email: email,
                 role: 'student',
-                status: 'pending',
-                name: email.split('@')[0],
+                status: 'active',
                 created_at: new Date().toISOString()
             }])
             .select()
             .single();
 
         if (userError) {
-            console.error('❌ Erreur création user dans table:', userError);
+            console.error('❌ Erreur création user:', userError);
             showError('registerError', 'Erreur lors de la création du profil');
+            // Supprimer le compte Auth si échec
+            await supabase.auth.signOut();
             return;
         }
 
-        console.log('✅ Inscription complète:', userData);
+        console.log('✅ Profil utilisateur créé:', userData);
 
-        // 3. Déconnecter immédiatement
-        await supabase.auth.signOut();
+        // 3. Connexion automatique
+        currentUser = userData;
+        showMainApp();
 
-        // 4. Message de succès
-        alert('✅ Inscription réussie !\n\nVotre demande a été envoyée au coach.\nVous recevrez un accès dès validation.');
-
-        // Retour au formulaire de connexion
-        showLoginForm();
+        console.log('🎉 Inscription et connexion réussies !');
 
     } catch (err) {
-        console.error('❌ Erreur register:', err);
-        showError('registerError', 'Une erreur est survenue');
-    }
-}
-
-// ===== FONCTION CHARGEMENT DONNÉES UTILISATEUR =====
-async function loadUserDataFromSupabase(userUuid) {
-    try {
-        console.log('📊 Chargement données pour UUID:', userUuid);
-
-        // Charger les trades
-        const { data: trades, error: tradesError } = await supabase
-            .from('trades')
-            .select('*')
-            .eq('user_id', userUuid)
-            .order('created_at', { ascending: false });
-
-        if (!tradesError && trades) {
-            allTrades = trades;
-            console.log('✅ Trades chargés:', trades.length);
-        }
-
-        // Charger les accounts
-        const { data: accounts, error: accountsError } = await supabase
-            .from('accounts')
-            .select('*')
-            .eq('user_id', userUuid);
-
-        if (!accountsError && accounts) {
-            tradingAccounts = accounts;
-            console.log('✅ Accounts chargés:', accounts.length);
-        }
-
-        // Charger les journal entries
-        const { data: entries, error: entriesError } = await supabase
-            .from('journal_entries')
-            .select('*')
-            .eq('user_id', userUuid)
-            .order('created_at', { ascending: false });
-
-        if (!entriesError && entries) {
-            journalEntries = entries;
-            console.log('✅ Journal entries chargés:', entries.length);
-        }
-
-        // Charger les account costs
-        const { data: costs, error: costsError } = await supabase
-            .from('account_costs')
-            .select('*')
-            .eq('user_id', userUuid);
-
-        if (!costsError && costs) {
-            accountCosts = costs;
-            console.log('✅ Account costs chargés:', costs.length);
-        }
-
-        // Charger les payouts
-        const { data: payouts, error: payoutsError } = await supabase
-            .from('payouts')
-            .select('*')
-            .eq('user_id', userUuid);
-
-        if (!payoutsError && payouts) {
-            userPayouts = payouts;
-            console.log('✅ Payouts chargés:', payouts.length);
-        }
-
-        console.log('✅ Toutes les données chargées depuis Supabase');
-
-    } catch (err) {
-        console.error('❌ Erreur chargement données:', err);
+        console.error('❌ ERREUR CRITIQUE register:', err);
+        showError('registerError', 'Une erreur critique est survenue');
     }
 }
 
 // ===== FONCTION LOGOUT =====
 async function logout() {
-    await supabase.auth.signOut();
-    currentUser = null;
-    window.location.reload();
-}
-
-// ===== FONCTIONS HELPERS UI =====
-function showError(elementId, message) {
-    const errorElement = document.getElementById(elementId);
-    if (errorElement) {
-        errorElement.textContent = message;
-        errorElement.classList.remove('hidden');
-        setTimeout(() => {
-            errorElement.classList.add('hidden');
-        }, 5000);
+    try {
+        console.log('🚪 Déconnexion...');
+        
+        await supabase.auth.signOut();
+        
+        currentUser = null;
+        trades = [];
+        journalEntries = [];
+        accounts = [];
+        
+        showLoginForm();
+        
+        console.log('✅ Déconnexion réussie');
+    } catch (err) {
+        console.error('❌ Erreur logout:', err);
     }
 }
 
-function showLoginForm() {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('coachLoginForm').style.display = 'none';
-}
-
-function showRegisterForm() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerForm').style.display = 'block';
-    document.getElementById('coachLoginForm').style.display = 'none';
-}
-
-function showCoachLogin() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('coachLoginForm').style.display = 'block';
-}
-
-console.log('✅ Auth Module chargé (VERSION DEFINITIVE)');
-
-// ✅ EXPORTS GLOBAUX - Rendre les fonctions accessibles depuis HTML
-window.register = register;
+// ===== EXPORT DES FONCTIONS =====
 window.login = login;
+window.register = register;
 window.coachLogin = coachLogin;
 window.logout = logout;
-window.loadUserDataFromSupabase = loadUserDataFromSupabase;
 
-console.log('✅ supabase-auth.js - Fonctions exportées globalement');
+console.log('✅ supabase-auth.js chargé - Fonctions exportées: login, register, coachLogin, logout');
