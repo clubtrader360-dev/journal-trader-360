@@ -7,13 +7,13 @@
  */
 
 (() => {
-    console.log('📝 Chargement supabase-journal.js...');
+    console.log('[REGISTER] Chargement supabase-journal.js...');
     
     // Récupérer le client Supabase depuis window.supabaseClient (créé par config.js)
     const supabase = window.supabaseClient;
     
     if (!supabase) {
-        console.error('❌ window.supabaseClient manquant (config non chargée ?)');
+        console.error('[ERROR] window.supabaseClient manquant (config non chargée ?)');
         throw new Error('supabaseClient manquant');
     }
 
@@ -25,13 +25,13 @@
         const mood = document.getElementById('journalMood').value;
 
         if (!date || !title || !content) {
-            alert('⚠️ Veuillez remplir tous les champs obligatoires');
+            alert('[WARN] Veuillez remplir tous les champs obligatoires');
             return;
         }
 
         if (!currentUser || !currentUser.uuid) {
-            alert('❌ Erreur: utilisateur non connecté');
-            console.error('❌ currentUser invalide:', currentUser);
+            alert('[ERROR] Erreur: utilisateur non connecté');
+            console.error('[ERROR] currentUser invalide:', currentUser);
             return;
         }
 
@@ -43,7 +43,7 @@
             mood: mood || 'neutral'
         };
 
-        console.log('📝 Ajout entrée journal pour UUID:', currentUser.uuid, journalData);
+        console.log('[REGISTER] Ajout entrée journal pour UUID:', currentUser.uuid, journalData);
 
         try {
             const { data, error } = await supabase
@@ -53,13 +53,13 @@
                 .single();
 
             if (error) {
-                console.error('❌ Erreur insertion journal:', error);
-                alert('❌ Erreur lors de l\'ajout de l\'entrée: ' + error.message);
+                console.error('[ERROR] Erreur insertion journal:', error);
+                alert('[ERROR] Erreur lors de l\'ajout de l\'entrée: ' + error.message);
                 return;
             }
 
-            console.log('✅ Entrée journal ajoutée:', data);
-            alert('✅ Entrée de journal ajoutée avec succès !');
+            console.log('[OK] Entrée journal ajoutée:', data);
+            alert('[OK] Entrée de journal ajoutée avec succès !');
 
             // Fermer modal et reset
             document.getElementById('journalModal').style.display = 'none';
@@ -71,19 +71,19 @@
             }
 
         } catch (err) {
-            console.error('❌ Exception addJournalEntry:', err);
-            alert('❌ Erreur système: ' + err.message);
+            console.error('[ERROR] Exception addJournalEntry:', err);
+            alert('[ERROR] Erreur système: ' + err.message);
         }
     }
 
     // ===== FONCTION CHARGEMENT ENTRÉES JOURNAL =====
     async function loadJournalEntries() {
         if (!currentUser || !currentUser.uuid) {
-            console.warn('⚠️ loadJournalEntries appelé mais currentUser invalide');
+            console.warn('[WARN] loadJournalEntries appelé mais currentUser invalide');
             return;
         }
 
-        console.log('📥 Chargement des entrées journal pour UUID:', currentUser.uuid);
+        console.log(' Chargement des entrées journal pour UUID:', currentUser.uuid);
 
         try {
             const { data, error } = await supabase
@@ -93,15 +93,15 @@
                 .order('entry_date', { ascending: false });
 
             if (error) {
-                console.error('❌ Erreur chargement journal:', error);
+                console.error('[ERROR] Erreur chargement journal:', error);
                 return;
             }
 
-            console.log('✅ Entrées journal chargées:', data.length);
+            console.log('[OK] Entrées journal chargées:', data.length);
             displayJournalEntries(data);
 
         } catch (err) {
-            console.error('❌ Exception loadJournalEntries:', err);
+            console.error('[ERROR] Exception loadJournalEntries:', err);
         }
     }
 
@@ -110,7 +110,7 @@
         const container = document.getElementById('journalEntriesContainer');
         
         if (!container) {
-            console.warn('⚠️ Container journal introuvable');
+            console.warn('[WARN] Container journal introuvable');
             return;
         }
 
@@ -121,10 +121,10 @@
 
         container.innerHTML = entries.map(entry => {
             const moodEmoji = {
-                'positive': '😊',
-                'neutral': '😐',
-                'negative': '😞'
-            }[entry.mood] || '😐';
+                'positive': '',
+                'neutral': '',
+                'negative': ''
+            }[entry.mood] || '';
 
             return `
                 <div class="journal-entry">
@@ -144,6 +144,6 @@
     window.addJournalEntry = addJournalEntry;
     window.loadJournalEntries = loadJournalEntries;
 
-    console.log('✅ Fonctions journal exportées: addJournalEntry, loadJournalEntries');
+    console.log('[OK] Fonctions journal exportées: addJournalEntry, loadJournalEntries');
 
 })();
