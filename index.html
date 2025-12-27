@@ -772,6 +772,7 @@ window.addEventListener('load', function() {
                 attach('showRegisterBtn', window.showRegisterForm, 'ShowRegister');
                 attach('showCoachLoginBtn', window.showCoachLogin, 'ShowCoachLogin');
                 attach('showLoginBtn', window.showLoginForm, 'ShowLogin');
+                attach('logoutBtn', window.logout, 'Logout');
                 
                 console.log('🎯 Tous les événements sont attachés !');
                 
@@ -880,7 +881,7 @@ window.addEventListener('load', function() {
                 <div class="sidebar-item" onclick="showSection('accounting')">
                     <i class="fas fa-wallet mr-3"></i>Comptabilité
                 </div>
-                <div class="sidebar-item logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
+                <div id="logoutBtn" class="sidebar-item logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
                     <i class="fas fa-sign-out-alt mr-3"></i>Déconnexion
                 </div>
             </nav>
@@ -5378,7 +5379,7 @@ window.addEventListener('load', function() {
             </nav>
 
             <nav class="mt-6">
-                <div class="sidebar-item logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
+                <div id="logoutBtnCoach" class="sidebar-item logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
                     <i class="fas fa-sign-out-alt mr-3"></i>Déconnexion
                 </div>
             </nav>
