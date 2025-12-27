@@ -222,6 +222,8 @@
             // Recharger les comptes
             if (typeof loadAccounts === 'function') {
                 await loadAccounts();
+            } else {
+                await window.loadAccounts();
             }
 
         } catch (err) {
@@ -255,7 +257,7 @@
             const tradeAccountSelect = document.getElementById('tradeAccount');
             if (tradeAccountSelect) {
                 tradeAccountSelect.innerHTML = '<option value="">Sélectionner un compte</option>' +
-                    data.map(acc => `<option value="${acc.name}">${acc.name} (${acc.type})</option>`).join('');
+                    data.map(acc => `<option value="${acc.id}">${acc.name} (${acc.type})</option>`).join('');
             }
 
             // Afficher les comptes dans la sidebar
