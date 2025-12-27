@@ -7,13 +7,13 @@
  */
 
 (() => {
-    console.log('📈 Chargement supabase-trades.js...');
+    console.log('[CHART] Chargement supabase-trades.js...');
     
     // Récupérer le client Supabase depuis window.supabaseClient (créé par config.js)
     const supabase = window.supabaseClient;
     
     if (!supabase) {
-        console.error('❌ window.supabaseClient manquant (config non chargée ?)');
+        console.error('[ERROR] window.supabaseClient manquant (config non chargée ?)');
         throw new Error('supabaseClient manquant');
     }
 
@@ -32,13 +32,13 @@
 
         // Validations
         if (!date || !entryTime || !exitTime || !symbol || !direction || !entryPrice || !exitPrice || !contracts || !account) {
-            alert('⚠️ Veuillez remplir tous les champs obligatoires');
+            alert('[WARN] Veuillez remplir tous les champs obligatoires');
             return;
         }
 
         if (!currentUser || !currentUser.uuid) {
-            alert('❌ Erreur: utilisateur non connecté');
-            console.error('❌ currentUser invalide:', currentUser);
+            alert('[ERROR] Erreur: utilisateur non connecté');
+            console.error('[ERROR] currentUser invalide:', currentUser);
             return;
         }
 
@@ -62,7 +62,7 @@
             pnl: pnl
         };
 
-        console.log('💹 Ajout trade pour UUID:', currentUser.uuid, tradeData);
+        console.log(' Ajout trade pour UUID:', currentUser.uuid, tradeData);
 
         try {
             // Insérer dans Supabase
@@ -73,13 +73,13 @@
                 .single();
 
             if (error) {
-                console.error('❌ Erreur insertion trade:', error);
-                alert('❌ Erreur lors de l\'ajout du trade: ' + error.message);
+                console.error('[ERROR] Erreur insertion trade:', error);
+                alert('[ERROR] Erreur lors de l\'ajout du trade: ' + error.message);
                 return;
             }
 
-            console.log('✅ Trade ajouté:', data);
-            alert('✅ Trade ajouté avec succès !');
+            console.log('[OK] Trade ajouté:', data);
+            alert('[OK] Trade ajouté avec succès !');
 
             // Fermer la modal et reset
             document.getElementById('tradeModal').style.display = 'none';
@@ -91,19 +91,19 @@
             }
 
         } catch (err) {
-            console.error('❌ Exception addTrade:', err);
-            alert('❌ Erreur système: ' + err.message);
+            console.error('[ERROR] Exception addTrade:', err);
+            alert('[ERROR] Erreur système: ' + err.message);
         }
     }
 
     // ===== FONCTION CHARGEMENT TRADES =====
     async function loadTrades() {
         if (!currentUser || !currentUser.uuid) {
-            console.warn('⚠️ loadTrades appelé mais currentUser invalide');
+            console.warn('[WARN] loadTrades appelé mais currentUser invalide');
             return;
         }
 
-        console.log('📥 Chargement des trades pour UUID:', currentUser.uuid);
+        console.log(' Chargement des trades pour UUID:', currentUser.uuid);
 
         try {
             const { data, error } = await supabase
@@ -114,15 +114,15 @@
                 .order('entry_time', { ascending: false });
 
             if (error) {
-                console.error('❌ Erreur chargement trades:', error);
+                console.error('[ERROR] Erreur chargement trades:', error);
                 return;
             }
 
-            console.log('✅ Trades chargés:', data.length);
+            console.log('[OK] Trades chargés:', data.length);
             displayTrades(data);
 
         } catch (err) {
-            console.error('❌ Exception loadTrades:', err);
+            console.error('[ERROR] Exception loadTrades:', err);
         }
     }
 
@@ -131,7 +131,7 @@
         const tbody = document.querySelector('#tradesTable tbody');
         
         if (!tbody) {
-            console.warn('⚠️ Tableau trades introuvable');
+            console.warn('[WARN] Tableau trades introuvable');
             return;
         }
 
@@ -165,12 +165,12 @@
         const initialBalance = parseFloat(document.getElementById('initialBalance').value);
 
         if (!accountNumber || !accountType || !initialBalance) {
-            alert('⚠️ Veuillez remplir tous les champs');
+            alert('[WARN] Veuillez remplir tous les champs');
             return;
         }
 
         if (!currentUser || !currentUser.uuid) {
-            alert('❌ Erreur: utilisateur non connecté');
+            alert('[ERROR] Erreur: utilisateur non connecté');
             return;
         }
 
@@ -182,7 +182,7 @@
             current_balance: initialBalance
         };
 
-        console.log('💼 Ajout compte pour UUID:', currentUser.uuid, accountData);
+        console.log(' Ajout compte pour UUID:', currentUser.uuid, accountData);
 
         try {
             const { data, error } = await supabase
@@ -192,13 +192,13 @@
                 .single();
 
             if (error) {
-                console.error('❌ Erreur insertion compte:', error);
-                alert('❌ Erreur lors de l\'ajout du compte: ' + error.message);
+                console.error('[ERROR] Erreur insertion compte:', error);
+                alert('[ERROR] Erreur lors de l\'ajout du compte: ' + error.message);
                 return;
             }
 
-            console.log('✅ Compte ajouté:', data);
-            alert('✅ Compte ajouté avec succès !');
+            console.log('[OK] Compte ajouté:', data);
+            alert('[OK] Compte ajouté avec succès !');
 
             // Fermer modal et reset
             document.getElementById('accountModal').style.display = 'none';
@@ -210,19 +210,19 @@
             }
 
         } catch (err) {
-            console.error('❌ Exception addAccount:', err);
-            alert('❌ Erreur système: ' + err.message);
+            console.error('[ERROR] Exception addAccount:', err);
+            alert('[ERROR] Erreur système: ' + err.message);
         }
     }
 
     // ===== FONCTION CHARGEMENT COMPTES =====
     async function loadAccounts() {
         if (!currentUser || !currentUser.uuid) {
-            console.warn('⚠️ loadAccounts appelé mais currentUser invalide');
+            console.warn('[WARN] loadAccounts appelé mais currentUser invalide');
             return;
         }
 
-        console.log('📥 Chargement des comptes pour UUID:', currentUser.uuid);
+        console.log(' Chargement des comptes pour UUID:', currentUser.uuid);
 
         try {
             const { data, error } = await supabase
@@ -231,11 +231,11 @@
                 .eq('user_id', currentUser.uuid);
 
             if (error) {
-                console.error('❌ Erreur chargement comptes:', error);
+                console.error('[ERROR] Erreur chargement comptes:', error);
                 return;
             }
 
-            console.log('✅ Comptes chargés:', data.length);
+            console.log('[OK] Comptes chargés:', data.length);
 
             // Mettre à jour le select du formulaire de trade
             const tradeAccountSelect = document.getElementById('tradeAccount');
@@ -245,7 +245,7 @@
             }
 
         } catch (err) {
-            console.error('❌ Exception loadAccounts:', err);
+            console.error('[ERROR] Exception loadAccounts:', err);
         }
     }
 
@@ -255,6 +255,6 @@
     window.addAccount = addAccount;
     window.loadAccounts = loadAccounts;
 
-    console.log('✅ Fonctions trades exportées: addTrade, loadTrades, addAccount, loadAccounts');
+    console.log('[OK] Fonctions trades exportées: addTrade, loadTrades, addAccount, loadAccounts');
 
 })();
