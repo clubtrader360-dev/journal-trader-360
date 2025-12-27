@@ -721,55 +721,38 @@
 window.addEventListener('load', function() {
     console.log('🔧 Chargement terminé, attente Supabase (800ms)...');
     
-    setTimeout(function() {
-        console.log('🔗 Attachement des événements...');
+    // Attendre que les fonctions Supabase soient chargées (boucle robuste)
+        let attempts = 0;
+        const maxAttempts = 100; // 10 secondes max
         
-        function attach(id, fn, name) {
-            const el = document.getElementById(id);
-            if (el && typeof fn === 'function') {
-                el.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    fn();
-                });
-                console.log('  ✅ ' + name);
-            } else if (!fn) {
-                console.error('  ❌ ' + name + ' introuvable');
+        const checkInterval = setInterval(function() {
+            attempts++;
+            console.log(`🔄 Tentative ${attempts}/${maxAttempts} - Vérification des fonctions...`);
+            
+            // Vérifier que toutes les fonctions nécessaires existent
+            if (typeof window.login === 'function' && 
+                typeof window.register === 'function' && 
+                typeof window.coachLogin === 'function') {
+                
+                clearInterval(checkInterval);
+                console.log('✅ Fonctions trouvées ! Attachement des événements...');
+                
+                // Attacher les événements
+                attach('loginBtn', window.login, 'Login');
+                attach('registerBtn', window.register, 'Register');
+                attach('coachLoginBtn', window.coachLogin, 'CoachLogin');
+                attach('showRegisterBtn', window.showRegisterForm, 'ShowRegister');
+                attach('showCoachLoginBtn', window.showCoachLogin, 'ShowCoachLogin');
+                attach('showLoginBtn', window.showLoginForm, 'ShowLogin');
+                
+                console.log('🎯 Tous les événements sont attachés !');
+                
+            } else if (attempts >= maxAttempts) {
+                clearInterval(checkInterval);
+                console.error('❌ Timeout : les fonctions Supabase ne sont pas chargées après 10 secondes');
+                console.error('Vérifiez que les scripts supabase-*.js sont bien chargés');
             }
-        }
-        
-        attach('loginBtn', window.login, 'Login');
-        attach('registerBtn', window.register, 'Register');
-        attach('coachLoginBtn', window.coachLogin, 'CoachLogin');
-        attach('showRegisterBtn', window.showRegisterForm, 'ShowRegister');
-        attach('showCoachLoginBtn', window.showCoachLogin, 'ShowCoachLogin');
-        attach('addAccountBtn', window.addAccount, 'AddAccount');
-        attach('addTradeBtn', window.addTrade, 'AddTrade');
-        
-        // Classes
-        var loginBtns = document.querySelectorAll('.showLoginBtn');
-        if (loginBtns.length && window.showLoginForm) {
-            loginBtns.forEach(function(btn) {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    window.showLoginForm();
-                });
-            });
-            console.log('  ✅ ' + loginBtns.length + ' showLoginForm');
-        }
-        
-        var logoutBtns = document.querySelectorAll('.logoutBtn');
-        if (logoutBtns.length && window.logout) {
-            logoutBtns.forEach(function(btn) {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    window.logout();
-                });
-            });
-            console.log('  ✅ ' + logoutBtns.length + ' logout');
-        }
-        
-        console.log('🎉 Terminé !');
-    }, 800);
+        }, 100); // Vérifier toutes les 100ms
 });
 </script>
 </head>
@@ -869,7 +852,7 @@ window.addEventListener('load', function() {
                 <div class="sidebar-item" onclick="showSection('accounting')">
                     <i class="fas fa-wallet mr-3"></i>Comptabilité
                 </div>
-                <div class="sidebar-item" class="logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
+                <div class="sidebar-item logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
                     <i class="fas fa-sign-out-alt mr-3"></i>Déconnexion
                 </div>
             </nav>
@@ -2996,6 +2979,69 @@ window.addEventListener('load', function() {
                 notification.style.animation = 'slideOut 0.3s ease';
                 setTimeout(() => notification.remove(), 300);
             }, 2000);
+        }
+
+        // Fonction pour mettre à jour la bannière TradersZella
+        function updateBanner() {
+            if (trades.length === 0) {
+                // Réinitialiser les valeurs si pas de trades
+                document.getElementById('netPnlValue').textContent = '$0.00';
+                document.getElementById('tradeWinValue').textContent = '0%';
+                document.getElementById('tradeWinBar').style.width = '0%';
+                document.getElementById('profitFactorValue').textContent = '0.00';
+                document.getElementById('profitFactorBar').style.width = '0%';
+                document.getElementById('dayWinValue').textContent = '0%';
+                document.getElementById('dayWinBar').style.width = '0%';
+                document.getElementById('avgWinLossValue').textContent = '0.00';
+                document.getElementById('avgWinLabel').textContent = '$0';
+                document.getElementById('avgLossLabel').textContent = '$0';
+                return;
+            }
+
+            // Calculer Net P&L
+            const netPnl = trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+            document.getElementById('netPnlValue').textContent = '$' + netPnl.toFixed(2);
+            document.getElementById('netPnlValue').style.color = netPnl >= 0 ? '#10b981' : '#ef4444';
+
+            // Calculer Trade Win %
+            const winningTrades = trades.filter(t => (parseFloat(t.pnl) || 0) > 0).length;
+            const tradeWinPercent = trades.length > 0 ? (winningTrades / trades.length * 100) : 0;
+            document.getElementById('tradeWinValue').textContent = tradeWinPercent.toFixed(1) + '%';
+            document.getElementById('tradeWinBar').style.width = tradeWinPercent + '%';
+
+            // Calculer Profit Factor
+            const totalProfit = trades.filter(t => (parseFloat(t.pnl) || 0) > 0)
+                                     .reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+            const totalLoss = Math.abs(trades.filter(t => (parseFloat(t.pnl) || 0) < 0)
+                                            .reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0));
+            const profitFactor = totalLoss > 0 ? totalProfit / totalLoss : 0;
+            document.getElementById('profitFactorValue').textContent = profitFactor.toFixed(2);
+            const profitFactorPercent = Math.min(profitFactor * 50, 100); // Max 100%
+            document.getElementById('profitFactorBar').style.width = profitFactorPercent + '%';
+
+            // Calculer Day Win %
+            const tradesByDay = {};
+            trades.forEach(t => {
+                const day = t.entryTime.split('T')[0];
+                if (!tradesByDay[day]) tradesByDay[day] = 0;
+                tradesByDay[day] += parseFloat(t.pnl) || 0;
+            });
+            const days = Object.keys(tradesByDay);
+            const winningDays = days.filter(day => tradesByDay[day] > 0).length;
+            const dayWinPercent = days.length > 0 ? (winningDays / days.length * 100) : 0;
+            document.getElementById('dayWinValue').textContent = dayWinPercent.toFixed(1) + '%';
+            document.getElementById('dayWinBar').style.width = dayWinPercent + '%';
+
+            // Calculer Avg Win/Loss
+            const avgWin = winningTrades > 0 ? totalProfit / winningTrades : 0;
+            const losingTrades = trades.length - winningTrades;
+            const avgLoss = losingTrades > 0 ? totalLoss / losingTrades : 0;
+            const avgWinLoss = avgLoss > 0 ? avgWin / avgLoss : 0;
+            document.getElementById('avgWinLossValue').textContent = avgWinLoss.toFixed(2);
+            document.getElementById('avgWinLabel').textContent = '$' + avgWin.toFixed(0);
+            document.getElementById('avgLossLabel').textContent = '$' + avgLoss.toFixed(0);
+            
+            console.log('✅ Banner mis à jour');
         }
 
         function updateDashboard() {
@@ -5304,7 +5350,7 @@ window.addEventListener('load', function() {
             </nav>
 
             <nav class="mt-6">
-                <div class="sidebar-item" class="logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
+                <div class="sidebar-item logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
                     <i class="fas fa-sign-out-alt mr-3"></i>Déconnexion
                 </div>
             </nav>
@@ -5609,11 +5655,11 @@ window.addEventListener('load', function() {
 
     <!-- Scripts Supabase - Chargés APRÈS toutes les fonctions -->
 
-    <script src="supabase-config.js"></script>
-    <script src="supabase-auth.js"></script>
-    <script src="supabase-trades.js"></script>
-    <script src="supabase-journal.js"></script>
-    <script src="supabase-coach.js"></script>
+    <script src="supabase-config.js" defer></script>
+    <script src="supabase-auth.js" defer></script>
+    <script src="supabase-trades.js" defer></script>
+    <script src="supabase-journal.js" defer></script>
+    <script src="supabase-coach.js" defer></script>
 
     <script>
 (function() {
@@ -5628,10 +5674,10 @@ window.addEventListener('load', function() {
         
         console.log(`🔄 Tentative ${attempts}/${maxAttempts} - Vérification des fonctions...`);
         
-        // Vérifier si les fonctions existent
-        if (typeof login === 'function' && 
-            typeof register === 'function' && 
-            typeof coachLogin === 'function') {
+        // Vérifier si les fonctions existent sur window
+        if (typeof window.login === 'function' && 
+            typeof window.register === 'function' && 
+            typeof window.coachLogin === 'function') {
             
             clearInterval(checkInterval);
             console.log('✅ Fonctions trouvées ! Attachement des événements...');
@@ -5642,7 +5688,7 @@ window.addEventListener('load', function() {
                 loginBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('🔐 Tentative de connexion...');
-                    login();
+                    window.login();
                 });
                 console.log('✅ Bouton Login attaché');
             } else {
@@ -5654,7 +5700,7 @@ window.addEventListener('load', function() {
                 registerBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('📝 Tentative d'inscription...');
-                    register();
+                    window.register();
                 });
                 console.log('✅ Bouton Register attaché');
             }
@@ -5664,7 +5710,7 @@ window.addEventListener('load', function() {
                 coachLoginBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('👨‍🏫 Tentative de connexion coach...');
-                    coachLogin();
+                    window.coachLogin();
                 });
                 console.log('✅ Bouton Coach Login attaché');
             }
