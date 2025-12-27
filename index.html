@@ -721,6 +721,62 @@
     <!-- Scripts Supabase déplacés avant 
     
 
+<script>
+// 🎯 SCRIPT UNIQUE - Ultra simple
+window.addEventListener('load', function() {
+    console.log('🔧 Chargement terminé, attente Supabase (800ms)...');
+    
+    setTimeout(function() {
+        console.log('🔗 Attachement des événements...');
+        
+        function attach(id, fn, name) {
+            const el = document.getElementById(id);
+            if (el && typeof fn === 'function') {
+                el.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    fn();
+                });
+                console.log('  ✅ ' + name);
+            } else if (!fn) {
+                console.error('  ❌ ' + name + ' introuvable');
+            }
+        }
+        
+        attach('loginBtn', window.login, 'Login');
+        attach('registerBtn', window.register, 'Register');
+        attach('coachLoginBtn', window.coachLogin, 'CoachLogin');
+        attach('showRegisterBtn', window.showRegisterForm, 'ShowRegister');
+        attach('showCoachLoginBtn', window.showCoachLogin, 'ShowCoachLogin');
+        attach('addAccountBtn', window.addAccount, 'AddAccount');
+        attach('addTradeBtn', window.addTrade, 'AddTrade');
+        
+        // Classes
+        var loginBtns = document.querySelectorAll('.showLoginBtn');
+        if (loginBtns.length && window.showLoginForm) {
+            loginBtns.forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.showLoginForm();
+                });
+            });
+            console.log('  ✅ ' + loginBtns.length + ' showLoginForm');
+        }
+        
+        var logoutBtns = document.querySelectorAll('.logoutBtn');
+        if (logoutBtns.length && window.logout) {
+            logoutBtns.forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.logout();
+                });
+            });
+            console.log('  ✅ ' + logoutBtns.length + ' logout');
+        }
+        
+        console.log('🎉 Terminé !');
+    }, 800);
+});
+</script>
 </body> -->
 </head>
 <body>
@@ -5623,93 +5679,6 @@
     <script src="supabase-journal.js"></script>
     <script src="supabase-coach.js"></script>
 
-<!-- ========================================== -->
-<!-- SCRIPT D'ATTACHEMENT ROBUSTE DES ÉVÉNEMENTS -->
-<!-- ========================================== -->
-<script>
-(function() {
-    console.log('🚀 Script de connexion initialisé');
-    
-    // Liste des fonctions requises
-    const requiredFunctions = [
-        'login', 'register', 'coachLogin', 'logout',
-        'showRegisterForm', 'showLoginForm', 'showCoachLogin',
-        'addAccount', 'addTrade', 'deleteAccount', 'deleteTrade'
-    ];
-    
-    let checkAttempts = 0;
-    const maxAttempts = 50; // 5 secondes
-    
-    // Vérifier et attacher les événements
-    function checkAndAttachEvents() {
-        checkAttempts++;
-        
-        // Vérifier combien de fonctions sont chargées
-        const loadedFunctions = requiredFunctions.filter(fn => typeof window[fn] === 'function');
-        const allLoaded = loadedFunctions.length === requiredFunctions.length;
-        
-        console.log(`🔄 [${checkAttempts}/${maxAttempts}] Fonctions chargées: ${loadedFunctions.length}/${requiredFunctions.length}`);
-        
-        if (allLoaded) {
-            clearInterval(checkInterval);
-            console.log('✅ Toutes les fonctions sont chargées !');
-            attachAllEvents();
-        } else if (checkAttempts >= maxAttempts) {
-            clearInterval(checkInterval);
-            console.error('❌ Timeout: Certaines fonctions ne sont pas chargées');
-            console.error('   Fonctions manquantes:', requiredFunctions.filter(fn => typeof window[fn] !== 'function'));
-            // Attacher quand même ce qui est disponible
-            attachAllEvents();
-        }
-    }
-    
-    // Attacher tous les événements
-    function attachAllEvents() {
-        console.log('🔗 Attachement des événements...');
-        
-        // Fonction helper pour attacher un événement
-        function attachEvent(selector, action, isClass = false) {
-            const elements = isClass ? 
-                document.querySelectorAll(`.${selector}`) : 
-                [document.getElementById(selector)];
-            
-            elements.forEach(el => {
-                if (el && typeof window[action] === 'function') {
-                    el.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        console.log(`🎯 Action: ${action}`);
-                        window[action]();
-                    });
-                    console.log(`   ✅ ${selector} → ${action}`);
-                }
-            });
-        }
-        
-        // Attacher les événements de connexion
-        attachEvent('loginBtn', 'login');
-        attachEvent('registerBtn', 'register');
-        attachEvent('coachLoginBtn', 'coachLogin');
-        attachEvent('showRegisterBtn', 'showRegisterForm');
-        attachEvent('showLoginBtn', 'showLoginForm', true); // classe
-        attachEvent('showCoachLoginBtn', 'showCoachLogin');
-        attachEvent('logoutBtn', 'logout', true); // classe
-        
-        // Attacher les événements de trading
-        attachEvent('addAccountBtn', 'addAccount');
-        attachEvent('addTradeBtn', 'addTrade');
-        
-        console.log('🎉 Tous les événements sont attachés !');
-    }
-    
-    // Démarrer la vérification
-    const checkInterval = setInterval(checkAndAttachEvents, 100);
-    
-})();
-</script>
-
-
-<!-- Script d'attachement robuste des événements -->
-<script>
 (function() {
     console.log('🔍 Script de connexion chargé');
     
@@ -5782,50 +5751,6 @@
 
 
 <!-- Script d'attachement des événements -->
-<script>
-// Attendre que tout soit chargé
-window.addEventListener('load', function() {
-    console.log('🔧 Attachement des événements de connexion...');
-    
-    // Fonction pour attacher les événements
-    function attachLoginEvents() {
-        // Bouton Login
-        const loginBtn = document.getElementById('loginBtn');
-        if (loginBtn && typeof login === 'function') {
-            loginBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                login();
-            });
-            console.log('✅ Bouton Login attaché');
-        }
-        
-        // Bouton Register
-        const registerBtn = document.getElementById('registerBtn');
-        if (registerBtn && typeof register === 'function') {
-            registerBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                register();
-            });
-            console.log('✅ Bouton Register attaché');
-        }
-        
-        // Bouton Coach Login
-        const coachLoginBtn = document.getElementById('coachLoginBtn');
-        if (coachLoginBtn && typeof coachLogin === 'function') {
-            coachLoginBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                coachLogin();
-            });
-            console.log('✅ Bouton Coach Login attaché');
-        }
-        
-        console.log('✅ Tous les événements attachés');
-    }
-    
-    // Attendre un peu que les scripts Supabase se chargent
-    setTimeout(attachLoginEvents, 500);
-});
-</script>
 
 
     
