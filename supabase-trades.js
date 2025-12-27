@@ -237,6 +237,28 @@ async function deleteAccount(accountId) {
 console.log('✅ Trades Module chargé (VERSION DEFINITIVE)');
 
 // ✅ EXPORTS GLOBAUX pour éviter "addAccount is not defined"
+
+// Supprimer un trade
+async function deleteTrade(tradeId) {
+    try {
+        console.log('🗑️ Suppression du trade:', tradeId);
+        
+        const { error } = await supabase
+            .from('trades')
+            .delete()
+            .eq('id', tradeId);
+        
+        if (error) throw error;
+        
+        console.log('✅ Trade supprimé');
+        alert('Trade supprimé avec succès');
+        location.reload();
+    } catch (err) {
+        console.error('❌ Erreur deleteTrade:', err);
+        alert('Erreur lors de la suppression: ' + err.message);
+    }
+}
+
 window.addAccount = addAccount;
 window.addTrade = addTrade;
 window.deleteAccount = deleteAccount;
