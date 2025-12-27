@@ -1898,7 +1898,7 @@ window.addEventListener('load', function() {
                 ];
                 // Données auto-sauvegardées dans Supabase
             }
-            updateAccountsList();
+            if (typeof window.loadAccounts === "function") window.loadAccounts();
         }
         */ // Fin initializeDefaultAccounts
 
@@ -1930,6 +1930,8 @@ window.addEventListener('load', function() {
         }
 
         // Account Management
+        // LEGACY - DÉSACTIVÉ - Utiliser window.loadAccounts() à la place
+        /*
         function updateAccountsList() {
             const container = document.getElementById('accountsList');
             const tradeAccountSelect = document.getElementById('tradeAccount');
@@ -2005,7 +2007,7 @@ window.addEventListener('load', function() {
             console.log(' Comptes après ajout:', accounts.map(a => ({ id: a.id, name: a.name })));
             
             // Données auto-sauvegardées dans Supabase
-            updateAccountsList();
+            if (typeof window.loadAccounts === "function") window.loadAccounts();
             
             // Mettre à jour le select dans le modal addTradeModal s'il est ouvert
             const tradeAccountSelect = document.getElementById('tradeAccount');
@@ -2081,7 +2083,7 @@ window.addEventListener('load', function() {
             
             // Sauvegarder et rafraîchir
             // Données auto-sauvegardées dans Supabase
-            updateAccountsList();
+            if (typeof window.loadAccounts === "function") window.loadAccounts();
             refreshAllModules();
             
             // Notification de succès
@@ -2179,7 +2181,7 @@ window.addEventListener('load', function() {
 
         // Modal functions
         function showAddTradeModal() {
-            updateAccountsList(); // Refresh account options
+            if (typeof window.loadAccounts === "function") window.loadAccounts(); // Refresh account options
             
             // Réinitialiser le symbole à ES par défaut
             document.getElementById('symbol').value = 'ES';
