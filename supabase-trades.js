@@ -50,16 +50,16 @@
         // Préparer les données
         const tradeData = {
             user_id: window.currentUser.uuid,
-            trade_date: date,
-            entry_time: entryTime,
-            exit_time: exitTime,
-            symbol: symbol,
+            account_id: account,  // Corrigé: account → account_id
+            instrument: symbol,   // Corrigé: symbol → instrument
             direction: direction,
+            quantity: contracts,  // Corrigé: contracts → quantity
             entry_price: entryPrice,
             exit_price: exitPrice,
-            contracts: contracts,
-            account: account,
-            pnl: pnl
+            entry_time: entryTime,
+            exit_time: exitTime,
+            pnl: pnl,
+            commissions: 0  // Valeur par défaut
         };
 
         console.log(' Ajout trade pour UUID:', window.currentUser.uuid, tradeData);
@@ -110,8 +110,7 @@
                 .from('trades')
                 .select('*')
                 .eq('user_id', window.currentUser.uuid)
-                .order('trade_date', { ascending: false })
-                .order('entry_time', { ascending: false });
+                .order('created_at', { ascending: false });
 
             if (error) {
                 console.error('[ERROR] Erreur chargement trades:', error);
@@ -144,14 +143,14 @@
             const pnlClass = trade.pnl >= 0 ? 'positive' : 'negative';
             return `
                 <tr>
-                    <td>${trade.trade_date}</td>
-                    <td>${trade.entry_time}</td>
-                    <td>${trade.exit_time}</td>
-                    <td>${trade.symbol}</td>
+                    <td>${new Date(trade.entry_time).toLocaleDateString('fr-FR')}</td>
+                    <td>${new Date(trade.entry_time).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}</td>
+                    <td>${trade.exit_time ? new Date(trade.exit_time).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}) : '-'}</td>
+                    <td>${trade.instrument}</td>
                     <td>${trade.direction}</td>
                     <td>${trade.entry_price}</td>
                     <td>${trade.exit_price}</td>
-                    <td>${trade.contracts}</td>
+                    <td>${trade.quantity}</td>
                     <td class="${pnlClass}">${trade.pnl.toFixed(2)} $</td>
                 </tr>
             `;
@@ -259,10 +258,9 @@
                     data.map(acc => `<option value="${acc.name}">${acc.name} (${acc.type})</option>`).join('');
             }
 
-            // Mettre à jour l'affichage des comptes (si fonction existe)
-            if (typeof window.renderAccounts === 'function') {
-                window.renderAccounts(data);
-            }
+            // Afficher les comptes dans la sidebar
+            renderAccountsList(data);
+            console.log('[OK] Select mis à jour avec', data.length, 'comptes');
 
         } catch (err) {
             console.error('[ERROR] Exception loadAccounts:', err);
@@ -270,6 +268,38 @@
     }
 
 
+
+
+    // ========================================
+    // FONCTION : RENDER ACCOUNTS LIST (SIDEBAR)
+    // ========================================
+    function renderAccountsList(accounts) {
+        const accountsList = document.getElementById('accountsList');
+        if (!accountsList) {
+            console.warn('[WARN] Element accountsList non trouvé');
+            return;
+        }
+
+        if (!accounts || accounts.length === 0) {
+            accountsList.innerHTML = '<p class="text-xs text-gray-400">Aucun compte</p>';
+            return;
+        }
+
+        accountsList.innerHTML = accounts.map(acc => `
+            <div class="flex items-center justify-between p-2 mb-2 bg-gray-700 rounded">
+                <div class="flex-1">
+                    <div class="text-sm font-medium text-white">${acc.name}</div>
+                    <div class="text-xs text-gray-400">${acc.type}</div>
+                    <div class="text-xs text-green-400">${parseFloat(acc.current_balance || 0).toFixed(2)} €</div>
+                </div>
+                <button onclick="deleteAccount(${acc.id})" class="text-red-400 hover:text-red-300 ml-2">
+                    <i class="fas fa-trash text-xs"></i>
+                </button>
+            </div>
+        `).join('');
+
+        console.log('[OK] Liste des comptes rendue:', accounts.length, 'comptes');
+    }
 
     // ========================================
     // FONCTION : DELETE ACCOUNT
@@ -338,7 +368,8 @@
     window.addAccount = addAccount;
     window.loadAccounts = loadAccounts;
     window.deleteAccount = deleteAccount;
+    window.renderAccountsList = renderAccountsList;
 
-    console.log('[OK] Fonctions trades exportées: addTrade, loadTrades, addAccount, loadAccounts, deleteAccount');
+    console.log('[OK] Fonctions trades exportées: addTrade, loadTrades, addAccount, loadAccounts, deleteAccount, renderAccountsList');
 
 })();
