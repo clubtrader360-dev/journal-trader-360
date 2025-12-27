@@ -75,13 +75,22 @@
             window.currentUser = userData;
             console.log('[OK] Connexion élève réussie:', userData.email);
 
-            const authScreen = document.getElementById('authScreen');
-            const mainApp = document.getElementById('mainApp');
-            const coachApp = document.getElementById('coachApp');
-            
-            if (authScreen) authScreen.style.display = 'none';
-            if (mainApp) mainApp.style.display = 'flex';  // Afficher l'interface élève
-            if (coachApp) coachApp.style.display = 'none';  // Masquer l'interface coach
+            // Appeler showMainApp() pour afficher l'interface + email
+            if (typeof window.showMainApp === 'function') {
+                window.showMainApp();
+            } else {
+                // Fallback si showMainApp n'existe pas
+                console.warn('[WARN] showMainApp non trouvée, affichage manuel');
+                const authScreen = document.getElementById('authScreen');
+                const mainApp = document.getElementById('mainApp');
+                const coachApp = document.getElementById('coachApp');
+                const userInfo = document.getElementById('userInfo');
+                
+                if (authScreen) authScreen.style.display = 'none';
+                if (mainApp) mainApp.style.display = 'flex';
+                if (coachApp) coachApp.style.display = 'none';
+                if (userInfo) userInfo.textContent = window.currentUser.email;
+            }
 
             if (typeof loadUserDataFromSupabase === 'function') {
                 await loadUserDataFromSupabase(userData.uuid);
