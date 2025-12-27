@@ -739,7 +739,7 @@
                     <label>Mot de passe</label>
                     <input type="password" id="loginPassword" placeholder="Votre mot de passe">
                 </div>
-                <button onclick="login()" class="trader-btn w-full mb-4">Se connecter</button>
+                <button id="loginBtn" class="trader-btn w-full mb-4">Se connecter</button>
                 <button onclick="showRegisterForm()" class="trader-btn-secondary w-full mb-4">Créer un compte</button>
                 <button onclick="showCoachLogin()" class="trader-btn-secondary w-full">Connexion Coach</button>
                 <div id="loginError" class="text-red-500 text-sm mt-4 hidden"></div>
@@ -759,7 +759,7 @@
                     <label>Confirmer le mot de passe</label>
                     <input type="password" id="confirmPassword" placeholder="Confirmez votre mot de passe">
                 </div>
-                <button onclick="register()" class="trader-btn w-full mb-4">S'inscrire</button>
+                <button id="registerBtn" class="trader-btn w-full mb-4">S'inscrire</button>
                 <button onclick="showLoginForm()" class="trader-btn-secondary w-full">Retour à la connexion</button>
                 <div id="registerError" class="text-red-500 text-sm mt-4 hidden"></div>
             </div>
@@ -774,7 +774,7 @@
                     <label>Code Coach</label>
                     <input type="password" id="coachCode" placeholder="trader3602025">
                 </div>
-                <button onclick="coachLogin()" class="trader-btn w-full mb-4">Connexion Coach</button>
+                <button id="coachLoginBtn" class="trader-btn w-full mb-4">Connexion Coach</button>
                 <button onclick="showLoginForm()" class="trader-btn-secondary w-full">Retour</button>
                 <div id="coachError" class="text-red-500 text-sm mt-4 hidden"></div>
             </div>
@@ -5611,5 +5611,52 @@
     <script src="supabase-trades.js"></script>
     <script src="supabase-journal.js"></script>
     <script src="supabase-coach.js"></script>
+
+<!-- Script d'attachement des événements -->
+<script>
+// Attendre que tout soit chargé
+window.addEventListener('load', function() {
+    console.log('🔧 Attachement des événements de connexion...');
+    
+    // Fonction pour attacher les événements
+    function attachLoginEvents() {
+        // Bouton Login
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn && typeof login === 'function') {
+            loginBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                login();
+            });
+            console.log('✅ Bouton Login attaché');
+        }
+        
+        // Bouton Register
+        const registerBtn = document.getElementById('registerBtn');
+        if (registerBtn && typeof register === 'function') {
+            registerBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                register();
+            });
+            console.log('✅ Bouton Register attaché');
+        }
+        
+        // Bouton Coach Login
+        const coachLoginBtn = document.getElementById('coachLoginBtn');
+        if (coachLoginBtn && typeof coachLogin === 'function') {
+            coachLoginBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                coachLogin();
+            });
+            console.log('✅ Bouton Coach Login attaché');
+        }
+        
+        console.log('✅ Tous les événements attachés');
+    }
+    
+    // Attendre un peu que les scripts Supabase se chargent
+    setTimeout(attachLoginEvents, 500);
+});
+</script>
+
 </body>
 </html>
