@@ -2,7 +2,7 @@
  * =================================================================
  * JOURNAL TRADER 360 - TRADES MODULE
  * Version: FINALE PRO - IIFE isolée
- * Convention: TOUJOURS utiliser user_id = currentUser.uuid
+ * Convention: TOUJOURS utiliser user_id = window.currentUser.uuid
  * =================================================================
  */
 
@@ -36,9 +36,9 @@
             return;
         }
 
-        if (!currentUser || !currentUser.uuid) {
+        if (!window.currentUser || !window.currentUser.uuid) {
             alert('[ERROR] Erreur: utilisateur non connecté');
-            console.error('[ERROR] currentUser invalide:', currentUser);
+            console.error('[ERROR] currentUser invalide:', window.currentUser);
             return;
         }
 
@@ -49,7 +49,7 @@
 
         // Préparer les données
         const tradeData = {
-            user_id: currentUser.uuid,
+            user_id: window.currentUser.uuid,
             trade_date: date,
             entry_time: entryTime,
             exit_time: exitTime,
@@ -62,7 +62,7 @@
             pnl: pnl
         };
 
-        console.log(' Ajout trade pour UUID:', currentUser.uuid, tradeData);
+        console.log(' Ajout trade pour UUID:', window.currentUser.uuid, tradeData);
 
         try {
             // Insérer dans Supabase
@@ -98,18 +98,18 @@
 
     // ===== FONCTION CHARGEMENT TRADES =====
     async function loadTrades() {
-        if (!currentUser || !currentUser.uuid) {
+        if (!window.currentUser || !window.currentUser.uuid) {
             console.warn('[WARN] loadTrades appelé mais currentUser invalide');
             return;
         }
 
-        console.log(' Chargement des trades pour UUID:', currentUser.uuid);
+        console.log(' Chargement des trades pour UUID:', window.currentUser.uuid);
 
         try {
             const { data, error } = await supabase
                 .from('trades')
                 .select('*')
-                .eq('user_id', currentUser.uuid)
+                .eq('user_id', window.currentUser.uuid)
                 .order('trade_date', { ascending: false })
                 .order('entry_time', { ascending: false });
 
@@ -177,9 +177,9 @@
             return;
         }
 
-        if (!currentUser || !currentUser.uuid) {
+        if (!window.currentUser || !window.currentUser.uuid) {
             alert('[ERROR] Erreur: utilisateur non connecté');
-            console.error('[ERROR] currentUser invalide:', currentUser);
+            console.error('[ERROR] currentUser invalide:', window.currentUser);
             return;
         }
 
@@ -187,14 +187,14 @@
         let size = parseFloat(sizeStr.replace(/[kK]/, '')) * (sizeStr.match(/[kK]/) ? 1000 : 1);
 
         const accountData = {
-            user_id: currentUser.uuid,
+            user_id: window.currentUser.uuid,
             name: name,  // Utilise le nom comme numéro
             type: 'Trading',  // Type par défaut
             initial_balance: size,
             current_balance: size
         };
 
-        console.log('[SAVE] Ajout compte pour UUID:', currentUser.uuid, accountData);
+        console.log('[SAVE] Ajout compte pour UUID:', window.currentUser.uuid, accountData);
 
         try {
             const { data, error } = await supabase
