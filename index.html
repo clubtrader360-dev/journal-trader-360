@@ -737,6 +737,70 @@ function showAddAccountModal() {
     const modal = document.getElementById('addAccountModal');
     if (modal) {
         modal.style.display = 'block';
+
+        // ========================================
+        // UI WIRING : addAccountUI()
+        // Appel module backend avec paramètres explicites
+        // ========================================
+        async function addAccountUI() {
+            console.log('[UI] addAccountUI() - START');
+
+            // ✅ 1) RÉCUPÉRER LES DONNÉES DU FORMULAIRE
+            const nameInput = document.getElementById('accountName');
+            const sizeInput = document.getElementById('accountSize');
+            const typeSelect = document.getElementById('accountType');
+
+            if (!nameInput || !sizeInput || !typeSelect) {
+                console.error('[UI] ❌ Erreur : champs DOM manquants');
+                alert('❌ Erreur : formulaire incomplet.');
+                return;
+            }
+
+            const accountData = {
+                name: nameInput.value.trim(),
+                type: typeSelect.value,
+                initial_balance: parseFloat(sizeInput.value)
+            };
+
+            console.log('[UI] Données formulaire extraites:', accountData);
+
+            // ✅ 2) APPEL MODULE BACKEND AVEC PARAMÈTRES EXPLICITES
+            if (!window.addAccount) {
+                console.error('[UI] ❌ Erreur : window.addAccount() manquant');
+                alert('❌ Erreur : module trades non chargé.');
+                return;
+            }
+
+            const { data, error } = await window.addAccount(accountData);
+
+            // ✅ 3) GESTION RÉSULTAT
+            if (error) {
+                console.error('[UI] ❌ Erreur addAccount:', error);
+                return; // Le module a déjà affiché l'alert
+            }
+
+            console.log('[UI] ✅ Compte créé:', data);
+            alert(\`✅ Compte "\${data.name}" créé avec succès !\`);
+
+            // ✅ 4) FERMETURE MODALE + RESET FORM
+            const modal = document.getElementById('addAccountModal');
+            if (modal) {
+                modal.style.display = 'none';
+                console.log('[UI] ✅ Modale fermée');
+            }
+
+            nameInput.value = '';
+            sizeInput.value = '';
+            typeSelect.value = 'demo';
+
+            console.log('[UI] ✅ Formulaire réinitialisé');
+        }
+
+        // ✅ 5) EXPOSITION GLOBALE
+        window.addAccountUI = addAccountUI;
+
+        console.log('[UI] ✅ addAccountUI() exposée globalement');
+
         console.log('[OK] Modale addAccountModal affichée');
     } else {
         console.error('[ERROR] Modale addAccountModal introuvable');
@@ -1578,7 +1642,7 @@ window.addEventListener('load', function() {
                 </div>
                 
                 <div class="flex gap-4 mt-6">
-                    <button type="button" id="addAccountBtn" data-action="addAccount" class="trader-btn flex-1">Ajouter</button>
+                    <button type="button" onclick="addAccountUI()" class="trader-btn flex-1">Ajouter</button>
                     <button type="button" onclick="closeModal('addAccountModal')" class="trader-btn-secondary flex-1">Annuler</button>
                 </div>
             </form>
@@ -2094,69 +2158,6 @@ window.addEventListener('load', function() {
             document.getElementById('addAccountModal').style.display = 'block';
         }
 
-        function addAccount_DISABLED() { return; // DÉSACTIVÉ - Voir supabase-trades.js
-            const name = document.getElementById('accountName').value.trim();
-            const size = document.getElementById('accountSize').value.trim();
-
-            if (!name || !size) {
-                alert('Veuillez remplir tous les champs');
-                return;
-            }
-
-            const colors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#06b6d4', '#84cc16', '#f97316'];
-            
-            // Générer un ID sécurisé
-            const maxId = accounts.length > 0 ? Math.max(...accounts.map(a => a.id)) : 0;
-            const newAccount = {
-                id: maxId + 1,
-                name: name,
-                size: size.replace(/[^0-9]/g, ''),
-                active: true,
-                color: colors[accounts.length % colors.length]
-            };
-
-            console.log(' DEBUG addAccount - Nouveau compte créé:', newAccount);
-            
-            accounts.push(newAccount);
-            console.log(' Comptes après ajout:', accounts.map(a => ({ id: a.id, name: a.name })));
-            
-            // Données auto-sauvegardées dans Supabase
-            if (typeof window.loadAccounts === "function") window.loadAccounts();
-            
-            // Mettre à jour le select dans le modal addTradeModal s'il est ouvert
-            const tradeAccountSelect = document.getElementById('tradeAccount');
-            console.log(' Select trouvé:', tradeAccountSelect ? 'OUI' : 'NON');
-            
-            if (tradeAccountSelect) {
-                tradeAccountSelect.innerHTML = '<option value="">Sélectionner un compte...</option>' +
-                    accounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
-                
-                console.log(' HTML du select mis à jour:', tradeAccountSelect.innerHTML);
-                
-                // Sélectionner automatiquement le nouveau compte
-                tradeAccountSelect.value = newAccount.id;
-                console.log(' Valeur du select après sélection:', tradeAccountSelect.value);
-            } else {
-                console.error("[ERROR] Select #tradeAccount NOT FOUND!");
-            }
-            
-            closeModal('addAccountModal');
-            
-            // Attendre que le modal soit fermé, puis remettre à jour le select
-            setTimeout(() => {
-                const tradeAccountSelect2 = document.getElementById('tradeAccount');
-                if (tradeAccountSelect2) {
-                    console.log(" Mise à jour FINALE du select après fermeture modal");
-                    tradeAccountSelect2.innerHTML = '<option value="">Sélectionner un compte...</option>' +
-                        accounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
-                    tradeAccountSelect2.value = newAccount.id;
-                    console.log(' Valeur finale du select:', tradeAccountSelect2.value);
-                }
-            }, 100);
-            
-            // Notification de succès
-            alert(`[OK] Compte "${newAccount.name}" créé avec succès !\n\nVous pouvez maintenant l'utiliser pour vos trades.`);
-        }
 
         function deleteAccount_DISABLED(accountId) { return; // DÉSACTIVÉ - Voir supabase-trades.js
             const account = accounts.find(a => a.id === accountId);
