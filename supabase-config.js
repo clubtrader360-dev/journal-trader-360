@@ -1,21 +1,37 @@
-// ========================================
-// SUPABASE CONFIG - VERSION IIFE (ISOLÉE)
-// ========================================
+// ============================================================
+// SUPABASE CONFIG - single source of truth for the client
+// Creates window.supabaseClient once, and keeps window.supabase for backwards-compat.
+// ============================================================
 
 (() => {
-    console.log('[CONFIG] Chargement supabase-config.js...');
+  if (window.supabaseClient) {
+    console.log('[CFG] Supabase client already initialised');
+    // keep legacy alias
+    window.supabase = window.supabaseClient;
+    return;
+  }
 
-    const SUPABASE_URL = 'https://zgihbpgoorymomtsbxpz.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnaWhicGdvb3J5bW9tdHNieHB6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NTkyODgsImV4cCI6MjA3OTEzNTI4OH0.eGTwcpYON_uP3ppOhVIWs4qKJLjn9TyE7usGnvU4oRA';
+  // IMPORTANT: SUPABASE_URL and SUPABASE_ANON_KEY must be defined in index.html before this script.
+  if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+    console.error('[CFG] Missing SUPABASE_URL or SUPABASE_ANON_KEY');
+    return;
+  }
 
-    // Vérifier que la bibliothèque Supabase est chargée
-    if (typeof supabase === 'undefined') {
-        console.error('[ERROR] Bibliothèque Supabase non chargée. Vérifiez le CDN.');
-        return;
+  if (!window.supabaseLib || !window.supabaseLib.createClient) {
+    console.error('[CFG] Missing Supabase JS library (supabaseLib). Check <script src="https://cdn.jsdelivr...">');
+    return;
+  }
+
+  window.supabaseClient = window.supabaseLib.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
     }
+  });
 
-    // Créer le client Supabase et l'exposer globalement
-    window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // legacy alias (some modules may still reference window.supabase)
+  window.supabase = window.supabaseClient;
 
-    console.log('[OK] Client Supabase créé: window.supabaseClient =', !!window.supabaseClient);
+  console.log('[CFG] Supabase client initialised');
 })();
