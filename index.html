@@ -904,13 +904,15 @@ console.log('[OK] Fonctions modales exposées globalement');
 </script>
 
 <script>
-    // Fonction pour attacher les événements aux boutons
+    // ================================================================
+    // FONCTION HELPER : Attacher un événement à un bouton
+    // ================================================================
     function attach(id, fn, name) {
         const btn = document.getElementById(id);
         if (btn) {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('[REGISTER] Tentative de ' + name + '...');
+                console.log('[CLICK] ' + name);
                 if (typeof fn === 'function') {
                     fn();
                 } else {
@@ -919,31 +921,94 @@ console.log('[OK] Fonctions modales exposées globalement');
             });
             console.log('[OK] Bouton ' + name + ' attaché');
         } else {
-            console.warn('[WARN] Bouton ' + id + ' introuvable dans le DOM');
+            console.warn('[WARN] Bouton #' + id + ' introuvable');
         }
     }
 
-// [SUCCESS] SCRIPT UNIQUE - Ultra simple
-window.addEventListener('load', function() {
-    console.log(" Chargement terminé, attente Supabase (800ms)...");
-    
-    // Attendre que les fonctions Supabase soient chargées (boucle robuste)
+    // ================================================================
+    // FONCTION UI : Ajouter un compte (wiring uniquement)
+    // ================================================================
+    async function addAccountUI() {
+        console.log('[UI] addAccountUI() - START');
+
+        // ✅ 1) RÉCUPÉRER LES DONNÉES DU FORMULAIRE
+        const nameInput = document.getElementById('accountName');
+        const sizeInput = document.getElementById('accountSize');
+        const typeSelect = document.getElementById('accountType');
+
+        if (!nameInput || !sizeInput || !typeSelect) {
+            console.error('[UI] ❌ Erreur : champs DOM manquants');
+            alert('❌ Erreur : formulaire incomplet.');
+            return;
+        }
+
+        const accountData = {
+            name: nameInput.value.trim(),
+            type: typeSelect.value,
+            initial_balance: parseFloat(sizeInput.value)
+        };
+
+        console.log('[UI] Données formulaire extraites:', accountData);
+
+        // ✅ 2) APPEL MODULE BACKEND
+        if (!window.addAccount) {
+            console.error('[UI] ❌ Erreur : window.addAccount() manquant');
+            alert('❌ Erreur : module trades non chargé.');
+            return;
+        }
+
+        const { data, error } = await window.addAccount(accountData);
+
+        // ✅ 3) GESTION RÉSULTAT
+        if (error) {
+            console.error('[UI] ❌ Erreur addAccount:', error);
+            return;
+        }
+
+        console.log('[UI] ✅ Compte créé:', data);
+        alert(`✅ Compte "${data.name}" créé avec succès !`);
+
+        // ✅ 4) FERMETURE MODALE + RESET FORM
+        const modal = document.getElementById('addAccountModal');
+        if (modal) {
+            modal.style.display = 'none';
+            console.log('[UI] ✅ Modale fermée');
+        }
+
+        nameInput.value = '';
+        sizeInput.value = '';
+        typeSelect.value = 'demo';
+
+        console.log('[UI] ✅ Formulaire réinitialisé');
+    }
+
+    // ✅ EXPOSITION GLOBALE
+    window.addAccountUI = addAccountUI;
+
+    // ================================================================
+    // INITIALISATION AU CHARGEMENT DE LA PAGE
+    // ================================================================
+    window.addEventListener('load', function() {
+        console.log('[INIT] Chargement terminé, attente modules Supabase...');
+
         let attempts = 0;
         const maxAttempts = 100; // 10 secondes max
-        
+
         const checkInterval = setInterval(function() {
             attempts++;
-            console.log(` Tentative ${attempts}/${maxAttempts} - Vérification des fonctions...`);
-            
-            // Vérifier que toutes les fonctions nécessaires existent
+            console.log(`[INIT] Tentative ${attempts}/${maxAttempts}`);
+
+            // Vérifier que les modules Supabase sont chargés
             if (typeof window.login === 'function' && 
                 typeof window.register === 'function' && 
                 typeof window.coachLogin === 'function') {
-                
+
                 clearInterval(checkInterval);
-                console.log("[OK] Fonctions trouvées ! Attachement des événements...");
-                
-                // Attacher les événements
+                console.log('[INIT] ✅ Modules Supabase chargés !');
+
+                // ========================================
+                // ATTACHER LES ÉVÉNEMENTS AUTH
+                // ========================================
                 attach('loginBtn', window.login, 'Login');
                 attach('registerBtn', window.register, 'Register');
                 attach('coachLoginBtn', window.coachLogin, 'CoachLogin');
@@ -952,28 +1017,127 @@ window.addEventListener('load', function() {
                 attach('showLoginBtn', window.showLoginForm, 'ShowLogin');
                 attach('logoutBtn', window.logout, 'Logout');
                 attach('logoutBtnCoach', window.logout, 'LogoutCoach');
-            
-            // Attacher addAccount
-            const addAccountBtn = document.getElementById('addAccountBtn');
-            if (addAccountBtn) {
-                addAccountBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log("[ADDACCOUNT] Ajout compte...");
-                    window.addAccount();
-                });
-                console.log("[OK] Bouton AddAccount attache");
-            }
+
+                // ========================================
+                // EXPOSER LES FONCTIONS GLOBALES (POUR onclick)
+                // ========================================
                 
-                console.log("[SUCCESS] Tous les evenements sont attaches");
-                
+                // Fonction showSection (navigation sidebar)
+                window.showSection = function(sectionId) {
+                    console.log('[NAV] Affichage section:', sectionId);
+                    const sections = document.querySelectorAll('.section');
+                    sections.forEach(section => {
+                        section.style.display = 'none';
+                    });
+                    const target = document.getElementById(sectionId);
+                    if (target) {
+                        target.style.display = 'block';
+                        
+                        // Mettre à jour la sidebar active
+                        document.querySelectorAll('.sidebar-item').forEach(item => {
+                            item.classList.remove('active');
+                        });
+                        event.target.classList.add('active');
+                    }
+                };
+
+                // Fonction showAddAccountModal
+                window.showAddAccountModal = function() {
+                    console.log('[MODAL] Ouverture modal addAccount');
+                    const modal = document.getElementById('addAccountModal');
+                    if (modal) {
+                        modal.style.display = 'block';
+                    }
+                };
+
+                // Fonction closeModal
+                window.closeModal = function(modalId) {
+                    console.log('[MODAL] Fermeture modal:', modalId);
+                    const modal = document.getElementById(modalId);
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                };
+
+                // Fonction showAddTradeModal
+                window.showAddTradeModal = function() {
+                    console.log('[MODAL] Ouverture modal addTrade');
+                    const modal = document.getElementById('addTradeModal');
+                    if (modal) {
+                        modal.style.display = 'block';
+                    }
+                };
+
+                // Fonction showAddNoteModal
+                window.showAddNoteModal = function() {
+                    console.log('[MODAL] Ouverture modal addNote');
+                    const modal = document.getElementById('addNoteModal');
+                    if (modal) {
+                        modal.style.display = 'block';
+                    }
+                };
+
+                // Fonction previousMonth
+                window.previousMonth = function() {
+                    console.log('[CALENDAR] Mois précédent');
+                    if (typeof updateCalendar === 'function') {
+                        // Logique du calendrier (à implémenter)
+                    }
+                };
+
+                // Fonction nextMonth
+                window.nextMonth = function() {
+                    console.log('[CALENDAR] Mois suivant');
+                    if (typeof updateCalendar === 'function') {
+                        // Logique du calendrier (à implémenter)
+                    }
+                };
+
+// ========================================
+// PATCH MINIMAL : EXPOSITIONS MANQUANTES
+// À insérer dans index.html après ligne 1089
+// (juste après window.nextMonth = nextMonth;)
+// ========================================
+// Image zoom
+window.closeImageZoom = closeImageZoom;
+window.viewImageZoom = viewImageZoom;
+// Calendrier
+window.toggleCalendarSettings = toggleCalendarSettings;
+// Journal
+window.navigateJournalDate = navigateJournalDate;
+window.clearJournalFilter = clearJournalFilter;
+window.viewJournalEntry = viewJournalEntry;
+window.editJournalEntry = editJournalEntry;
+window.deleteJournalEntry = deleteJournalEntry;
+// Notes
+window.addNote = addNote;
+// Accounting
+window.addAccountCost = addAccountCost;
+window.addPayout = addPayout;
+// Trades
+window.editTrade = editTrade;
+window.viewTrade = viewTrade;
+// CSV Import
+window.confirmCSVImport = confirmCSVImport;
+window.cancelCSVImport = cancelCSVImport;
+// Coach
+window.showCoachSection = showCoachSection;
+window.viewStudentDetails = viewStudentDetails;
+window.closeStudentDetail = closeStudentDetail;
+window.deleteStudent = deleteStudent;
+window.approveStudent = approveStudent;
+console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
+                console.log('[INIT] ✅ Toutes les fonctions globales exposées');
+                console.log('[INIT] ✅ Initialisation terminée avec succès');
+
             } else if (attempts >= maxAttempts) {
                 clearInterval(checkInterval);
-                console.error("[ERROR] Timeout : les fonctions Supabase ne sont pas chargées après 10 secondes");
-                console.error("Vérifiez que les scripts supabase-*.js sont bien chargés");
+                console.error('[INIT] ❌ TIMEOUT : Modules Supabase non chargés après 10s');
             }
-        }, 100); // Vérifier toutes les 100ms
-});
+        }, 100);
+    });
 </script>
+
 </head>
 <body>
     <!-- Auth Screen -->
