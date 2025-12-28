@@ -8,131 +8,142 @@
 
 (() => {
     console.log('[REGISTER] Chargement supabase-journal.js...');
-
-    const supabase = window.supabaseClient; // Référence locale, pas redéclaration
+    
+    // Récupérer le client Supabase depuis window.supabaseClient (créé par config.js)
+    const supabase = window.supabaseClient || window.supabase;
     
     if (!supabase) {
-        console.error('[ERROR] window.supabaseClient manquant');
-        return;
+        console.error('[ERROR] window.supabaseClient manquant (config non chargée ?)');
+        throw new Error('supabaseClient manquant');
     }
 
-    console.log('[OK] Client Supabase récupéré pour journal');
+    // ===== FONCTION AJOUT ENTRÉE JOURNAL =====
+    async function addJournalEntry() {
+        const date = document.getElementById('journalDate').value;
+        const title = document.getElementById('journalTitle').value.trim();
+        const content = document.getElementById('journalContent').value.trim();
+        const mood = document.getElementById('journalMood').value;
 
-    // ================================================================
-    // FONCTION : CHARGER LES ENTRÉES DU JOURNAL
-    // ================================================================
-    window.loadJournalEntries = async function() {
-        console.log('[LOAD] Chargement des entrées journal...');
-
-        // Vérification utilisateur
-        if (!window.currentUser || !window.currentUser.uuid) {
-            console.warn('[WARN] loadJournalEntries appelé SANS utilisateur connecté');
+        if (!date || !title || !content) {
+            alert('[WARN] Veuillez remplir tous les champs obligatoires');
             return;
         }
 
-        const userId = window.currentUser.uuid;
+        if (!currentUser || !currentUser.uuid) {
+            alert('[ERROR] Erreur: utilisateur non connecté');
+            console.error('[ERROR] currentUser invalide:', currentUser);
+            return;
+        }
+
+        const journalData = {
+            user_id: currentUser.uuid,
+            entry_date: date,
+            title: title,
+            content: content,
+            mood: mood || 'neutral'
+        };
+
+        console.log('[REGISTER] Ajout entrée journal pour UUID:', currentUser.uuid, journalData);
+
+        try {
+            const { data, error } = await supabase
+                .from('journal_entries')
+                .insert([journalData])
+                .select()
+                .single();
+
+            if (error) {
+                console.error('[ERROR] Erreur insertion journal:', error);
+                alert('[ERROR] Erreur lors de l\'ajout de l\'entrée: ' + error.message);
+                return;
+            }
+
+            console.log('[OK] Entrée journal ajoutée:', data);
+            alert('[OK] Entrée de journal ajoutée avec succès !');
+
+            // Fermer modal et reset
+            document.getElementById('journalModal').style.display = 'none';
+            document.getElementById('addJournalForm').reset();
+
+            // Rafraîchir
+            if (typeof loadJournalEntries === 'function') {
+                loadJournalEntries();
+            }
+
+        } catch (err) {
+            console.error('[ERROR] Exception addJournalEntry:', err);
+            alert('[ERROR] Erreur système: ' + err.message);
+        }
+    }
+
+    // ===== FONCTION CHARGEMENT ENTRÉES JOURNAL =====
+    async function loadJournalEntries() {
+        if (!currentUser || !currentUser.uuid) {
+            console.warn('[WARN] loadJournalEntries appelé mais currentUser invalide');
+            return;
+        }
+
+        console.log(' Chargement des entrées journal pour UUID:', currentUser.uuid);
 
         try {
             const { data, error } = await supabase
                 .from('journal_entries')
                 .select('*')
-                .eq('user_id', userId)
-                .order('date', { ascending: false });
+                .eq('user_id', currentUser.uuid)
+                .order('entry_date', { ascending: false });
 
-            if (error) throw error;
-
-            console.log(`[OK] Entrées journal chargées: ${data.length}`);
-
-            // Appeler la fonction d'affichage si elle existe
-            if (typeof window.displayJournalEntries === 'function') {
-                window.displayJournalEntries(data);
+            if (error) {
+                console.error('[ERROR] Erreur chargement journal:', error);
+                return;
             }
 
-            return data;
+            console.log('[OK] Entrées journal chargées:', data.length);
+            displayJournalEntries(data);
 
         } catch (err) {
-            console.error('[ERROR] Erreur chargement journal:', err);
-            return [];
+            console.error('[ERROR] Exception loadJournalEntries:', err);
         }
-    };
+    }
 
-    // ================================================================
-    // FONCTION : AJOUTER UNE ENTRÉE JOURNAL
-    // ================================================================
-    window.addJournalEntry = async function(entryData) {
-        console.log('[ADD] Ajout entrée journal:', entryData);
-
-        // Vérification utilisateur
-        if (!window.currentUser || !window.currentUser.uuid) {
-            console.warn('[WARN] addJournalEntry appelé SANS utilisateur connecté');
-            alert('Vous devez être connecté pour ajouter une entrée');
+    // ===== FONCTION AFFICHAGE ENTRÉES JOURNAL =====
+    function displayJournalEntries(entries) {
+        const container = document.getElementById('journalEntriesContainer');
+        
+        if (!container) {
+            console.warn('[WARN] Container journal introuvable');
             return;
         }
 
-        // Validation du contenu
-        if (!entryData.content || !entryData.content.trim()) {
-            alert('Le contenu est obligatoire');
+        if (!entries || entries.length === 0) {
+            container.innerHTML = '<p>Aucune entrée de journal pour le moment</p>';
             return;
         }
 
-        try {
-            // Ajouter user_id et date
-            const entryWithUser = {
-                ...entryData,
-                user_id: window.currentUser.uuid,
-                date: entryData.date || new Date().toISOString().split('T')[0]
-            };
+        container.innerHTML = entries.map(entry => {
+            const moodEmoji = {
+                'positive': '',
+                'neutral': '',
+                'negative': ''
+            }[entry.mood] || '';
 
-            const { data, error } = await supabase
-                .from('journal_entries')
-                .insert([entryWithUser])
-                .select()
-                .single();
+            return `
+                <div class="journal-entry">
+                    <div class="entry-header">
+                        <h3>${entry.title} ${moodEmoji}</h3>
+                        <span class="entry-date">${entry.entry_date}</span>
+                    </div>
+                    <div class="entry-content">
+                        ${entry.content}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
 
-            if (error) throw error;
+    // ===== EXPORT DES FONCTIONS =====
+    window.addJournalEntry = addJournalEntry;
+    window.loadJournalEntries = loadJournalEntries;
 
-            console.log('[OK] Entrée journal ajoutée:', data);
+    console.log('[OK] Fonctions journal exportées: addJournalEntry, loadJournalEntries');
 
-            // Recharger les entrées
-            window.loadJournalEntries();
-
-            return data;
-
-        } catch (err) {
-            console.error('[ERROR] Erreur ajout entrée journal:', err);
-            alert('Erreur lors de l\'ajout de l\'entrée');
-            return null;
-        }
-    };
-
-    // ================================================================
-    // FONCTION : SUPPRIMER UNE ENTRÉE JOURNAL
-    // ================================================================
-    window.deleteJournalEntry = async function(entryId) {
-        console.log('[DELETE] Suppression entrée journal:', entryId);
-
-        if (!confirm('Êtes-vous sûr de vouloir supprimer cette entrée ?')) {
-            return;
-        }
-
-        try {
-            const { error } = await supabase
-                .from('journal_entries')
-                .delete()
-                .eq('id', entryId);
-
-            if (error) throw error;
-
-            console.log('[OK] Entrée journal supprimée:', entryId);
-
-            // Recharger les entrées
-            window.loadJournalEntries();
-
-        } catch (err) {
-            console.error('[ERROR] Erreur suppression entrée journal:', err);
-            alert('Erreur lors de la suppression de l\'entrée');
-        }
-    };
-
-    console.log('[OK] Module journal chargé avec succès');
 })();
