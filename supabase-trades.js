@@ -1,406 +1,331 @@
-/**
- * =================================================================
- * JOURNAL TRADER 360 - TRADES MODULE
- * Version: FINALE PRO - IIFE isolée
- * Convention: TOUJOURS utiliser user_id = window.currentUser.uuid
- * =================================================================
- */
+// ========================================
+// MODULE : TRADES + ACCOUNTS
+// Source de vérité : Supabase
+// IIFE isolée - Pas de globals au top-level
+// ========================================
 
 (() => {
-    console.log('[CHART] Chargement supabase-trades.js...');
-    
-    // Récupérer le client Supabase depuis window.supabaseClient (créé par config.js)
-    const supabase = window.supabaseClient;
-    
-    if (!supabase) {
-        console.error('[ERROR] window.supabaseClient manquant (config non chargée ?)');
-        throw new Error('supabaseClient manquant');
+  'use strict';
+
+  // ========================================
+  // 1️⃣ CLIENT SUPABASE (LOCAL À L'IIFE)
+  // ========================================
+  const supabase = window.supabaseClient;
+
+  if (!supabase) {
+    console.error('[TRADES] ❌ Erreur : window.supabaseClient manquant. Impossible de charger le module.');
+    return;
+  }
+
+  console.log('[TRADES] ✅ Client Supabase récupéré depuis window.supabaseClient');
+
+  // ========================================
+  // 2️⃣ LOAD ACCOUNTS
+  // ========================================
+  async function loadAccounts() {
+    console.log('[TRADES] loadAccounts() - START');
+
+    if (!window.currentUser || !window.currentUser.uuid) {
+      console.warn('[TRADES] ⚠️ Utilisateur non connecté. Aucun compte à charger.');
+      return { data: [], error: null };
     }
 
-    // ===== FONCTION AJOUT TRADE =====
-    async function addTrade() {
-        // Récupérer les valeurs du formulaire
-        const date = document.getElementById('tradeDate').value;
-        const entryTime = document.getElementById('tradeEntryTime').value;
-        const exitTime = document.getElementById('tradeExitTime').value;
-        const symbol = document.getElementById('tradeSymbol').value.trim().toUpperCase();
-        const direction = document.getElementById('tradeDirection').value;
-        const entryPrice = parseFloat(document.getElementById('tradeEntryPrice').value);
-        const exitPrice = parseFloat(document.getElementById('tradeExitPrice').value);
-        const contracts = parseInt(document.getElementById('tradeContracts').value);
-        const account = document.getElementById('tradeAccount').value;
+    try {
+      const { data, error } = await supabase
+        .from('accounts')
+        .select('id, name, type, initial_balance, current_balance')
+        .eq('user_id', window.currentUser.uuid)
+        .order('created_at', { ascending: false });
 
-        // Validations
-        if (!date || !entryTime || !exitTime || !symbol || !direction || !entryPrice || !exitPrice || !contracts || !account) {
-            alert('[WARN] Veuillez remplir tous les champs obligatoires');
-            return;
-        }
+      if (error) {
+        console.error('[TRADES] ❌ Erreur chargement comptes:', error);
+        return { data: [], error };
+      }
 
-        if (!window.currentUser || !window.currentUser.uuid) {
-            alert('[ERROR] Erreur: utilisateur non connecté');
-            console.error('[ERROR] currentUser invalide:', window.currentUser);
-            return;
-        }
+      console.log(`[TRADES] ✅ Comptes chargés: ${data.length}`, data);
 
-        // Calculer P&L
-        const pnl = direction === 'long' 
-            ? (exitPrice - entryPrice) * contracts 
-            : (entryPrice - exitPrice) * contracts;
+      // MAJ UI SELECT
+      const selectElement = document.getElementById('tradeAccount');
+      if (selectElement) {
+        selectElement.innerHTML = '<option value="">Sélectionner un compte</option>';
+        data.forEach(account => {
+          const option = document.createElement('option');
+          option.value = account.id;
+          option.textContent = account.name;
+          selectElement.appendChild(option);
+        });
+        console.log('[TRADES] ✅ Select #tradeAccount mis à jour');
+      }
 
-        // Préparer les données
-        const tradeData = {
-            user_id: (window.currentUserUuid || (window.currentUser && window.currentUser.uuid)),
-            account_id: Number.parseInt(account, 10),  // account_id is int8 in DB
-            instrument: symbol,   // Corrigé: symbol → instrument
-            direction: direction,
-            quantity: Number(contracts),  // quantity is numeric in DB
-            entry_price: entryPrice,
-            exit_price: exitPrice,
-            entry_time: entryTime,
-            exit_time: exitTime,
-            pnl: pnl,
-            commissions: 0  // Valeur par défaut
-        };
-
-        console.log(' Ajout trade pour UUID:', window.currentUser.uuid, tradeData);
-
-        try {
-            // Insérer dans Supabase
-            const { data, error } = await supabase
-                .from('trades')
-                .insert([tradeData])
-                .select()
-                .single();
-
-            if (error) {
-                console.error('[ERROR] Erreur insertion trade:', error);
-                alert('[ERROR] Erreur lors de l\'ajout du trade: ' + error.message);
-                return;
-            }
-
-            console.log('[OK] Trade ajouté:', data);
-            alert('[OK] Trade ajouté avec succès !');
-
-            // Fermer la modal et reset
-            document.getElementById('tradeModal').style.display = 'none';
-            document.getElementById('addTradeForm').reset();
-
-            // Rafraîchir la liste
-            if (typeof loadTrades === 'function') {
-                loadTrades();
-            }
-
-        } catch (err) {
-            console.error('[ERROR] Exception addTrade:', err);
-            alert('[ERROR] Erreur système: ' + err.message);
-        }
-    }
-
-    // ===== FONCTION CHARGEMENT TRADES =====
-    async function loadTrades() {
-        if (!window.currentUser || !window.currentUser.uuid) {
-            console.warn('[WARN] loadTrades appelé mais currentUser invalide');
-            return;
-        }
-
-        console.log(' Chargement des trades pour UUID:', window.currentUser.uuid);
-
-        try {
-            const { data, error } = await supabase
-                .from('trades')
-                .select('*')
-                .eq('user_id', window.currentUser.uuid)
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error('[ERROR] Erreur chargement trades:', error);
-                return;
-            }
-
-            console.log('[OK] Trades chargés:', data.length);
-            displayTrades(data);
-
-        } catch (err) {
-            console.error('[ERROR] Exception loadTrades:', err);
-        }
-    }
-
-    // ===== FONCTION AFFICHAGE TRADES =====
-    function displayTrades(trades) {
-        const tbody = document.querySelector('#tradesTable tbody');
-        
-        if (!tbody) {
-            console.warn('[WARN] Tableau trades introuvable');
-            return;
-        }
-
-        if (!trades || trades.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9">Aucun trade pour le moment</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = trades.map(trade => {
-            const pnlClass = trade.pnl >= 0 ? 'positive' : 'negative';
-            return `
-                <tr>
-                    <td>${new Date(trade.entry_time).toLocaleDateString('fr-FR')}</td>
-                    <td>${new Date(trade.entry_time).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}</td>
-                    <td>${trade.exit_time ? new Date(trade.exit_time).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}) : '-'}</td>
-                    <td>${trade.instrument}</td>
-                    <td>${trade.direction}</td>
-                    <td>${trade.entry_price}</td>
-                    <td>${trade.exit_price}</td>
-                    <td>${trade.quantity}</td>
-                    <td class="${pnlClass}">${trade.pnl.toFixed(2)} $</td>
-                </tr>
-            `;
-        }).join('');
-    }
-
-    // ===== FONCTION AJOUT COMPTE =====
-    
-    // ===== FONCTION AJOUT COMPTE =====
-    // Robuste: accepte soit un objet {name,type,initial_balance,...} soit rien (fallback DOM)
-    async function addAccount(accountData) {
-        // Vérification utilisateur
-        if (!window.currentUser || !window.currentUser.uuid) {
-            console.warn('[WARN] addAccount appelé mais currentUser invalide');
-            alert('Vous devez être connecté pour ajouter un compte');
-            return null;
-        }
-
-        // Fallback DOM si aucun payload n'est fourni
-        if (!accountData) {
-            const accountNameEl = document.getElementById('accountName');
-            const accountSizeEl = document.getElementById('accountSize');
-            const accountTypeEl = document.getElementById('accountType');
-
-            if (!accountNameEl || !accountSizeEl) {
-                alert('[ERROR] Formulaire non trouvé');
-                console.error('[ERROR] IDs manquants: accountName ou accountSize');
-                return null;
-            }
-
-            const name = (accountNameEl.value || '').trim();
-            const sizeStr = (accountSizeEl.value || '').trim();
-            const type = accountTypeEl ? (accountTypeEl.value || 'demo') : 'demo';
-
-            accountData = {
-                name,
-                type,
-                initial_balance: sizeStr,
-                current_balance: sizeStr
-            };
-
-            console.log('[ADD] Payload DOM fallback:', accountData);
-        }
-
-        console.log('[ADD] Ajout compte:', accountData);
-
-        // Normalisation + validations
-        const name = (accountData.name || '').toString().trim();
-        const sizeStr = (accountData.initial_balance ?? accountData.size ?? '').toString().trim();
-
-        if (!name || !sizeStr) {
-            alert('Veuillez remplir tous les champs');
-            return null;
-        }
-
-        // Supporte "100K" / "100000" / "100 000"
-        let size = sizeStr.toUpperCase().replace(/\s+/g, '');
-        size = size.endsWith('K') ? parseFloat(size) * 1000 : parseFloat(size);
-
-        if (Number.isNaN(size) || size <= 0) {
-            alert('Taille de compte invalide');
-            return null;
-        }
-
-        const type = (accountData.type || 'demo').toString();
-
-        const payload = {
-            user_id: (window.currentUserUuid || (window.currentUser && window.currentUser.uuid)),
-            name,
-            type,
-            initial_balance: size,
-            current_balance: (accountData.current_balance !== undefined && accountData.current_balance !== null)
-                ? Number(accountData.current_balance)
-                : size
-        };
-
-        console.log('[ADD] Payload final:', payload);
-
-        try {
-            const { data, error } = await supabase
-                .from('accounts')
-                .insert([payload])
-                .select()
-                .single();
-
-            if (error) {
-                console.error('[ERROR] Erreur ajout compte:', error);
-                alert('Erreur lors de l\'ajout du compte');
-                return null;
-            }
-
-            console.log('[OK] Compte ajouté:', data);
-
-            // Rafraîchir la liste + le select de comptes
-            if (typeof window.loadAccounts === 'function') {
-                await window.loadAccounts();
-            } else if (typeof loadAccounts === 'function') {
-                await loadAccounts();
-            }
-
-            return data;
-
-        } catch (err) {
-            console.error('[ERROR] Exception addAccount:', err);
-            alert('Erreur lors de l\'ajout: ' + err.message);
-            return null;
-        }
-    }
-
-
-    // ===== FONCTION CHARGEMENT COMPTES =====
-    async function loadAccounts() {
-        if (!window.currentUser || !window.currentUser.uuid) {
-            console.log('[WARN] loadAccounts appelé mais currentUser invalide');
-            return;
-        }
-
-        try {
-            const { data, error } = await supabase
-                .from('accounts')
-                .select('*')
-                .eq('user_id', window.currentUser.uuid)
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error('[ERROR] Erreur loadAccounts:', error);
-                return;
-            }
-
-            console.log('[OK] Comptes chargés:', data.length);
-
-            // Mettre à jour le select dans le formulaire de trade
-            const tradeAccountSelect = document.getElementById('tradeAccount');
-            if (tradeAccountSelect) {
-                tradeAccountSelect.innerHTML = '<option value="">Sélectionner un compte</option>' +
-                    data.map(acc => `<option value="${acc.id}">${acc.name} (${acc.type})</option>`).join('');
-            }
-
-            // Afficher les comptes dans la sidebar
-            renderAccountsList(data);
-            console.log('[OK] Select mis à jour avec', data.length, 'comptes');
-
-        } catch (err) {
-            console.error('[ERROR] Exception loadAccounts:', err);
-        }
-    }
-
-
-
-
-    // ========================================
-    // FONCTION : RENDER ACCOUNTS LIST (SIDEBAR)
-    // ========================================
-    function renderAccountsList(accounts) {
-        const accountsList = document.getElementById('accountsList');
-        if (!accountsList) {
-            console.warn('[WARN] Element accountsList non trouvé');
-            return;
-        }
-
-        if (!accounts || accounts.length === 0) {
-            accountsList.innerHTML = '<p class="text-xs text-gray-400">Aucun compte</p>';
-            return;
-        }
-
-        accountsList.innerHTML = accounts.map(acc => `
-            <div class="flex items-center justify-between p-2 mb-2 bg-gray-700 rounded">
-                <div class="flex-1">
-                    <div class="text-sm font-medium text-white">${acc.name}</div>
-                    <div class="text-xs text-gray-400">${acc.type}</div>
-                    <div class="text-xs text-green-400">${parseFloat(acc.current_balance || 0).toFixed(2)} €</div>
-                </div>
-                <button onclick="deleteAccount(${acc.id})" class="text-red-400 hover:text-red-300 ml-2">
-                    <i class="fas fa-trash text-xs"></i>
-                </button>
+      // MAJ UI SIDEBAR
+      const accountListElement = document.getElementById('accountList');
+      if (accountListElement) {
+        if (data.length === 0) {
+          accountListElement.innerHTML = '<p class="text-muted">Aucun compte.</p>';
+        } else {
+          accountListElement.innerHTML = data.map(account => `
+            <div class="account-item" data-id="${account.id}">
+              <span>${account.name}</span>
+              <span>${account.current_balance.toFixed(2)} USD</span>
             </div>
-        `).join('');
+          `).join('');
+        }
+        console.log('[TRADES] ✅ Sidebar #accountList mis à jour');
+      }
 
-        console.log('[OK] Liste des comptes rendue:', accounts.length, 'comptes');
+      return { data, error: null };
+    } catch (err) {
+      console.error('[TRADES] ❌ Exception loadAccounts:', err);
+      return { data: [], error: err };
+    }
+  }
+
+  // ========================================
+  // 3️⃣ ADD ACCOUNT (BACKEND LOGIC)
+  // ========================================
+  async function addAccount(accountData) {
+    console.log('[TRADES] addAccount() - START - accountData reçu:', accountData);
+
+    // ✅ 1) CHECK UTILISATEUR
+    if (!window.currentUser || !window.currentUser.uuid) {
+      console.error('[TRADES] ❌ Erreur : utilisateur non connecté');
+      alert('❌ Erreur : vous devez être connecté pour créer un compte.');
+      return { data: null, error: 'User not logged in' };
     }
 
     // ========================================
-    // FONCTION : DELETE ACCOUNT
+    // ✅ 2) FALLBACK DOM SI accountData === undefined
     // ========================================
-    async function deleteAccount(accountId) {
-        if (!accountId) {
-            alert('[ERROR] ID du compte manquant');
-            return;
-        }
+    if (!accountData) {
+      console.log('[TRADES] ⚠️ accountData === undefined → FALLBACK DOM');
+      
+      const nameInput = document.getElementById('accountName');
+      const sizeInput = document.getElementById('accountSize');
+      const typeSelect = document.getElementById('accountType');
 
-        const confirmed = confirm('Êtes-vous sûr de vouloir supprimer ce compte et tous ses trades associés ?');
-        if (!confirmed) return;
+      if (!nameInput || !sizeInput || !typeSelect) {
+        console.error('[TRADES] ❌ Erreur : champs DOM manquants (#accountName, #accountSize, #accountType)');
+        alert('❌ Erreur : formulaire incomplet. Impossible de créer le compte.');
+        return { data: null, error: 'Missing DOM fields' };
+      }
 
-        try {
-            console.log('[DELETE] Suppression compte ID:', accountId);
+      accountData = {
+        name: nameInput.value.trim(),
+        type: typeSelect.value,
+        initial_balance: parseFloat(sizeInput.value)
+      };
 
-            // 1. Supprimer tous les trades associés
-            const { error: tradesError } = await supabase
-                .from('trades')
-                .delete()
-                .eq('account_id', accountId);
-
-            if (tradesError) {
-                console.error('[ERROR] Erreur suppression trades:', tradesError);
-                alert('Erreur lors de la suppression des trades: ' + tradesError.message);
-                return;
-            }
-
-            // 2. Supprimer le compte
-            const { error: accountError } = await supabase
-                .from('accounts')
-                .delete()
-                .eq('id', accountId);
-
-            if (accountError) {
-                console.error('[ERROR] Erreur suppression compte:', accountError);
-                alert('Erreur lors de la suppression du compte: ' + accountError.message);
-                return;
-            }
-
-            console.log('[OK] Compte supprimé avec succès');
-            alert('Compte supprimé avec succès !');
-
-            // Recharger les comptes et trades
-            if (typeof window.loadAccounts === 'function') {
-                await window.loadAccounts();
-            }
-            if (typeof window.loadTrades === 'function') {
-                await window.loadTrades();
-            }
-            
-            // Rafraîchir l'affichage du dashboard
-            if (typeof window.updateDashboard === 'function') {
-                window.updateDashboard();
-            }
-
-        } catch (err) {
-            console.error('[ERROR] Exception deleteAccount:', err);
-            alert('Erreur lors de la suppression: ' + err.message);
-        }
+      console.log('[TRADES] Données extraites du DOM:', accountData);
     }
 
-    // ===== EXPORT DES FONCTIONS =====
-    window.addTrade = addTrade;
-    window.loadTrades = loadTrades;
-    window.addAccount = addAccount;
-    window.loadAccounts = loadAccounts;
-    window.deleteAccount = deleteAccount;
-    window.renderAccountsList = renderAccountsList;
+    // ✅ 3) VALIDATION
+    if (!accountData.name || accountData.name === '') {
+      console.error('[TRADES] ❌ Erreur : nom du compte manquant');
+      alert('❌ Erreur : le nom du compte est obligatoire.');
+      return { data: null, error: 'Name is required' };
+    }
 
-    console.log('[OK] Fonctions trades exportées: addTrade, loadTrades, addAccount, loadAccounts, deleteAccount, renderAccountsList');
+    if (!accountData.initial_balance || isNaN(accountData.initial_balance) || accountData.initial_balance <= 0) {
+      console.error('[TRADES] ❌ Erreur : balance initiale invalide:', accountData.initial_balance);
+      alert('❌ Erreur : la balance initiale doit être un nombre supérieur à 0.');
+      return { data: null, error: 'Invalid initial balance' };
+    }
 
+    // ✅ 4) CONSTRUCTION PAYLOAD FINAL
+    const payloadFinal = {
+      user_id: window.currentUser.uuid,
+      name: accountData.name,
+      type: accountData.type || 'demo',
+      initial_balance: accountData.initial_balance,
+      current_balance: accountData.current_balance || accountData.initial_balance
+    };
+
+    // ========================================
+    // ✅ LOG CRITIQUE : PAYLOAD FINAL AVANT INSERT
+    // ========================================
+    console.log('[TRADES] 📦 PAYLOAD FINAL avant insert:', payloadFinal);
+
+    // ✅ 5) INSERTION SUPABASE
+    try {
+      const { data, error } = await supabase
+        .from('accounts')
+        .insert([payloadFinal])
+        .select('id, name, type, initial_balance, current_balance')
+        .single();
+
+      if (error) {
+        console.error('[TRADES] ❌ Erreur insertion Supabase:', error);
+        alert(`❌ Erreur lors de la création du compte : ${error.message}`);
+        return { data: null, error };
+      }
+
+      console.log('[TRADES] ✅ Compte ajouté avec succès:', data);
+
+      // ✅ 6) RECHARGER LES COMPTES
+      await loadAccounts();
+
+      return { data, error: null };
+    } catch (err) {
+      console.error('[TRADES] ❌ Exception addAccount:', err);
+      alert(`❌ Erreur critique : ${err.message}`);
+      return { data: null, error: err };
+    }
+  }
+
+  // ========================================
+  // 4️⃣ ADD TRADE
+  // ========================================
+  async function addTrade(tradeData) {
+    console.log('[TRADES] addTrade() - START', tradeData);
+
+    if (!window.currentUser || !window.currentUser.uuid) {
+      console.error('[TRADES] ❌ Erreur : utilisateur non connecté');
+      alert('❌ Vous devez être connecté pour ajouter un trade.');
+      return { data: null, error: 'User not logged in' };
+    }
+
+    const tradeWithUser = {
+      user_id: window.currentUser.uuid,
+      ...tradeData
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('trades')
+        .insert([tradeWithUser])
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('[TRADES] ❌ Erreur insertion trade:', error);
+        alert(`❌ Erreur : ${error.message}`);
+        return { data: null, error };
+      }
+
+      console.log('[TRADES] ✅ Trade ajouté:', data);
+      return { data, error: null };
+    } catch (err) {
+      console.error('[TRADES] ❌ Exception addTrade:', err);
+      alert(`❌ Erreur : ${err.message}`);
+      return { data: null, error: err };
+    }
+  }
+
+  // ========================================
+  // 5️⃣ LOAD TRADES
+  // ========================================
+  async function loadTrades() {
+    console.log('[TRADES] loadTrades() - START');
+
+    if (!window.currentUser || !window.currentUser.uuid) {
+      console.warn('[TRADES] ⚠️ Utilisateur non connecté. Aucun trade à charger.');
+      return { data: [], error: null };
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('trades')
+        .select('id, instrument, quantity, entry_time, account_id')
+        .eq('user_id', window.currentUser.uuid)
+        .order('entry_time', { ascending: false });
+
+      if (error) {
+        console.error('[TRADES] ❌ Erreur chargement trades:', error);
+        return { data: [], error };
+      }
+
+      console.log(`[TRADES] ✅ Trades chargés: ${data.length}`, data);
+      return { data, error: null };
+    } catch (err) {
+      console.error('[TRADES] ❌ Exception loadTrades:', err);
+      return { data: [], error: err };
+    }
+  }
+
+  // ========================================
+  // 6️⃣ DELETE ACCOUNT
+  // ========================================
+  async function deleteAccount(accountId) {
+    console.log('[TRADES] deleteAccount() - START', accountId);
+
+    if (!window.currentUser || !window.currentUser.uuid) {
+      console.error('[TRADES] ❌ Erreur : utilisateur non connecté');
+      return { data: null, error: 'User not logged in' };
+    }
+
+    try {
+      const { error } = await supabase
+        .from('accounts')
+        .delete()
+        .eq('id', accountId)
+        .eq('user_id', window.currentUser.uuid);
+
+      if (error) {
+        console.error('[TRADES] ❌ Erreur suppression compte:', error);
+        return { data: null, error };
+      }
+
+      console.log('[TRADES] ✅ Compte supprimé:', accountId);
+      await loadAccounts();
+      return { data: true, error: null };
+    } catch (err) {
+      console.error('[TRADES] ❌ Exception deleteAccount:', err);
+      return { data: null, error: err };
+    }
+  }
+
+  // ========================================
+  // 7️⃣ DELETE TRADE
+  // ========================================
+  async function deleteTrade(tradeId) {
+    console.log('[TRADES] deleteTrade() - START', tradeId);
+
+    if (!window.currentUser || !window.currentUser.uuid) {
+      console.error('[TRADES] ❌ Erreur : utilisateur non connecté');
+      return { data: null, error: 'User not logged in' };
+    }
+
+    try {
+      const { error } = await supabase
+        .from('trades')
+        .delete()
+        .eq('id', tradeId)
+        .eq('user_id', window.currentUser.uuid);
+
+      if (error) {
+        console.error('[TRADES] ❌ Erreur suppression trade:', error);
+        return { data: null, error };
+      }
+
+      console.log('[TRADES] ✅ Trade supprimé:', tradeId);
+      return { data: true, error: null };
+    } catch (err) {
+      console.error('[TRADES] ❌ Exception deleteTrade:', err);
+      return { data: null, error: err };
+    }
+  }
+
+  // ========================================
+  // 8️⃣ EXPOSITION GLOBALE (API PUBLIQUE)
+  // ========================================
+  window.tradesAPI = {
+    loadAccounts,
+    addAccount,
+    deleteAccount,
+    loadTrades,
+    addTrade,
+    deleteTrade
+  };
+
+  // ⚠️ RÉTRO-COMPATIBILITÉ (anciens appels directs)
+  // ⚠️ À SUPPRIMER DANS LA V3 (une fois migration UI complète)
+  window.loadAccounts = loadAccounts;
+  window.addAccount = addAccount;
+  window.deleteAccount = deleteAccount;
+  window.loadTrades = loadTrades;
+  window.addTrade = addTrade;
+  window.deleteTrade = deleteTrade;
+
+  console.log('[TRADES] ✅ Module chargé. API exposée: window.tradesAPI');
 })();
+
