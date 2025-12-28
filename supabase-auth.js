@@ -10,7 +10,7 @@
     
     if (!supabase) {
         console.error('[ERROR] ERREUR : window.supabaseClient manquant (config non chargée ?)');
-        return;
+        throw new Error('supabaseClient manquant');
     }
 
     console.log('[OK] Client Supabase récupéré depuis window.supabaseClient');
@@ -20,7 +20,7 @@
     // ========================================
     async function login() {
         const loginEmail = document.getElementById('loginEmail').value.trim();
-        const loginPassword = document.getElementById('loginPassword').value.trim();
+        const loginPassword = document.getElementById('loginPassword').value;
 
         if (!loginEmail || !loginPassword) {
             alert('Veuillez remplir tous les champs');
@@ -28,6 +28,8 @@
         }
 
         try {
+            console.log('[EMAIL] Tentative de connexion élève:', loginEmail);
+
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: loginEmail,
                 password: loginPassword
@@ -42,6 +44,9 @@
             console.log('[OK] Authentification réussie');
             console.log('[USER] UUID utilisateur:', data.user.id);
 
+            // Store the Auth UUID globally (source of truth)
+            window.currentUserAuthId = data.user.id;
+
             const { data: userData, error: userError } = await supabase
                 .from('users')
                 .select('*')
@@ -51,6 +56,7 @@
             if (userError) {
                 console.error('[ERROR] Erreur récupération user:', userError);
                 alert('Erreur lors de la récupération des données utilisateur');
+                await supabase.auth.signOut();
                 return;
             }
 
@@ -70,6 +76,7 @@
             }
 
             window.currentUser = userData;
+            window.currentUserUuid = userData && userData.uuid ? userData.uuid : window.currentUserAuthId;
             console.log('[OK] Connexion élève réussie:', userData.email);
 
             // Affichage de l'interface (version simple sans showMainApp)
@@ -90,21 +97,21 @@
                 userInfo.textContent = window.currentUser.email;
                 console.log('[OK] Email affiché:', window.currentUser.email);
             }
-
-            // Charger les comptes et trades
+            
+            // Charger les comptes et trades (si les fonctions existent)
             if (typeof window.loadAccounts === 'function') {
                 console.log('[OK] Appel window.loadAccounts()');
                 window.loadAccounts();
             }
-
+            
             if (typeof window.loadTrades === 'function') {
                 console.log('[OK] Appel window.loadTrades()');
                 window.loadTrades();
             }
 
         } catch (err) {
-            console.error('[ERROR] Erreur login:', err);
-            alert('Une erreur est survenue lors de la connexion');
+            console.error('[ERROR] Erreur inattendue login:', err);
+            alert('Erreur lors de la connexion');
         }
     }
 
@@ -113,7 +120,7 @@
     // ========================================
     async function coachLogin() {
         const coachEmail = document.getElementById('coachEmail').value.trim();
-        const coachPassword = document.getElementById('coachPassword').value.trim();
+        const coachPassword = document.getElementById('coachCode').value;
 
         if (!coachEmail || !coachPassword) {
             alert('Veuillez remplir tous les champs');
@@ -121,6 +128,8 @@
         }
 
         try {
+            console.log('[COACH] Tentative de connexion coach:', coachEmail);
+
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: coachEmail,
                 password: coachPassword
@@ -132,15 +141,19 @@
                 return;
             }
 
+            console.log('[OK] Authentification coach réussie');
+            console.log('[USER] UUID coach:', data.user.id);
+
             const { data: coachData, error: coachError } = await supabase
                 .from('users')
                 .select('*')
                 .eq('uuid', data.user.id)
+                .eq('role', 'coach')
                 .single();
 
-            if (coachError || coachData.role !== 'coach') {
-                console.error('[ERROR] Pas un compte coach');
-                alert('Ce compte n\'est pas un compte coach');
+            if (coachError || !coachData) {
+                console.error('[ERROR] Utilisateur non coach ou erreur:', coachError);
+                alert('Cet utilisateur n\'est pas un coach');
                 await supabase.auth.signOut();
                 return;
             }
@@ -148,136 +161,170 @@
             window.currentUser = coachData;
             console.log('[OK] Connexion coach réussie:', coachData.email);
 
-            // Afficher l'interface coach
             const authScreen = document.getElementById('authScreen');
             const mainApp = document.getElementById('mainApp');
             const coachApp = document.getElementById('coachApp');
-
+            
             if (authScreen) authScreen.style.display = 'none';
-            if (mainApp) mainApp.style.display = 'none';
-            if (coachApp) coachApp.style.display = 'block';
+            if (mainApp) mainApp.style.display = 'none';  // Masquer l'interface élève
+            if (coachApp) coachApp.style.display = 'flex';  // Afficher l'interface COACH
 
-            // Charger le dashboard coach
-            if (typeof window.loadCoachDashboard === 'function') {
-                window.loadCoachDashboard();
+            if (typeof loadCoachRegistrationsFromSupabase === 'function') {
+                await loadCoachRegistrationsFromSupabase();
+            }
+            if (typeof refreshAllModules === 'function') {
+                refreshAllModules();
             }
 
         } catch (err) {
-            console.error('[ERROR] Erreur login coach:', err);
-            alert('Une erreur est survenue lors de la connexion');
+            console.error('[ERROR] Erreur inattendue coach login:', err);
+            alert('Erreur lors de la connexion coach');
         }
     }
 
     // ========================================
-    // FONCTION : INSCRIPTION
+    // FONCTION : REGISTER
     // ========================================
     async function register() {
-        const registerName = document.getElementById('registerName').value.trim();
         const registerEmail = document.getElementById('registerEmail').value.trim();
-        const registerPassword = document.getElementById('registerPassword').value.trim();
+        const registerPassword = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
 
-        if (!registerName || !registerEmail || !registerPassword) {
+        if (!registerEmail || !registerPassword || !confirmPassword) {
             alert('Veuillez remplir tous les champs');
             return;
         }
 
+        if (registerPassword !== confirmPassword) {
+            alert('Les mots de passe ne correspondent pas');
+            return;
+        }
+
+        if (registerPassword.length < 6) {
+            alert('Le mot de passe doit contenir au moins 6 caractères');
+            return;
+        }
+
         try {
-            // Créer l'utilisateur dans auth.users
-            const { data: authData, error: authError } = await supabase.auth.signUp({
+            console.log('[REGISTER] Tentative d\'inscription:', registerEmail);
+
+            const { data, error } = await supabase.auth.signUp({
                 email: registerEmail,
                 password: registerPassword
             });
 
-            if (authError) {
-                console.error('[ERROR] Erreur création auth:', authError);
-                alert('Erreur lors de la création du compte');
+            if (error) {
+                console.error('[ERROR] Erreur inscription:', error.message);
+                alert('Erreur lors de l\'inscription: ' + error.message);
                 return;
             }
 
-            // Créer l'entrée dans la table users
-            const { error: userError } = await supabase
+            console.log('[OK] Inscription Supabase réussie');
+            console.log('[USER] UUID:', data.user.id);
+
+            const { error: insertError } = await supabase
                 .from('users')
-                .insert([{
-                    uuid: authData.user.id,
+                .insert({
+                    uuid: data.user.id,
                     email: registerEmail,
-                    name: registerName,
                     role: 'student',
-                    status: 'pending'
-                }]);
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                });
 
-            if (userError) {
-                console.error('[ERROR] Erreur création user:', userError);
-                alert('Erreur lors de la création du profil');
+            if (insertError) {
+                console.error('[ERROR] Erreur insertion user:', insertError);
+                alert('Erreur lors de la création du profil utilisateur');
                 return;
             }
 
-            console.log('[OK] Inscription réussie');
-            alert('Inscription réussie ! Votre compte est en attente de validation par un coach.');
-            
-            // Retour à l'écran de connexion
-            showLoginForm();
+            console.log('[OK] Profil utilisateur créé dans la base');
+            alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
+
+            if (typeof showLoginForm === 'function') {
+                showLoginForm();
+            }
 
         } catch (err) {
-            console.error('[ERROR] Erreur inscription:', err);
-            alert('Une erreur est survenue lors de l\'inscription');
+            console.error('[ERROR] Erreur inattendue register:', err);
+            alert('Erreur lors de l\'inscription');
         }
     }
 
     // ========================================
-    // FONCTION : DÉCONNEXION
+    // FONCTION : LOGOUT
     // ========================================
     async function logout() {
         try {
-            await supabase.auth.signOut();
-            window.currentUser = null;
+            console.log('[LOGOUT] Déconnexion...');
             
-            // Retour à l'écran de connexion
-            const authScreen = document.getElementById('authScreen');
-            const mainApp = document.getElementById('mainApp');
-            const coachApp = document.getElementById('coachApp');
+            const { error } = await supabase.auth.signOut();
+            
+            if (error) {
+                console.error('[ERROR] Erreur logout:', error);
+                return;
+            }
 
-            if (authScreen) authScreen.style.display = 'flex';
-            if (mainApp) mainApp.style.display = 'none';
-            if (coachApp) coachApp.style.display = 'none';
-
+            window.currentUser = null;
             console.log('[OK] Déconnexion réussie');
+            
+            location.reload();
 
         } catch (err) {
-            console.error('[ERROR] Erreur déconnexion:', err);
+            console.error('[ERROR] Erreur logout:', err);
         }
     }
 
     // ========================================
-    // FONCTIONS D'AFFICHAGE
+    // FONCTIONS UI
     // ========================================
     function showLoginForm() {
-        document.getElementById('loginForm').style.display = 'block';
-        document.getElementById('registerForm').style.display = 'none';
-        document.getElementById('coachLoginForm').style.display = 'none';
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const coachLoginForm = document.getElementById('coachLoginForm');
+        
+        if (loginForm) loginForm.style.display = 'block';
+        if (registerForm) registerForm.style.display = 'none';
+        if (coachLoginForm) coachLoginForm.style.display = 'none';
+        
+        console.log(' Formulaire login affiché');
     }
 
     function showRegisterForm() {
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('registerForm').style.display = 'block';
-        document.getElementById('coachLoginForm').style.display = 'none';
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const coachLoginForm = document.getElementById('coachLoginForm');
+        
+        if (loginForm) loginForm.style.display = 'none';
+        if (registerForm) registerForm.style.display = 'block';
+        if (coachLoginForm) coachLoginForm.style.display = 'none';
+        
+        console.log(' Formulaire register affiché');
     }
 
     function showCoachLogin() {
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('registerForm').style.display = 'none';
-        document.getElementById('coachLoginForm').style.display = 'block';
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const coachLoginForm = document.getElementById('coachLoginForm');
+        
+        if (loginForm) loginForm.style.display = 'none';
+        if (registerForm) registerForm.style.display = 'none';
+        if (coachLoginForm) coachLoginForm.style.display = 'block';
+        
+        console.log(' Formulaire coach login affiché');
     }
 
     // ========================================
-    // EXPOSER LES FONCTIONS GLOBALEMENT
+    // EXPORT DES FONCTIONS
     // ========================================
     window.login = login;
-    window.coachLogin = coachLogin;
     window.register = register;
+    window.coachLogin = coachLogin;
     window.logout = logout;
     window.showLoginForm = showLoginForm;
     window.showRegisterForm = showRegisterForm;
     window.showCoachLogin = showCoachLogin;
 
-    console.log('[OK] Fonctions auth exposées globalement');
+    console.log('[OK] supabase-auth.js chargé - Fonctions exportées:', 
+        'login, register, coachLogin, logout, showLoginForm, showRegisterForm, showCoachLogin');
 })();
