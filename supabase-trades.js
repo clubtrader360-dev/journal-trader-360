@@ -1,3 +1,5 @@
+Fichier: supabase-trades_V3.7_MINIMAL.js
+Taille: 13 Ko, 358 lignes
 // ========================================
 // MODULE : TRADES + ACCOUNTS
 // Source de vérité : Supabase
@@ -22,53 +24,81 @@
   // ========================================
   // 2️⃣ LOAD ACCOUNTS
   // ========================================
-  async function loadAccounts() {
-    console.log('[TRADES] loadAccounts() - START');
-
+async function loadAccounts() {
+    console.log('[TRADES] loadAccounts - START');
+    
     if (!window.currentUser || !window.currentUser.uuid) {
-      console.warn('[TRADES] ⚠️ Utilisateur non connecté. Aucun compte à charger.');
-      return { data: [], error: null };
+        console.warn('[TRADES] ⚠️ Aucun utilisateur connecté');
+        return { data: [], error: null };
     }
-
+    
+    const supabase = window.supabaseClient;
+    
     try {
-      const { data, error } = await supabase
-        .from('accounts')
-        .select('id, name, type, initial_balance, current_balance')
-        .eq('user_id', window.currentUser.uuid)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('[TRADES] ❌ Erreur chargement comptes:', error);
-        return { data: [], error };
-      }
-
-      console.log(`[TRADES] ✅ Comptes chargés: ${data.length}`, data);
-
-      // MAJ UI SELECT
-      const selectElement = document.getElementById('tradeAccount');
-      if (selectElement) {
-        selectElement.innerHTML = '<option value="">Sélectionner un compte</option>';
-        data.forEach(account => {
-          const option = document.createElement('option');
-          option.value = account.id;
-          option.textContent = account.name;
-          selectElement.appendChild(option);
+        const { data, error } = await supabase
+            .from('accounts')
+            .select('id, name, type, initial_balance, current_balance')
+            .eq('user_id', window.currentUser.uuid)
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('[TRADES] ❌ Erreur:', error);
+            return { data: [], error };
+        }
+        
+        console.log(`[TRADES] ✅ ${data.length} compte(s) chargé(s)`);
+        
+        // Hydratation TOUS les selects (seulement si existent dans le DOM)
+        const selectIds = ['tradeAccount', 'costAccountId', 'payoutAccountId', 'payoutAccount'];
+        
+        selectIds.forEach(selectId => {
+            const selectEl = document.getElementById(selectId);
+            
+            if (!selectEl) {
+                console.log(`[TRADES] ⚠️ Select #${selectId} absent du DOM (skip)`);
+                return;
+            }
+            
+            // Reset + remplissage
+            selectEl.innerHTML = '<option value="">Sélectionner un compte...</option>';
+            
+            data.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account.id;
+                option.textContent = account.name;
+                selectEl.appendChild(option);
+            });
+            
+            console.log(`[TRADES] ✅ Select #${selectId} hydraté (${data.length} comptes)`);
         });
-        console.log('[TRADES] ✅ Select #tradeAccount mis à jour');
-      }
-
-      // MAJ UI SIDEBAR
-      const accountListElement = document.getElementById('accountList');
-      if (accountListElement) {
-        if (data.length === 0) {
-          accountListElement.innerHTML = '<p class="text-muted">Aucun compte.</p>';
-        } else {
-          accountListElement.innerHTML = data.map(account => `
-            <div class="account-item" data-id="${account.id}">
-              <span>${account.name}</span>
-              <span>${account.current_balance.toFixed(2)} USD</span>
-            </div>
-          `).join('');
+        
+        // Sidebar accountList (si existe)
+        const accountList = document.getElementById('accountList');
+        if (accountList) {
+            if (data.length === 0) {
+                accountList.innerHTML = '<p class="text-gray-500 text-center py-4">Aucun compte.</p>';
+            } else {
+                accountList.innerHTML = data.map(account => `
+                    <div class="trader-account-card">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium">${account.name}</span>
+                            <span class="text-sm text-gray-500">${account.type}</span>
+                        </div>
+                        <div class="text-lg font-bold text-trader-gold">
+                            ${account.current_balance.toFixed(2)} USD
+                        </div>
+                    </div>
+                `).join('');
+            }
+            console.log('[TRADES] ✅ accountList mis à jour');
+        }
+        
+        return { data, error: null };
+    } catch (err) {
+        console.error('[TRADES] ❌ Exception:', err);
+        return { data: [], error: err };
+    }
+}          `).join('');
         }
         console.log('[TRADES] ✅ Sidebar #accountList mis à jour');
       }
@@ -101,17 +131,16 @@
       
       const nameInput = document.getElementById('accountName');
       const sizeInput = document.getElementById('accountSize');
-      const typeSelect = document.getElementById('accountType');
 
-      if (!nameInput || !sizeInput || !typeSelect) {
-        console.error('[TRADES] ❌ Erreur : champs DOM manquants (#accountName, #accountSize, #accountType)');
+      if (!nameInput || !sizeInput) {
+        console.error('[TRADES] ❌ Erreur : champs DOM manquants (#accountName, #accountSize)');
         alert('❌ Erreur : formulaire incomplet. Impossible de créer le compte.');
         return { data: null, error: 'Missing DOM fields' };
       }
 
       accountData = {
         name: nameInput.value.trim(),
-        type: typeSelect.value,
+        type: 'demo', // Valeur par défaut car accountType n'existe pas dans le DOM
         initial_balance: parseFloat(sizeInput.value)
       };
 
@@ -328,4 +357,3 @@
 
   console.log('[TRADES] ✅ Module chargé. API exposée: window.tradesAPI');
 })();
-
