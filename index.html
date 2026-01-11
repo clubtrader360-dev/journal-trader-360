@@ -1895,8 +1895,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     <input type="text" id="accountName" placeholder="Ex: Compte 100K" required>
                 </div>
                 <div class="form-group">
+                    <label>Type de compte</label>
+                    <select id="accountType" required>
+                        <option value="demo">Demo</option>
+                        <option value="real">Real</option>
+                        <option value="funded">Funded</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>Taille du compte</label>
-                    <input type="text" id="accountSize" placeholder="Ex: 100000 ou 100K" required>
+                    <input type="number" id="accountSize" placeholder="Ex: 100000" required>
                 </div>
                 
                 <div class="flex gap-4 mt-6">
@@ -3043,7 +3051,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
         }
 
-        // Journal functions
+        // ========================================
+        // Journal functions - DÉSACTIVÉ
+        // Utiliser supabase-journal.js à la place
+        // ========================================
+        /*
         function addNote() {
             const modal = document.getElementById('addNoteModal');
             const editingTimestamp = modal.dataset.editingTimestamp;
@@ -3109,6 +3121,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
             }
         }
+        */
+        // NOUVEAU : addNote() est maintenant dans supabase-journal.js
 
         function previewImage(input) {
             const preview = document.getElementById('imagePreview');
