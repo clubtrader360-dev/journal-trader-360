@@ -1766,10 +1766,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 <div class="flex justify-between items-center mb-6">
                     <h1 class="text-3xl font-bold text-gray-800">Comptabilité & Payouts</h1>
                     <div class="flex gap-3">
-                        <button onclick="console.log('[BTN] Clic sur Ajouter un coût'); showAddAccountCostModal()" class="trader-btn">
+                        <button id="addAccountCostBtn" class="trader-btn">
                             <i class="fas fa-credit-card mr-2"></i>Ajouter un compte acheté
                         </button>
-                        <button onclick="console.log('[BTN] Clic sur Ajouter un payout'); showAddPayoutModal()" class="trader-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <button id="addPayoutBtn" class="trader-btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                             <i class="fas fa-money-bill-wave mr-2"></i>Ajouter un payout
                         </button>
                     </div>
@@ -2561,6 +2561,33 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.log('[UI] ✅ Événement attaché au bouton addTradeBtn');
             } else {
                 console.error('[UI] ❌ Bouton addTradeBtn introuvable');
+            }
+            
+            // ✅ ATTACHER ÉVÉNEMENTS POUR BOUTONS COMPTABILITÉ
+            const addAccountCostBtn = document.getElementById('addAccountCostBtn');
+            if (addAccountCostBtn) {
+                addAccountCostBtn.addEventListener('click', function() {
+                    console.log('[UI] Bouton Ajouter un compte acheté cliqué');
+                    if (typeof showAddAccountCostModal === 'function') {
+                        showAddAccountCostModal();
+                    } else {
+                        console.error('[UI] ❌ showAddAccountCostModal non définie');
+                    }
+                });
+                console.log('[UI] ✅ Événement attaché au bouton addAccountCostBtn');
+            }
+            
+            const addPayoutBtn = document.getElementById('addPayoutBtn');
+            if (addPayoutBtn) {
+                addPayoutBtn.addEventListener('click', function() {
+                    console.log('[UI] Bouton Ajouter un payout cliqué');
+                    if (typeof showAddPayoutModal === 'function') {
+                        showAddPayoutModal();
+                    } else {
+                        console.error('[UI] ❌ showAddPayoutModal non définie');
+                    }
+                });
+                console.log('[UI] ✅ Événement attaché au bouton addPayoutBtn');
             }
             
             
