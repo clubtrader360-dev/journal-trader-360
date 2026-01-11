@@ -2487,10 +2487,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             
             // ✅ EXPOSER LES FONCTIONS DE MISE À JOUR GLOBALEMENT
-            // Ces fonctions sont définies plus loin dans le code, mais on les expose ici
-            // pour qu'elles soient accessibles à refreshAllModules()
-            setTimeout(() => {
+            // Attendre que les fonctions soient définies avant de les exposer
+            let attempts = 0;
+            const maxAttempts = 100; // 10 secondes max (100 x 100ms)
+            
+            const exposeFunctions = setInterval(() => {
+                attempts++;
+                
                 if (typeof updateTradesTable !== 'undefined') {
+                    // Les fonctions sont définies, on les expose
                     window.updateTradesTable = updateTradesTable;
                     window.updateDashboard = updateDashboard;
                     window.updateBanner = updateBanner;
@@ -2498,9 +2503,14 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     window.updateCalendar = updateCalendar;
                     window.updateRecentTrades = updateRecentTrades;
                     window.updateProtectionAnalysis = updateProtectionAnalysis;
-                    console.log('[INIT] ✅ Fonctions de mise à jour exposées globalement (via setTimeout)');
+                    
+                    console.log('[INIT] ✅ Fonctions de mise à jour exposées globalement');
+                    clearInterval(exposeFunctions);
+                } else if (attempts >= maxAttempts) {
+                    console.error('[INIT] ❌ Timeout : updateTradesTable non définie après', attempts * 100, 'ms');
+                    clearInterval(exposeFunctions);
                 } else {
-                    console.error('[INIT] ❌ updateTradesTable non définie au moment de l\'exposition');
+                    console.log(`[INIT] Tentative ${attempts}/${maxAttempts} - En attente de la définition des fonctions...`);
                 }
             }, 100);
             
