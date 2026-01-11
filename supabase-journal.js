@@ -207,13 +207,13 @@
                             ${stars ? `<span class="text-sm text-gray-500">${stars}</span>` : ''}
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="viewJournalEntry('${entry.id}')" class="text-green-600 hover:text-green-800 px-2 py-1 rounded hover:bg-green-50" title="Voir">
+                            <button class="btn-view-journal text-green-600 hover:text-green-800 px-2 py-1 rounded hover:bg-green-50" title="Voir" data-entry-id="${entry.id}">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button onclick="editJournalEntry('${entry.id}')" class="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50" title="Modifier">
+                            <button class="btn-edit-journal text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50" title="Modifier" data-entry-id="${entry.id}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="deleteJournalEntry('${entry.id}')" class="text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50" title="Supprimer">
+                            <button class="btn-delete-journal text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50" title="Supprimer" data-entry-id="${entry.id}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -235,8 +235,45 @@
             `;
         }).join('');
         
+        // Attacher les événements après le rendu HTML
+        attachJournalEventListeners();
+        
         // Mettre à jour les statistiques
         updateJournalStats(entries);
+    }
+    
+    // ===== FONCTION ATTACHEMENT ÉVÉNEMENTS =====
+    function attachJournalEventListeners() {
+        console.log('[JOURNAL] Attachement des événements...');
+        
+        // Boutons Voir
+        document.querySelectorAll('.btn-view-journal').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const entryId = this.getAttribute('data-entry-id');
+                console.log('[JOURNAL] Clic sur Voir, ID:', entryId);
+                viewJournalEntry(entryId);
+            });
+        });
+        
+        // Boutons Modifier
+        document.querySelectorAll('.btn-edit-journal').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const entryId = this.getAttribute('data-entry-id');
+                console.log('[JOURNAL] Clic sur Modifier, ID:', entryId);
+                editJournalEntry(entryId);
+            });
+        });
+        
+        // Boutons Supprimer
+        document.querySelectorAll('.btn-delete-journal').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const entryId = this.getAttribute('data-entry-id');
+                console.log('[JOURNAL] Clic sur Supprimer, ID:', entryId);
+                deleteJournalEntry(entryId);
+            });
+        });
+        
+        console.log('[JOURNAL] ✅ Événements attachés');
     }
     
     // ===== FONCTION MISE À JOUR STATISTIQUES =====
