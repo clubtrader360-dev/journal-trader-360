@@ -218,14 +218,14 @@ async function loadAccounts() {
     const tradeWithUser = {
       user_id: window.currentUser.uuid,
       account_id: tradeData.account_id,
-      instrument: tradeData.symbol || 'ES',  // ✅ Colonne instrument
-      direction: tradeData.trade_type || 'Long',  // ✅ Colonne direction (au lieu de trade_type)
+      instrument: tradeData.symbol || 'ES',
+      direction: (tradeData.trade_type || 'Long').toLowerCase(),  // ✅ Convertir en minuscules (long/short)
       quantity: tradeData.quantity || 1,
       entry_price: tradeData.entry_price || 0,
       exit_price: tradeData.exit_price || 0,
       entry_time: entry_timestamp,
       exit_time: exit_timestamp,
-      trade_date: tradeData.trade_date || null,  // ✅ Ajouter trade_date
+      trade_date: tradeData.trade_date || null,
       stop_loss: tradeData.stop_loss || null,
       take_profit: tradeData.take_profit || null,
       setup: tradeData.setup || null,
