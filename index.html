@@ -2616,13 +2616,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             window.addAccountCost = function() {
                 console.log('[COST] addAccountCost - START');
                 
-                const accountId = document.getElementById('costAccountId').value;
-                const costType = document.getElementById('costType').value;
-                const costAmount = parseFloat(document.getElementById('costAmount').value);
-                const costDescription = document.getElementById('costDescription').value.trim();
+                // Lire les champs du formulaire (IDs corrects)
+                const costDate = document.getElementById('accountCostDate')?.value;
+                const costName = document.getElementById('accountCostName')?.value;
+                const costAmount = parseFloat(document.getElementById('accountCostAmount')?.value);
+                const costNotes = document.getElementById('accountCostNotes')?.value?.trim() || '';
                 
-                if (!accountId || !costType || !costAmount) {
-                    alert('Veuillez remplir tous les champs obligatoires');
+                console.log('[COST] Données extraites:', { costDate, costName, costAmount, costNotes });
+                
+                if (!costDate || !costName || !costAmount) {
+                    alert('Veuillez remplir tous les champs obligatoires (Date, Nom, Montant)');
                     return;
                 }
                 
@@ -2633,15 +2636,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     return;
                 }
                 
+                // Préparer les données pour Supabase
+                // Note: account_id sera NULL car on crée un nouveau compte
                 const costData = {
-                    account_id: parseInt(accountId),
-                    cost_type: costType,
+                    account_id: null,  // Pas de compte existant
+                    cost_type: 'challenge',  // Type par défaut
                     amount: costAmount,
-                    description: costDescription,
-                    date: new Date().toISOString().split('T')[0]
+                    description: `${costName} - ${costNotes}`,
+                    date: costDate
                 };
                 
-                console.log('[COST] Données:', costData);
+                console.log('[COST] Données pour Supabase:', costData);
                 
                 window.accountCostsAPI.create(costData).then(result => {
                     if (result.error) {
@@ -2658,8 +2663,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     if (modal) modal.style.display = 'none';
                     
                     // Réinitialiser le formulaire
-                    document.getElementById('costAmount').value = '';
-                    document.getElementById('costDescription').value = '';
+                    const form = document.getElementById('accountCostForm');
+                    if (form) form.reset();
                     
                     // Recharger les données
                     if (typeof window.refreshAllModules === 'function') {
