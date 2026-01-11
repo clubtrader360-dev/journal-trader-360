@@ -207,13 +207,13 @@
                             ${stars ? `<span class="text-sm text-gray-500">${stars}</span>` : ''}
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="viewJournalEntry(${entry.id})" class="text-green-600 hover:text-green-800 px-2 py-1 rounded hover:bg-green-50" title="Voir">
+                            <button onclick="viewJournalEntry('${entry.id}')" class="text-green-600 hover:text-green-800 px-2 py-1 rounded hover:bg-green-50" title="Voir">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button onclick="editJournalEntry(${entry.id})" class="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50" title="Modifier">
+                            <button onclick="editJournalEntry('${entry.id}')" class="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50" title="Modifier">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="deleteJournalEntry(${entry.id})" class="text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50" title="Supprimer">
+                            <button onclick="deleteJournalEntry('${entry.id}')" class="text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50" title="Supprimer">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
