@@ -75,17 +75,24 @@ async function loadAccounts() {
             if (data.length === 0) {
                 accountsList.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Aucun compte. Cliquez sur + pour créer.</p>';
             } else {
-                accountsList.innerHTML = data.map(account => `
-                    <div class="account-item">
-                        <div class="account-info" style="flex: 1;">
-                            <div class="account-name">${account.name}</div>
-                            <div class="account-size text-xs">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
+                accountsList.innerHTML = data.map(account => {
+                    // Initialiser active à true si non défini
+                    const isActive = account.active !== false;
+                    return `
+                        <div class="account-item">
+                            <input type="checkbox" class="account-checkbox" ${isActive ? 'checked' : ''} 
+                                   onchange="toggleAccount(${account.id})" 
+                                   title="Activer/Désactiver ce compte dans les métriques">
+                            <div class="account-info" style="flex: 1;">
+                                <div class="account-name">${account.name}</div>
+                                <div class="account-size text-xs">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
+                            </div>
+                            <button onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
-                        <button onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
             console.log('[TRADES] ✅ accountsList mis à jour');
         }

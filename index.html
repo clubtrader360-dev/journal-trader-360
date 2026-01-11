@@ -4544,8 +4544,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (typeof window.loadAccounts === 'function') {
                 const accountsResult = await window.loadAccounts();
                 if (accountsResult && accountsResult.data) {
-                    accounts = accountsResult.data;
-                    console.log('[REFRESH] ✅ window.accounts mis à jour:', accounts.length, 'comptes');
+                    // ✅ Initialiser active: true pour TOUS les comptes
+                    accounts = accountsResult.data.map(account => ({
+                        ...account,
+                        active: account.active !== false // Par défaut true
+                    }));
+                    console.log('[REFRESH] ✅ window.accounts mis à jour:', accounts.length, 'comptes (active initialisé)');
                 }
             }
             
@@ -5128,6 +5132,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
             updateCalendar();
         }
+        
+        // Exposition globale pour les boutons du calendrier
+        window.previousMonth = previousMonth;
+        window.nextMonth = nextMonth;
         
         // Nouvelle fonction: Toggle du menu des paramètres
         function toggleCalendarSettings() {
