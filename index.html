@@ -2474,7 +2474,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         function showSection(sectionName) {
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.add('hidden');
-            });
+            }
+        window.showSection = showSection;);
             
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 item.classList.remove('active');
@@ -3630,6 +3631,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         dateString === '2025-10-21' || tradeDate === '2025-10-21') {
                         console.log(`[DATE] Calendar check: cellDate=${dateString} vs tradeDate=${tradeDate} => ${isMatch ? '[OK] MATCH' : '[ERROR] NO MATCH'}`);
                     }
+        window.updateCalendar = updateCalendar;
                     
                     return isMatch;
                 });
@@ -3853,6 +3855,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 currentMonth = 11;
                 currentYear--;
             }
+        window.previousMonth = previousMonth;
             updateCalendar();
         }
 
