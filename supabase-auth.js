@@ -98,21 +98,35 @@
                 console.log('[OK] Email affiché:', window.currentUser.email);
             }
             
-            // Charger les comptes, trades et notes (si les fonctions existent)
-            if (typeof window.loadAccounts === 'function') {
-                console.log('[OK] Appel window.loadAccounts()');
-                window.loadAccounts();
-            }
+            // ✅ CHARGER ET AFFICHER LES DONNÉES AUTOMATIQUEMENT APRÈS LA CONNEXION
+            console.log('[AUTH] 🔄 Chargement automatique des données après connexion...');
             
-            if (typeof window.loadTrades === 'function') {
-                console.log('[OK] Appel window.loadTrades()');
-                window.loadTrades();
-            }
-            
-            if (typeof window.loadJournalEntries === 'function') {
-                console.log('[OK] Appel window.loadJournalEntries()');
-                window.loadJournalEntries();
-            }
+            // Attendre un peu que l'UI soit prête, puis rafraîchir tout
+            setTimeout(async () => {
+                if (typeof window.refreshAllModules === 'function') {
+                    console.log('[AUTH] ✅ Appel refreshAllModules()...');
+                    await window.refreshAllModules();
+                    console.log('[AUTH] ✅ Données chargées et affichées automatiquement');
+                } else {
+                    console.warn('[AUTH] ⚠️ refreshAllModules non disponible, chargement manuel...');
+                    
+                    // Fallback : charger manuellement
+                    if (typeof window.loadAccounts === 'function') {
+                        console.log('[OK] Appel window.loadAccounts()');
+                        await window.loadAccounts();
+                    }
+                    
+                    if (typeof window.loadTrades === 'function') {
+                        console.log('[OK] Appel window.loadTrades()');
+                        await window.loadTrades();
+                    }
+                    
+                    if (typeof window.loadJournalEntries === 'function') {
+                        console.log('[OK] Appel window.loadJournalEntries()');
+                        await window.loadJournalEntries();
+                    }
+                }
+            }, 500); // Attendre 500ms que l'UI soit prête
 
         } catch (err) {
             console.error('[ERROR] Erreur inattendue login:', err);
