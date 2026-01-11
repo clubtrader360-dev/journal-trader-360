@@ -28,6 +28,13 @@
             return { data: null, error: 'User not logged in' };
         }
         
+        // Vérifier si on est en mode édition
+        const modal = document.getElementById('addNoteModal');
+        const editingId = modal?.dataset.editingId;
+        const isEditing = editingId && editingId !== '';
+        
+        console.log('[JOURNAL] Mode:', isEditing ? 'ÉDITION' : 'AJOUT', 'ID:', editingId);
+        
         // Récupération des données du formulaire
         const noteDate = document.getElementById('noteDate')?.value;
         const noteText = document.getElementById('noteText')?.value;
@@ -59,31 +66,67 @@
         console.log('[JOURNAL] Payload final:', noteData);
         
         try {
-            // Insertion dans Supabase
-            const { data, error } = await supabase
-                .from('journal_entries')
-                .insert([noteData])
-                .select('*')
-                .single();
+            let data, error;
+            
+            if (isEditing) {
+                // MODE ÉDITION : Update
+                console.log('[JOURNAL] 🔄 Mise à jour de l\'entrée ID:', editingId);
+                
+                const result = await supabase
+                    .from('journal_entries')
+                    .update(noteData)
+                    .eq('id', editingId)
+                    .eq('user_id', window.currentUser.uuid)
+                    .select('*')
+                    .single();
+                
+                data = result.data;
+                error = result.error;
+                
+                if (!error) {
+                    alert('✅ Note modifiée avec succès !');
+                }
+            } else {
+                // MODE AJOUT : Insert
+                console.log('[JOURNAL] ➕ Ajout d\'une nouvelle entrée');
+                
+                const result = await supabase
+                    .from('journal_entries')
+                    .insert([noteData])
+                    .select('*')
+                    .single();
+                
+                data = result.data;
+                error = result.error;
+                
+                if (!error) {
+                    alert('✅ Note ajoutée avec succès !');
+                }
+            }
             
             if (error) {
-                console.error('[JOURNAL] ❌ Erreur insertion:', error);
-                alert(`❌ Erreur lors de l'ajout de la note : ${error.message}`);
+                console.error('[JOURNAL] ❌ Erreur:', error);
+                alert(`❌ Erreur : ${error.message}`);
                 return { data: null, error };
             }
             
-            console.log('[JOURNAL] ✅ Note ajoutée avec succès:', data);
-            alert('✅ Note ajoutée avec succès !');
+            console.log('[JOURNAL] ✅ Opération réussie:', data);
             
-            // Fermer la modale et réinitialiser le formulaire
-            const modal = document.getElementById('addNoteModal');
+            // Fermer la modale et réinitialiser
             if (modal) {
                 modal.style.display = 'none';
+                delete modal.dataset.editingId; // Nettoyer le mode édition
             }
             
             const form = document.getElementById('noteForm');
             if (form) {
                 form.reset();
+            }
+            
+            // Réinitialiser le texte du bouton
+            const submitBtn = modal?.querySelector('.trader-btn');
+            if (submitBtn) {
+                submitBtn.textContent = 'Ajouter la Note';
             }
             
             // Rafraîchir l'affichage
@@ -260,15 +303,126 @@
     }
     
     // ===== FONCTION VISUALISATION ENTRÉE =====
-    function viewJournalEntry(entryId) {
-        console.log('[JOURNAL] viewJournalEntry() - TODO', entryId);
-        alert('Fonctionnalité de visualisation en cours de développement');
+    async function viewJournalEntry(entryId) {
+        console.log('[JOURNAL] viewJournalEntry() - START', entryId);
+        
+        if (!window.currentUser || !window.currentUser.uuid) {
+            console.error('[JOURNAL] ❌ Utilisateur non connecté');
+            return;
+        }
+        
+        try {
+            // Récupérer l'entrée depuis Supabase
+            const { data, error } = await supabase
+                .from('journal_entries')
+                .select('*')
+                .eq('id', entryId)
+                .eq('user_id', window.currentUser.uuid)
+                .single();
+            
+            if (error) {
+                console.error('[JOURNAL] ❌ Erreur récupération entrée:', error);
+                alert('❌ Note non trouvée');
+                return;
+            }
+            
+            if (!data) {
+                alert('❌ Note non trouvée');
+                return;
+            }
+            
+            console.log('[JOURNAL] ✅ Entrée récupérée:', data);
+            
+            // Afficher dans une modale ou alert pour l'instant
+            const stars = '⭐'.repeat(data.session_rating || 0);
+            const emotions = [];
+            if (data.emotion_before) emotions.push(`Avant: ${data.emotion_before}`);
+            if (data.emotion_after) emotions.push(`Après: ${data.emotion_after}`);
+            
+            const message = `
+📅 Date: ${data.entry_date}
+${stars ? `⭐ Notation: ${stars}\n` : ''}
+${emotions.length > 0 ? `😊 Émotions: ${emotions.join(' | ')}\n` : ''}
+
+📝 Contenu:
+${data.content}
+            `.trim();
+            
+            alert(message);
+            
+        } catch (err) {
+            console.error('[JOURNAL] ❌ Exception viewJournalEntry:', err);
+            alert(`❌ Erreur : ${err.message}`);
+        }
     }
     
     // ===== FONCTION ÉDITION ENTRÉE =====
-    function editJournalEntry(entryId) {
-        console.log('[JOURNAL] editJournalEntry() - TODO', entryId);
-        alert('Fonctionnalité d\'édition en cours de développement');
+    async function editJournalEntry(entryId) {
+        console.log('[JOURNAL] editJournalEntry() - START', entryId);
+        
+        if (!window.currentUser || !window.currentUser.uuid) {
+            console.error('[JOURNAL] ❌ Utilisateur non connecté');
+            return;
+        }
+        
+        try {
+            // Récupérer l'entrée depuis Supabase
+            const { data, error } = await supabase
+                .from('journal_entries')
+                .select('*')
+                .eq('id', entryId)
+                .eq('user_id', window.currentUser.uuid)
+                .single();
+            
+            if (error) {
+                console.error('[JOURNAL] ❌ Erreur récupération entrée:', error);
+                alert('❌ Note non trouvée');
+                return;
+            }
+            
+            if (!data) {
+                alert('❌ Note non trouvée');
+                return;
+            }
+            
+            console.log('[JOURNAL] ✅ Entrée récupérée pour édition:', data);
+            
+            // Pré-remplir le formulaire
+            document.getElementById('noteDate').value = data.entry_date;
+            document.getElementById('noteText').value = data.content;
+            document.getElementById('emotionBefore').value = data.emotion_before || '';
+            document.getElementById('emotionAfter').value = data.emotion_after || '';
+            document.getElementById('sessionRating').value = data.session_rating || 0;
+            
+            // Mettre à jour les étoiles visuellement
+            const rating = data.session_rating || 0;
+            document.querySelectorAll('.star-rating').forEach((s, index) => {
+                if (index < rating) {
+                    s.style.opacity = '1';
+                    s.style.color = '#FFD700';
+                } else {
+                    s.style.opacity = '0.3';
+                    s.style.color = '#ccc';
+                }
+            });
+            
+            // Ouvrir la modale en mode édition
+            const modal = document.getElementById('addNoteModal');
+            if (modal) {
+                modal.dataset.editingId = entryId; // Stocker l'ID pour la sauvegarde
+                modal.style.display = 'block';
+            }
+            
+            // Changer le texte du bouton
+            const submitBtn = modal.querySelector('.trader-btn');
+            if (submitBtn) {
+                submitBtn.textContent = 'Modifier la Note';
+            }
+            
+        } catch (err) {
+            console.error('[JOURNAL] ❌ Exception editJournalEntry:', err);
+            alert(`❌ Erreur : ${err.message}`);
+        }
     }
 
     // ===== EXPORT DES FONCTIONS =====
