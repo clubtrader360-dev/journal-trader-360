@@ -2680,7 +2680,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     console.log('[COST] Étape 2/2: Enregistrement du coût...');
                     const costData = {
                         account_id: newAccountId,  // ID du compte créé
-                        cost: costAmount,  // Montant payé RÉEL (manuel)
+                        account_name: costName,    // Nom du compte (LIBRE)
+                        cost: costAmount,          // Montant payé RÉEL (manuel)
                         notes: costNotes || `Achat compte ${costName}`,
                         date: costDate
                     };
