@@ -46,7 +46,7 @@ async function loadAccounts() {
         console.log(`[TRADES] ✅ ${data.length} compte(s) chargé(s)`);
         
         // Hydratation TOUS les selects (seulement si existent dans le DOM)
-        const selectIds = ['tradeAccount', 'costAccountId', 'payoutAccountId', 'payoutAccount'];
+        const selectIds = ['tradeAccount', 'costAccountId', 'payoutAccountId', 'payoutAccount', 'csvTargetAccount'];
         
         selectIds.forEach(selectId => {
             const selectEl = document.getElementById(selectId);
@@ -69,25 +69,25 @@ async function loadAccounts() {
             console.log(`[TRADES] ✅ Select #${selectId} hydraté (${data.length} comptes)`);
         });
         
-        // Sidebar accountList (si existe)
-        const accountList = document.getElementById('accountList');
-        if (accountList) {
+        // Sidebar accountsList (si existe) - ID CORRIGÉ
+        const accountsList = document.getElementById('accountsList');
+        if (accountsList) {
             if (data.length === 0) {
-                accountList.innerHTML = '<p class="text-gray-500 text-center py-4">Aucun compte.</p>';
+                accountsList.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Aucun compte. Cliquez sur + pour créer.</p>';
             } else {
-                accountList.innerHTML = data.map(account => `
-                    <div class="trader-account-card">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-medium">${account.name}</span>
-                            <span class="text-sm text-gray-500">${account.type}</span>
+                accountsList.innerHTML = data.map(account => `
+                    <div class="account-item">
+                        <div class="account-info" style="flex: 1;">
+                            <div class="account-name">${account.name}</div>
+                            <div class="account-size text-xs">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
                         </div>
-                        <div class="text-lg font-bold text-trader-gold">
-                            ${account.current_balance.toFixed(2)} USD
-                        </div>
+                        <button onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 `).join('');
             }
-            console.log('[TRADES] ✅ accountList mis à jour');
+            console.log('[TRADES] ✅ accountsList mis à jour');
         }
         
         return { data, error: null };
@@ -95,17 +95,7 @@ async function loadAccounts() {
         console.error('[TRADES] ❌ Exception:', err);
         return { data: [], error: err };
     }
-}          `).join('');
-        }
-        console.log('[TRADES] ✅ Sidebar #accountList mis à jour');
-      }
-
-      return { data, error: null };
-    } catch (err) {
-      console.error('[TRADES] ❌ Exception loadAccounts:', err);
-      return { data: [], error: err };
-    }
-  }
+}
 
   // ========================================
   // 3️⃣ ADD ACCOUNT (BACKEND LOGIC)
@@ -128,6 +118,7 @@ async function loadAccounts() {
       
       const nameInput = document.getElementById('accountName');
       const sizeInput = document.getElementById('accountSize');
+      const typeSelect = document.getElementById('accountType');
 
       if (!nameInput || !sizeInput) {
         console.error('[TRADES] ❌ Erreur : champs DOM manquants (#accountName, #accountSize)');
@@ -137,7 +128,7 @@ async function loadAccounts() {
 
       accountData = {
         name: nameInput.value.trim(),
-        type: 'demo', // Valeur par défaut car accountType n'existe pas dans le DOM
+        type: typeSelect ? typeSelect.value : 'demo', // Récupérer depuis le DOM ou valeur par défaut
         initial_balance: parseFloat(sizeInput.value)
       };
 
