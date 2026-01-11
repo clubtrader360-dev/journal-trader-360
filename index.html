@@ -5022,9 +5022,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         
         // NOUVELLE FONCTION: Calcul des statistiques mensuelles
         function updateMonthlyStats() {
-            // Filtrer par comptes actifs
-            const activeAccountIds = accounts.map(a => a.id);
-            const filteredTrades = trades.filter(trade => activeAccountIds.includes(trade.accountId));
+            // ✅ Filtrer par comptes actifs (cochés uniquement)
+            const activeAccountIds = accounts.filter(a => a.active !== false).map(a => a.id);
+            console.log('[MONTHLY] Comptes actifs:', activeAccountIds);
+            
+            const filteredTrades = activeAccountIds.length === 0 
+                ? [] 
+                : trades.filter(trade => activeAccountIds.includes(trade.accountId));
+            
+            console.log('[MONTHLY] Trades filtrés:', filteredTrades.length, 'sur', trades.length, 'total');
             
             // Filtrer les trades du mois courant
             const monthTrades = filteredTrades.filter(trade => {
@@ -5073,9 +5079,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const firstDay = new Date(currentYear, currentMonth, 1);
             const lastDay = new Date(currentYear, currentMonth + 1, 0);
             
-            // Filtrer par comptes actifs
-            const activeAccountIds = accounts.map(a => a.id);
-            const filteredTrades = trades.filter(trade => activeAccountIds.includes(trade.accountId));
+            // ✅ Filtrer par comptes actifs (cochés uniquement)
+            const activeAccountIds = accounts.filter(a => a.active !== false).map(a => a.id);
+            const filteredTrades = activeAccountIds.length === 0 
+                ? [] 
+                : trades.filter(trade => activeAccountIds.includes(trade.accountId));
             
             // Grouper les trades par semaine du mois
             const weekData = [
@@ -5208,11 +5216,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const container = document.getElementById('recentTradesContainer');
             if (!container) return;
             
-            // Récupérer les comptes actifs
-            const activeAccounts = accounts.map(a => a.id);
-            let filteredTrades = activeAccounts.length > 0 
-                ? trades.filter(trade => activeAccounts.includes(trade.accountId))
-                : trades;
+            // ✅ Filtrer par comptes actifs (cochés uniquement)
+            const filteredTrades = getFilteredTrades();
+            console.log('[RECENT] Trades filtrés:', filteredTrades.length, 'sur', trades.length, 'total');
             
             if (filteredTrades.length === 0) {
                 container.innerHTML = `
