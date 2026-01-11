@@ -68,9 +68,9 @@
             }
             
             // Validation minimale
-            if (!costData.account_id) {
-                error('account_id manquant');
-                return { data: null, error: 'Compte non sélectionné' };
+            if (!costData.account_name) {
+                error('account_name manquant');
+                return { data: null, error: 'Nom du compte manquant' };
             }
             
             if (!costData.amount && !costData.cost) {
@@ -81,10 +81,10 @@
             // Normaliser les données pour Supabase
             const finalData = {
                 user_id: costData.user_id,
-                account_id: costData.account_id,
-                account_name: costData.account_name || costData.account_id?.toString() || 'Compte',  // Valeur par défaut
-                cost: costData.amount || costData.cost,  // Montant payé RÉEL
-                notes: costData.notes || costData.description || '',  // Notes optionnelles
+                account_id: costData.account_id || null,  // Peut être null
+                account_name: costData.account_name,      // Nom libre (obligatoire)
+                cost: costData.amount || costData.cost,   // Montant payé RÉEL
+                notes: costData.notes || costData.description || '',
                 date: costData.date || new Date().toISOString().split('T')[0]
             };
             
