@@ -218,13 +218,14 @@ async function loadAccounts() {
     const tradeWithUser = {
       user_id: window.currentUser.uuid,
       account_id: tradeData.account_id,
-      instrument: tradeData.symbol || 'ES',  // ✅ Valeur par défaut si vide
-      trade_type: tradeData.trade_type || 'Long',
+      instrument: tradeData.symbol || 'ES',  // ✅ Colonne instrument
+      direction: tradeData.trade_type || 'Long',  // ✅ Colonne direction (au lieu de trade_type)
       quantity: tradeData.quantity || 1,
       entry_price: tradeData.entry_price || 0,
       exit_price: tradeData.exit_price || 0,
       entry_time: entry_timestamp,
       exit_time: exit_timestamp,
+      trade_date: tradeData.trade_date || null,  // ✅ Ajouter trade_date
       stop_loss: tradeData.stop_loss || null,
       take_profit: tradeData.take_profit || null,
       setup: tradeData.setup || null,
@@ -238,12 +239,13 @@ async function loadAccounts() {
     console.log('  - user_id:', tradeWithUser.user_id ? '✅' : '❌');
     console.log('  - account_id:', tradeWithUser.account_id ? '✅' : '❌');
     console.log('  - instrument:', tradeWithUser.instrument ? '✅' : '❌');
-    console.log('  - trade_type:', tradeWithUser.trade_type ? '✅' : '❌');
+    console.log('  - direction:', tradeWithUser.direction ? '✅' : '❌');
     console.log('  - quantity:', tradeWithUser.quantity ? '✅' : '❌');
     console.log('  - entry_price:', tradeWithUser.entry_price !== null ? '✅' : '❌');
     console.log('  - exit_price:', tradeWithUser.exit_price !== null ? '✅' : '❌');
     console.log('  - entry_time:', tradeWithUser.entry_time ? '✅' : '❌');
     console.log('  - exit_time:', tradeWithUser.exit_time ? '✅' : '❌');
+    console.log('  - trade_date:', tradeWithUser.trade_date ? '✅' : '❌');
 
     try {
       const { data, error } = await supabase
