@@ -2365,10 +2365,20 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (addTradeBtn) {
                 addTradeBtn.addEventListener('click', function() {
                     console.log('[UI] Bouton Ajouter le Trade cliqué');
+                    console.log('[UI] typeof window.addTradeUI:', typeof window.addTradeUI);
+                    console.log('[UI] typeof addTradeUI:', typeof addTradeUI);
+                    
+                    // Essayer window.addTradeUI d'abord
                     if (typeof window.addTradeUI === 'function') {
                         window.addTradeUI();
-                    } else {
-                        console.error('[UI] ❌ window.addTradeUI non définie');
+                    } 
+                    // Si pas trouvé, essayer addTradeUI directement
+                    else if (typeof addTradeUI === 'function') {
+                        console.log('[UI] ⚠️ Utilisation de addTradeUI directement (non window.)');
+                        addTradeUI();
+                    } 
+                    else {
+                        console.error('[UI] ❌ addTradeUI non définie (ni window. ni global)');
                         alert('⚠️ Erreur : Fonction addTradeUI non chargée. Veuillez rafraîchir la page.');
                     }
                 });
