@@ -2551,8 +2551,194 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 netProfit: netProfit.toFixed(2),
                 roi: roi.toFixed(2)
             });
+            
+            // 5️⃣ Créer/Mettre à jour le graphique d'évolution
+            window.updateAccountingChart(accountCosts, payouts);
         }
         console.log('[INIT] ✅ window.updateComptabilite définie');
+
+        // ========================================
+        // 📊 FONCTION: Graphique d'évolution comptable
+        // ========================================
+        let accountingChartInstance = null;
+        
+        window.updateAccountingChart = function(accountCosts, payouts) {
+            console.log('[CHART] updateAccountingChart appelée');
+            
+            const ctx = document.getElementById('accountingChart');
+            if (!ctx) {
+                console.error('[CHART] ❌ Canvas accountingChart non trouvé');
+                return;
+            }
+            
+            // Combiner toutes les dates (coûts + payouts)
+            const allDates = new Set();
+            accountCosts.forEach(cost => allDates.add(cost.date));
+            payouts.forEach(payout => allDates.add(payout.date));
+            
+            // Trier les dates
+            const sortedDates = Array.from(allDates).sort((a, b) => new Date(a) - new Date(b));
+            
+            if (sortedDates.length === 0) {
+                console.log('[CHART] Aucune donnée à afficher');
+                // Détruire le graphique s'il existe
+                if (accountingChartInstance) {
+                    accountingChartInstance.destroy();
+                    accountingChartInstance = null;
+                }
+                return;
+            }
+            
+            // Calculer les cumuls pour chaque date
+            let cumulInvested = 0;
+            let cumulWithdrawn = 0;
+            
+            const investedData = [];
+            const withdrawnData = [];
+            const profitData = [];
+            
+            sortedDates.forEach(date => {
+                // Ajouter les coûts de cette date
+                const costsOfDay = accountCosts
+                    .filter(c => c.date === date)
+                    .reduce((sum, c) => sum + parseFloat(c.cost || 0), 0);
+                cumulInvested += costsOfDay;
+                
+                // Ajouter les payouts de cette date
+                const payoutsOfDay = payouts
+                    .filter(p => p.date === date)
+                    .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+                cumulWithdrawn += payoutsOfDay;
+                
+                // Stocker les données
+                investedData.push(cumulInvested);
+                withdrawnData.push(cumulWithdrawn);
+                profitData.push(cumulWithdrawn - cumulInvested);
+            });
+            
+            // Formater les dates pour l'affichage
+            const labels = sortedDates.map(date => {
+                const d = new Date(date);
+                return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+            });
+            
+            // Détruire l'ancien graphique s'il existe
+            if (accountingChartInstance) {
+                accountingChartInstance.destroy();
+            }
+            
+            // Créer le nouveau graphique
+            accountingChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Investi (cumulé)',
+                            data: investedData,
+                            borderColor: '#dc2626',
+                            backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Payouts (cumulé)',
+                            data: withdrawnData,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Bénéfice Net',
+                            data: profitData,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.parsed.y.toFixed(2) + ' €';
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(0) + ' €';
+                                },
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+            
+            console.log('[CHART] ✅ Graphique créé avec', sortedDates.length, 'points');
+        };
+        console.log('[INIT] ✅ window.updateAccountingChart définie');
 
         // ========================================
         // 👁️ FONCTIONS: Voir, Modifier, Supprimer - Account Costs
