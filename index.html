@@ -2413,21 +2413,30 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         console.log('[INIT] ✅ window.updateTradesTable définie (après variables globales)');
 
         // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('[INIT] 🚀 Initialisation de l\'application...');
+            
             // Données chargées depuis Supabase
             setCurrentDate();
             setupStarRatings();
             // initializeDefaultAccounts();  // DÉSACTIVÉ - Utiliser Supabase
             // loadCalendarPreferences(); // Supprimée // Charger les préférences d'affichage
             
-            // Initialiser les graphiques et mettre à jour tout
+            // Initialiser les graphiques
             initCharts();
-            updateDashboard();
-            updateBanner();
-            updateCharts();
-            updateCalendar();
-            updateRecentTrades();
-            updateProtectionAnalysis();
+            
+            // ✅ CHARGER LES DONNÉES ET RAFRAÎCHIR AUTOMATIQUEMENT AU DÉMARRAGE
+            console.log('[INIT] 📦 Chargement automatique des données depuis Supabase...');
+            
+            // Attendre que refreshAllModules soit définie (définie plus tard dans le script)
+            setTimeout(async () => {
+                if (typeof window.refreshAllModules === 'function') {
+                    await window.refreshAllModules();
+                    console.log('[INIT] ✅ Données chargées et affichées automatiquement');
+                } else {
+                    console.warn('[INIT] ⚠️ window.refreshAllModules non définie après timeout');
+                }
+            }, 500); // Attendre 500ms que le script soit complètement chargé
             
             // ✅ DÉFINIR addTradeUI ICI pour garantir qu'elle existe
             window.addTradeUI = async function() {
