@@ -456,7 +456,11 @@ ${data.content}
             }
             
             // Construire le HTML de la modale
-            const stars = '⭐'.repeat(data.session_rating || 0);
+            const rating = data.session_rating || 0;
+            const stars = rating > 0 ? '⭐'.repeat(rating) : '';
+            
+            console.log('[JOURNAL] 🌟 Rating:', rating, 'Stars:', stars);
+            
             let emotionsHtml = '';
             
             if (data.emotion_before || data.emotion_after) {
@@ -474,12 +478,23 @@ ${data.content}
             
             let imageHtml = '';
             if (data.image_url) {
+                console.log('[JOURNAL] 📸 Image URL:', data.image_url);
                 imageHtml = `
-                    <div class="mt-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
                         <h3 class="font-semibold text-gray-800 mb-2">📸 Image</h3>
                         <img src="${data.image_url}" alt="Image de la note" class="max-w-full h-auto rounded-lg border shadow-sm cursor-pointer hover:opacity-90 transition" onclick="viewImageZoom('${data.image_url}')" title="Cliquer pour agrandir">
                     </div>
                 `;
+            } else {
+                console.log('[JOURNAL] ℹ️ Aucune image pour cette note');
+            }
+            
+            // Construction du HTML avec section d'évaluation visible même si rating = 0
+            let ratingHtml = '';
+            if (rating > 0) {
+                ratingHtml = `<div class="text-2xl mt-1" title="Évaluation de la session">${stars}</div>`;
+            } else {
+                ratingHtml = `<div class="text-sm text-gray-500 mt-1">Aucune évaluation</div>`;
             }
             
             contentElement.innerHTML = `
@@ -487,7 +502,7 @@ ${data.content}
                     <div class="flex justify-between items-start mb-3">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-800">📅 ${data.entry_date}</h3>
-                            ${stars ? `<div class="text-2xl mt-1">${stars}</div>` : ''}
+                            ${ratingHtml}
                         </div>
                     </div>
                 </div>
