@@ -2449,12 +2449,19 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                     ${parseFloat(cost.cost).toFixed(2)} €
                                 </td>
                                 <td class="px-6 py-4 text-sm">
+                                    <button onclick="viewAccountCost(${cost.id})" 
+                                            class="text-blue-600 hover:text-blue-900 mr-2" 
+                                            title="Voir les détails">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
                                     <button onclick="editAccountCost(${cost.id})" 
-                                            class="text-indigo-600 hover:text-indigo-900 mr-2">
+                                            class="text-indigo-600 hover:text-indigo-900 mr-2" 
+                                            title="Modifier">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <button onclick="deleteAccountCost(${cost.id})" 
-                                            class="text-red-600 hover:text-red-900">
+                                            class="text-red-600 hover:text-red-900" 
+                                            title="Supprimer">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
@@ -2488,12 +2495,19 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                     ${parseFloat(payout.amount).toFixed(2)} €
                                 </td>
                                 <td class="px-6 py-4 text-sm">
+                                    <button onclick="viewPayout(${payout.id})" 
+                                            class="text-blue-600 hover:text-blue-900 mr-2" 
+                                            title="Voir les détails">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
                                     <button onclick="editPayout(${payout.id})" 
-                                            class="text-indigo-600 hover:text-indigo-900 mr-2">
+                                            class="text-indigo-600 hover:text-indigo-900 mr-2" 
+                                            title="Modifier">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <button onclick="deletePayout(${payout.id})" 
-                                            class="text-red-600 hover:text-red-900">
+                                            class="text-red-600 hover:text-red-900" 
+                                            title="Supprimer">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
@@ -2539,6 +2553,257 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             });
         }
         console.log('[INIT] ✅ window.updateComptabilite définie');
+
+        // ========================================
+        // 👁️ FONCTIONS: Voir, Modifier, Supprimer - Account Costs
+        // ========================================
+        
+        window.viewAccountCost = function(costId) {
+            console.log('[COMPTABILITE] Voir coût ID:', costId);
+            const cost = window.accountCosts?.find(c => c.id === costId);
+            
+            if (!cost) {
+                alert('❌ Coût non trouvé');
+                return;
+            }
+            
+            // Créer une modal de détails
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 24px; border-radius: 12px; max-width: 500px; width: 90%;">
+                    <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 16px; color: #1f2937;">
+                        📋 Détails du Compte Acheté
+                    </h3>
+                    <div style="space-y: 12px;">
+                        <div style="margin-bottom: 12px;">
+                            <p style="font-size: 14px; color: #6b7280;">Date d'achat</p>
+                            <p style="font-size: 16px; font-weight: 600; color: #1f2937;">${cost.date}</p>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <p style="font-size: 14px; color: #6b7280;">Nom du compte</p>
+                            <p style="font-size: 16px; font-weight: 600; color: #1f2937;">${cost.account_name}</p>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <p style="font-size: 14px; color: #6b7280;">Coût</p>
+                            <p style="font-size: 20px; font-weight: bold; color: #dc2626;">${parseFloat(cost.cost).toFixed(2)} €</p>
+                        </div>
+                        ${cost.notes ? `
+                        <div style="margin-bottom: 12px;">
+                            <p style="font-size: 14px; color: #6b7280;">Notes</p>
+                            <p style="font-size: 14px; color: #1f2937; padding: 12px; background: #f3f4f6; border-radius: 8px;">${cost.notes}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <button onclick="this.closest('div[style*=\"fixed\"]').remove()" 
+                            style="margin-top: 20px; width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        Fermer
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        };
+        
+        window.editAccountCost = async function(costId) {
+            console.log('[COMPTABILITE] Modifier coût ID:', costId);
+            const cost = window.accountCosts?.find(c => c.id === costId);
+            
+            if (!cost) {
+                alert('❌ Coût non trouvé');
+                return;
+            }
+            
+            // Pré-remplir le formulaire
+            document.getElementById('accountCostDate').value = cost.date;
+            document.getElementById('accountCostName').value = cost.account_name;
+            document.getElementById('accountCostAmount').value = cost.cost;
+            document.getElementById('accountCostNotes').value = cost.notes || '';
+            
+            // Marquer le formulaire en mode édition
+            const form = document.getElementById('accountCostForm');
+            form.dataset.editingId = costId;
+            
+            // Changer le texte du bouton
+            const submitBtn = document.getElementById('submitAccountCostBtn');
+            submitBtn.textContent = '✏️ Modifier';
+            
+            // Afficher la modal
+            document.getElementById('addAccountCostModal').style.display = 'flex';
+        };
+        
+        window.deleteAccountCost = async function(costId) {
+            console.log('[COMPTABILITE] Supprimer coût ID:', costId);
+            const cost = window.accountCosts?.find(c => c.id === costId);
+            
+            if (!cost) {
+                alert('❌ Coût non trouvé');
+                return;
+            }
+            
+            const confirmed = confirm(`❓ Êtes-vous sûr de vouloir supprimer le coût de "${cost.account_name}" (${parseFloat(cost.cost).toFixed(2)} €) ?`);
+            
+            if (!confirmed) return;
+            
+            if (!window.accountCostsAPI?.delete) {
+                alert('❌ Module accountCostsAPI non chargé');
+                return;
+            }
+            
+            const result = await window.accountCostsAPI.delete(costId);
+            
+            if (result.error) {
+                console.error('[COMPTABILITE] Erreur suppression:', result.error);
+                alert('❌ Erreur lors de la suppression : ' + result.error.message);
+                return;
+            }
+            
+            console.log('[COMPTABILITE] ✅ Coût supprimé');
+            alert(`✅ Coût de "${cost.account_name}" supprimé avec succès`);
+            
+            // Rafraîchir les données
+            if (typeof window.refreshAllModules === 'function') {
+                await window.refreshAllModules();
+            }
+        };
+        
+        // ========================================
+        // 👁️ FONCTIONS: Voir, Modifier, Supprimer - Payouts
+        // ========================================
+        
+        window.viewPayout = function(payoutId) {
+            console.log('[COMPTABILITE] Voir payout ID:', payoutId);
+            const payout = window.payouts?.find(p => p.id === payoutId);
+            
+            if (!payout) {
+                alert('❌ Payout non trouvé');
+                return;
+            }
+            
+            // Créer une modal de détails
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 24px; border-radius: 12px; max-width: 500px; width: 90%;">
+                    <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 16px; color: #1f2937;">
+                        💰 Détails du Payout
+                    </h3>
+                    <div style="space-y: 12px;">
+                        <div style="margin-bottom: 12px;">
+                            <p style="font-size: 14px; color: #6b7280;">Date du payout</p>
+                            <p style="font-size: 16px; font-weight: 600; color: #1f2937;">${payout.date}</p>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <p style="font-size: 14px; color: #6b7280;">Compte source</p>
+                            <p style="font-size: 16px; font-weight: 600; color: #1f2937;">${payout.account_name}</p>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <p style="font-size: 14px; color: #6b7280;">Montant</p>
+                            <p style="font-size: 20px; font-weight: bold; color: #10b981;">${parseFloat(payout.amount).toFixed(2)} €</p>
+                        </div>
+                        ${payout.notes ? `
+                        <div style="margin-bottom: 12px;">
+                            <p style="font-size: 14px; color: #6b7280;">Notes</p>
+                            <p style="font-size: 14px; color: #1f2937; padding: 12px; background: #f3f4f6; border-radius: 8px;">${payout.notes}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <button onclick="this.closest('div[style*=\"fixed\"]').remove()" 
+                            style="margin-top: 20px; width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        Fermer
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        };
+        
+        window.editPayout = async function(payoutId) {
+            console.log('[COMPTABILITE] Modifier payout ID:', payoutId);
+            const payout = window.payouts?.find(p => p.id === payoutId);
+            
+            if (!payout) {
+                alert('❌ Payout non trouvé');
+                return;
+            }
+            
+            // Pré-remplir le formulaire
+            document.getElementById('payoutDate').value = payout.date;
+            document.getElementById('payoutAccount').value = payout.account_name;
+            document.getElementById('payoutAmount').value = payout.amount;
+            document.getElementById('payoutNotes').value = payout.notes || '';
+            
+            // Marquer le formulaire en mode édition
+            const form = document.getElementById('payoutForm');
+            form.dataset.editingId = payoutId;
+            
+            // Changer le texte du bouton
+            const submitBtn = document.getElementById('submitPayoutBtn');
+            submitBtn.textContent = '✏️ Modifier';
+            
+            // Afficher la modal
+            document.getElementById('addPayoutModal').style.display = 'flex';
+        };
+        
+        window.deletePayout = async function(payoutId) {
+            console.log('[COMPTABILITE] Supprimer payout ID:', payoutId);
+            const payout = window.payouts?.find(p => p.id === payoutId);
+            
+            if (!payout) {
+                alert('❌ Payout non trouvé');
+                return;
+            }
+            
+            const confirmed = confirm(`❓ Êtes-vous sûr de vouloir supprimer le payout de "${payout.account_name}" (${parseFloat(payout.amount).toFixed(2)} €) ?`);
+            
+            if (!confirmed) return;
+            
+            if (!window.payoutsAPI?.delete) {
+                alert('❌ Module payoutsAPI non chargé');
+                return;
+            }
+            
+            const result = await window.payoutsAPI.delete(payoutId);
+            
+            if (result.error) {
+                console.error('[COMPTABILITE] Erreur suppression:', result.error);
+                alert('❌ Erreur lors de la suppression : ' + result.error.message);
+                return;
+            }
+            
+            console.log('[COMPTABILITE] ✅ Payout supprimé');
+            alert(`✅ Payout de "${payout.account_name}" supprimé avec succès`);
+            
+            // Rafraîchir les données
+            if (typeof window.refreshAllModules === 'function') {
+                await window.refreshAllModules();
+            }
+        };
+        console.log('[INIT] ✅ Fonctions comptabilité (voir/modifier/supprimer) définies');
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', async function() {
@@ -2744,6 +3009,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             window.addAccountCost = async function() {
                 console.log('[COST] addAccountCost - START');
                 
+                // Vérifier si on est en mode édition
+                const form = document.getElementById('accountCostForm');
+                const editingId = form?.dataset.editingId;
+                const isEditing = !!editingId;
+                
+                console.log('[COST] Mode:', isEditing ? 'ÉDITION (ID: ' + editingId + ')' : 'CRÉATION');
+                
                 // Lire les champs du formulaire (IDs corrects)
                 const costDate = document.getElementById('accountCostDate')?.value;
                 const costName = document.getElementById('accountCostName')?.value;
@@ -2758,15 +3030,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
                 
                 // Vérifier si le module est chargé
-                if (!window.accountCostsAPI || !window.accountCostsAPI.create) {
+                if (!window.accountCostsAPI) {
                     console.error('[COST] ❌ Module accountCostsAPI non chargé');
                     alert('❌ Erreur : module non chargé. Veuillez rafraîchir la page.');
                     return;
                 }
                 
                 try {
-                    // Enregistrer le coût (PAS de création de compte !)
-                    console.log('[COST] Enregistrement du coût...');
                     const costData = {
                         account_id: null,          // Pas de lien avec un compte de trading
                         account_name: costName,    // Nom libre (ex: "Apex", "FTMO 100K")
@@ -2777,24 +3047,46 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     console.log('[COST] Données pour Supabase:', costData);
                     
-                    const costResult = await window.accountCostsAPI.create(costData);
-                    
-                    if (costResult.error) {
-                        console.error('[COST] ❌ Erreur enregistrement coût:', costResult.error);
-                        alert(`❌ Erreur enregistrement du coût : ${costResult.error.message || costResult.error}`);
-                        return;
+                    let result;
+                    if (isEditing) {
+                        // MODE ÉDITION
+                        if (!window.accountCostsAPI.update) {
+                            alert('❌ Fonction de modification non disponible');
+                            return;
+                        }
+                        result = await window.accountCostsAPI.update(parseInt(editingId), costData);
+                        console.log('[COST] ✅ Coût modifié:', result.data);
+                        alert(`✅ Coût de "${costName}" modifié avec succès`);
+                    } else {
+                        // MODE CRÉATION
+                        if (!window.accountCostsAPI.create) {
+                            alert('❌ Fonction de création non disponible');
+                            return;
+                        }
+                        result = await window.accountCostsAPI.create(costData);
+                        console.log('[COST] ✅ Coût créé:', result.data);
+                        alert(`✅ Coût de ${costAmount}€ pour "${costName}" enregistré avec succès`);
                     }
                     
-                    console.log('[COST] ✅ Coût enregistré:', costResult.data);
-                    alert(`✅ Coût de ${costAmount}€ pour "${costName}" enregistré avec succès`);
+                    if (result.error) {
+                        console.error('[COST] ❌ Erreur:', result.error);
+                        alert(`❌ Erreur : ${result.error.message || result.error}`);
+                        return;
+                    }
                     
                     // Fermer la modale
                     const modal = document.getElementById('addAccountCostModal');
                     if (modal) modal.style.display = 'none';
                     
-                    // Réinitialiser le formulaire
-                    const form = document.getElementById('accountCostForm');
-                    if (form) form.reset();
+                    // Réinitialiser le formulaire et le mode édition
+                    if (form) {
+                        form.reset();
+                        delete form.dataset.editingId;
+                    }
+                    
+                    // Réinitialiser le bouton
+                    const submitBtn = document.getElementById('submitAccountCostBtn');
+                    if (submitBtn) submitBtn.textContent = 'Ajouter';
                     
                     // Recharger les données
                     if (typeof window.refreshAllModules === 'function') {
@@ -2811,6 +3103,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             window.addPayout = async function() {
                 console.log('[PAYOUT] addPayout - START');
                 
+                // Vérifier si on est en mode édition
+                const form = document.getElementById('payoutForm');
+                const editingId = form?.dataset.editingId;
+                const isEditing = !!editingId;
+                
+                console.log('[PAYOUT] Mode:', isEditing ? 'ÉDITION (ID: ' + editingId + ')' : 'CRÉATION');
+                
                 // Lire les champs du formulaire (IDs corrects)
                 const payoutDate = document.getElementById('payoutDate')?.value;
                 const payoutAccountName = document.getElementById('payoutAccount')?.value?.trim();
@@ -2825,7 +3124,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
                 
                 // Vérifier si les modules sont chargés
-                if (!window.payoutsAPI || !window.payoutsAPI.create) {
+                if (!window.payoutsAPI) {
                     console.error('[PAYOUT] ❌ Module payoutsAPI non chargé');
                     alert('❌ Erreur : module payoutsAPI non chargé. Veuillez rafraîchir la page.');
                     return;
@@ -2859,24 +3158,46 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     console.log('[PAYOUT] Données pour Supabase:', payoutData);
                 
-                    const payoutResult = await window.payoutsAPI.create(payoutData);
-                    
-                    if (payoutResult.error) {
-                        console.error('[PAYOUT] ❌ Erreur enregistrement payout:', payoutResult.error);
-                        alert(`❌ Erreur : ${payoutResult.error.message || payoutResult.error}`);
-                        return;
+                    let result;
+                    if (isEditing) {
+                        // MODE ÉDITION
+                        if (!window.payoutsAPI.update) {
+                            alert('❌ Fonction de modification non disponible');
+                            return;
+                        }
+                        result = await window.payoutsAPI.update(parseInt(editingId), payoutData);
+                        console.log('[PAYOUT] ✅ Payout modifié:', result.data);
+                        alert(`✅ Payout de "${payoutAccountName}" modifié avec succès`);
+                    } else {
+                        // MODE CRÉATION
+                        if (!window.payoutsAPI.create) {
+                            alert('❌ Fonction de création non disponible');
+                            return;
+                        }
+                        result = await window.payoutsAPI.create(payoutData);
+                        console.log('[PAYOUT] ✅ Payout créé:', result.data);
+                        alert(`✅ Payout de ${payoutAmount}€ ajouté avec succès pour "${payoutAccountName}"`);
                     }
                     
-                    console.log('[PAYOUT] ✅ Payout enregistré:', payoutResult.data);
-                    alert(`✅ Payout de ${payoutAmount}€ ajouté avec succès pour "${payoutAccountName}"`);
+                    if (result.error) {
+                        console.error('[PAYOUT] ❌ Erreur:', result.error);
+                        alert(`❌ Erreur : ${result.error.message || result.error}`);
+                        return;
+                    }
                     
                     // Fermer la modale
                     const modal = document.getElementById('addPayoutModal');
                     if (modal) modal.style.display = 'none';
                     
-                    // Réinitialiser le formulaire
-                    const form = document.getElementById('payoutForm');
-                    if (form) form.reset();
+                    // Réinitialiser le formulaire et le mode édition
+                    if (form) {
+                        form.reset();
+                        delete form.dataset.editingId;
+                    }
+                    
+                    // Réinitialiser le bouton
+                    const submitBtn = document.getElementById('submitPayoutBtn');
+                    if (submitBtn) submitBtn.textContent = 'Ajouter';
                     
                     // Recharger les données
                     if (typeof window.refreshAllModules === 'function') {
