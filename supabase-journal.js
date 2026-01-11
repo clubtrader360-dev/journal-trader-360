@@ -79,13 +79,11 @@
                 } else {
                     console.log('[JOURNAL] ✅ Image uploadée:', uploadData);
                     
-                    // Récupérer l'URL publique
-                    const { data: urlData } = supabase.storage
-                        .from('journal-images')
-                        .getPublicUrl(fileName);
+                    // Construire l'URL publique manuellement à partir de l'URL du client
+                    const supabaseUrl = supabase.supabaseUrl || 'https://zgihbpgoorymomtsbxpz.supabase.co';
+                    imageUrl = `${supabaseUrl}/storage/v1/object/public/journal-images/${fileName}`;
                     
-                    imageUrl = urlData.publicUrl;
-                    console.log('[JOURNAL] 🔗 URL publique:', imageUrl);
+                    console.log('[JOURNAL] 🔗 URL publique (manuelle):', imageUrl);
                 }
             } catch (uploadErr) {
                 console.error('[JOURNAL] ❌ Exception upload:', uploadErr);
