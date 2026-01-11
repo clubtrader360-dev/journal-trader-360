@@ -3354,51 +3354,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         }
 
         function updateJournalEntries() {
-            const container = document.getElementById('journalEntries');
+            // NOUVELLE VERSION : Utiliser Supabase au lieu de localStorage
+            console.log('[UI] updateJournalEntries() appelé - Chargement depuis Supabase');
             
-            if (journalEntries.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 text-center py-8">Aucune note ajoutée. Commencez par ajouter une entrée.</p>';
+            if (typeof window.loadJournalEntries === 'function') {
+                window.loadJournalEntries();
             } else {
-                container.innerHTML = journalEntries
-                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                    .map((entry, index) => {
-                        const stars = ''.repeat(entry.rating);
-                        return `
-                            <div class="border-b pb-4 mb-4 last:border-b-0">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div class="flex-1">
-                                        <h4 class="font-semibold text-gray-800">${entry.date}</h4>
-                                        <span class="text-sm text-gray-500">${stars}</span>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <button onclick="editJournalEntry('${entry.timestamp}')" class="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50" title="Modifier">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button onclick="deleteJournalEntry('${entry.timestamp}')" class="text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50" title="Supprimer">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                ${entry.emotionBefore || entry.emotionAfter ? `
-                                    <div class="text-sm text-gray-600 mb-2">
-                                        ${entry.emotionBefore ? `Avant: ${entry.emotionBefore}` : ''}
-                                        ${entry.emotionBefore && entry.emotionAfter ? ' | ' : ''}
-                                        ${entry.emotionAfter ? `Après: ${entry.emotionAfter}` : ''}
-                                    </div>
-                                ` : ''}
-                                <p class="text-gray-700 whitespace-pre-wrap">${entry.text}</p>
-                                ${entry.image ? `
-                                    <div class="mt-3">
-                                        <img src="${entry.image}" alt="Note image" class="max-w-full h-48 object-contain border rounded cursor-pointer hover:opacity-80 transition" onclick="viewImageZoom(\'${entry.image}\')" title="Cliquer pour agrandir">
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `;
-                    }).join('');
+                console.error('[UI] ❌ window.loadJournalEntries() non trouvée');
+                const container = document.getElementById('journalEntries');
+                if (container) {
+                    container.innerHTML = '<p class="text-red-500 text-center py-8">⚠️ Erreur : Module Journal non chargé. Veuillez rafraîchir la page.</p>';
+                }
             }
-            
-            // Update stats
-            document.getElementById('totalEntries').textContent = journalEntries.length;
             
             const thisWeek = new Date();
             thisWeek.setDate(thisWeek.getDate() - 7);
