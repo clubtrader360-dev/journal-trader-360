@@ -1,5 +1,5 @@
 // ================================================================
-// SUPABASE PAYOUTS MODULE - Version Professionnelle
+// SUPABASE PAYOUTS MODULE - Version Compatible index.html
 // ================================================================
 
 (() => {
@@ -55,23 +55,43 @@
     
     /**
      * Créer un nouveau payout
+     * Compatible avec addPayout() de index.html
      */
     async function createPayout(payoutData) {
         try {
-            // Validation
-            const required = ['user_id', 'account_id', 'date', 'amount'];
-            const missing = required.filter(field => !payoutData[field]);
+            log('create - Données reçues:', payoutData);
             
-            if (missing.length > 0) {
-                error('Champs manquants:', missing);
-                return { data: null, error: `Champs obligatoires manquants: ${missing.join(', ')}` };
+            // Ajouter user_id si manquant
+            if (!payoutData.user_id && window.currentUser) {
+                payoutData.user_id = window.currentUser.uuid;
+                log('user_id ajouté automatiquement:', payoutData.user_id);
             }
             
-            log('Création payout:', payoutData);
+            // Validation minimale
+            if (!payoutData.account_id) {
+                error('account_id manquant');
+                return { data: null, error: 'Compte non sélectionné' };
+            }
+            
+            if (!payoutData.amount) {
+                error('Montant manquant');
+                return { data: null, error: 'Montant manquant' };
+            }
+            
+            // Préparer données pour Supabase
+            const finalData = {
+                user_id: payoutData.user_id,
+                account_id: payoutData.account_id,
+                amount: payoutData.amount,
+                description: payoutData.description || '',
+                date: payoutData.date || new Date().toISOString().split('T')[0]
+            };
+            
+            log('Création payout avec données finales:', finalData);
             
             const { data, error: err } = await supabase
                 .from('payouts')
-                .insert([payoutData])
+                .insert([finalData])
                 .select()
                 .single();
             
@@ -164,5 +184,5 @@
         delete: deletePayout
     };
     
-    log('✅ Module chargé');
+    log('✅ Module chargé et API exposée');
 })();
