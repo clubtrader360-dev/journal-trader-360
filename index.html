@@ -2412,6 +2412,134 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         }
         console.log('[INIT] ✅ window.updateTradesTable définie (après variables globales)');
 
+        // ========================================
+        // 📊 FONCTION: Mettre à jour la comptabilité
+        // ========================================
+        window.updateComptabilite = function() {
+            console.log("  → updateComptabilite() appelée");
+            
+            // 1️⃣ Charger les données depuis window
+            const accountCosts = window.accountCosts || [];
+            const payouts = window.payouts || [];
+            
+            console.log('[COMPTABILITE] accountCosts:', accountCosts.length, 'payouts:', payouts.length);
+            
+            // 2️⃣ Mettre à jour le tableau des comptes achetés
+            const accountCostsTableBody = document.getElementById('accountCostsTableBody');
+            if (accountCostsTableBody) {
+                if (accountCosts.length === 0) {
+                    accountCostsTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                                <i class="fas fa-inbox mb-2 text-3xl"></i>
+                                <p>Aucun compte enregistré</p>
+                            </td>
+                        </tr>`;
+                } else {
+                    accountCostsTableBody.innerHTML = accountCosts
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                        .map(cost => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm text-gray-900">${cost.date}</td>
+                                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                                    ${cost.account_name || 'Compte inconnu'}
+                                    ${cost.notes ? '<br><span class="text-xs text-gray-500">' + cost.notes + '</span>' : ''}
+                                </td>
+                                <td class="px-6 py-4 text-sm font-medium text-green-600">
+                                    ${parseFloat(cost.cost).toFixed(2)} €
+                                </td>
+                                <td class="px-6 py-4 text-sm">
+                                    <button onclick="editAccountCost(${cost.id})" 
+                                            class="text-indigo-600 hover:text-indigo-900 mr-2">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button onclick="deleteAccountCost(${cost.id})" 
+                                            class="text-red-600 hover:text-red-900">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+                }
+            }
+            
+            // 3️⃣ Mettre à jour le tableau des payouts
+            const payoutsTableBody = document.getElementById('payoutsTableBody');
+            if (payoutsTableBody) {
+                if (payouts.length === 0) {
+                    payoutsTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                                <i class="fas fa-inbox mb-2 text-3xl"></i>
+                                <p>Aucun payout enregistré</p>
+                            </td>
+                        </tr>`;
+                } else {
+                    payoutsTableBody.innerHTML = payouts
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                        .map(payout => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 text-sm text-gray-900">${payout.date}</td>
+                                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                                    ${payout.account_name || 'Compte inconnu'}
+                                    ${payout.notes ? '<br><span class="text-xs text-gray-500">' + payout.notes + '</span>' : ''}
+                                </td>
+                                <td class="px-6 py-4 text-sm font-medium text-blue-600">
+                                    ${parseFloat(payout.amount).toFixed(2)} €
+                                </td>
+                                <td class="px-6 py-4 text-sm">
+                                    <button onclick="editPayout(${payout.id})" 
+                                            class="text-indigo-600 hover:text-indigo-900 mr-2">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button onclick="deletePayout(${payout.id})" 
+                                            class="text-red-600 hover:text-red-900">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+                }
+            }
+            
+            // 4️⃣ Calculer et afficher les métriques
+            const totalInvested = accountCosts.reduce((sum, cost) => sum + parseFloat(cost.cost || 0), 0);
+            const totalWithdrawn = payouts.reduce((sum, payout) => sum + parseFloat(payout.amount || 0), 0);
+            const netProfit = totalWithdrawn - totalInvested;
+            const roi = totalInvested > 0 ? (netProfit / totalInvested * 100) : 0;
+            
+            // Mettre à jour les cartes de métriques
+            const totalInvestedElement = document.getElementById('totalInvested');
+            if (totalInvestedElement) {
+                totalInvestedElement.textContent = totalInvested.toFixed(2) + ' €';
+            }
+            
+            const totalWithdrawnElement = document.getElementById('totalPayouts');
+            if (totalWithdrawnElement) {
+                totalWithdrawnElement.textContent = totalWithdrawn.toFixed(2) + ' €';
+            }
+            
+            const netProfitElement = document.getElementById('netProfit');
+            if (netProfitElement) {
+                netProfitElement.textContent = netProfit.toFixed(2) + ' €';
+                netProfitElement.className = netProfit >= 0 ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600';
+            }
+            
+            const roiElement = document.getElementById('roi');
+            if (roiElement) {
+                roiElement.textContent = roi.toFixed(2) + ' %';
+                roiElement.className = roi >= 0 ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600';
+            }
+            
+            console.log('[COMPTABILITE] ✅ Métriques:', {
+                totalInvested: totalInvested.toFixed(2),
+                totalWithdrawn: totalWithdrawn.toFixed(2),
+                netProfit: netProfit.toFixed(2),
+                roi: roi.toFixed(2)
+            });
+        }
+        console.log('[INIT] ✅ window.updateComptabilite définie');
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('[INIT] 🚀 Initialisation de l\'application...');
@@ -3927,6 +4055,25 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 await window.loadJournalEntries();
             }
             
+            // ✅ Charger les données de comptabilité
+            console.log('[REFRESH] 💰 Chargement des coûts depuis Supabase...');
+            if (typeof window.accountCostsAPI?.load === 'function') {
+                const costsResult = await window.accountCostsAPI.load(window.currentUser?.uuid);
+                if (costsResult && costsResult.data) {
+                    window.accountCosts = costsResult.data;
+                    console.log('[REFRESH] ✅ account_costs chargés:', window.accountCosts.length);
+                }
+            }
+            
+            console.log('[REFRESH] 💵 Chargement des payouts depuis Supabase...');
+            if (typeof window.payoutsAPI?.load === 'function') {
+                const payoutsResult = await window.payoutsAPI.load(window.currentUser?.uuid);
+                if (payoutsResult && payoutsResult.data) {
+                    window.payouts = payoutsResult.data;
+                    console.log('[REFRESH] ✅ payouts chargés:', window.payouts.length);
+                }
+            }
+            
             console.log('🔄 REFRESH - Nombre total de trades:', trades.length);
             console.log('🔄 REFRESH - Array trades:', trades);
             
@@ -3977,6 +4124,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log('[DATA] Appel updateProtectionAnalysis()...');
             if (typeof updateProtectionAnalysis === 'function') {
                 updateProtectionAnalysis();
+            }
+            
+            console.log('[DATA] Appel updateComptabilite()...');
+            if (typeof window.updateComptabilite === 'function') {
+                window.updateComptabilite();
+            } else {
+                console.error('[DATA] ❌ updateComptabilite non définie');
             }
             
             console.log("[OK] Rafraîchissement terminé");
