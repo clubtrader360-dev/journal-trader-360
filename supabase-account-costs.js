@@ -78,13 +78,12 @@
                 return { data: null, error: 'Montant manquant' };
             }
             
-            // Normaliser le champ montant : Supabase attend "cost" pas "amount"
+            // Normaliser les données pour Supabase
             const finalData = {
                 user_id: costData.user_id,
                 account_id: costData.account_id,
-                cost_type: costData.cost_type || 'other',
-                cost: costData.amount || costData.cost,  // ✅ Utiliser "cost" pour Supabase
-                description: costData.description || '',
+                cost: costData.amount || costData.cost,  // Montant payé RÉEL
+                notes: costData.notes || costData.description || '',  // Notes optionnelles
                 date: costData.date || new Date().toISOString().split('T')[0]
             };
             
