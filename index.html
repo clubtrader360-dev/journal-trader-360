@@ -2563,16 +2563,41 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.error('[UI] ❌ Bouton addTradeBtn introuvable');
             }
             
-            // ✅ ATTACHER ÉVÉNEMENTS POUR BOUTONS COMPTABILITÉ
+            // ✅ DÉFINIR ET ATTACHER LES FONCTIONS COMPTABILITÉ DIRECTEMENT
+            // Fonction pour ouvrir la modale d'ajout de coût
+            const showAddAccountCostModal = function() {
+                console.log('[UI] showAddAccountCostModal() appelée');
+                const modal = document.getElementById('addAccountCostModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    console.log('[UI] ✅ Modale addAccountCostModal affichée');
+                } else {
+                    console.error('[UI] ❌ Modale addAccountCostModal introuvable');
+                }
+            };
+            
+            // Fonction pour ouvrir la modale d'ajout de payout
+            const showAddPayoutModal = function() {
+                console.log('[UI] showAddPayoutModal() appelée');
+                const modal = document.getElementById('addPayoutModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    console.log('[UI] ✅ Modale addPayoutModal affichée');
+                } else {
+                    console.error('[UI] ❌ Modale addPayoutModal introuvable');
+                }
+            };
+            
+            // Exposer globalement pour compatibilité
+            window.showAddAccountCostModal = showAddAccountCostModal;
+            window.showAddPayoutModal = showAddPayoutModal;
+            
+            // Attacher aux boutons
             const addAccountCostBtn = document.getElementById('addAccountCostBtn');
             if (addAccountCostBtn) {
                 addAccountCostBtn.addEventListener('click', function() {
                     console.log('[UI] Bouton Ajouter un compte acheté cliqué');
-                    if (typeof showAddAccountCostModal === 'function') {
-                        showAddAccountCostModal();
-                    } else {
-                        console.error('[UI] ❌ showAddAccountCostModal non définie');
-                    }
+                    showAddAccountCostModal();
                 });
                 console.log('[UI] ✅ Événement attaché au bouton addAccountCostBtn');
             }
@@ -2581,11 +2606,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (addPayoutBtn) {
                 addPayoutBtn.addEventListener('click', function() {
                     console.log('[UI] Bouton Ajouter un payout cliqué');
-                    if (typeof showAddPayoutModal === 'function') {
-                        showAddPayoutModal();
-                    } else {
-                        console.error('[UI] ❌ showAddPayoutModal non définie');
-                    }
+                    showAddPayoutModal();
                 });
                 console.log('[UI] ✅ Événement attaché au bouton addPayoutBtn');
             }
