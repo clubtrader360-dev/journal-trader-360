@@ -3603,24 +3603,28 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
         // Dashboard functions
 
-        function refreshAllModules() {
+        async function refreshAllModules() {
             console.log('');
             console.log('🔄 REFRESH - Début du rafraîchissement...');
             
             // Recharger les données depuis Supabase
             console.log('[REFRESH] 📦 Chargement des comptes depuis Supabase...');
             if (typeof window.loadAccounts === 'function') {
-                window.loadAccounts();
+                await window.loadAccounts();
             }
             
             console.log('[REFRESH] 📊 Chargement des trades depuis Supabase...');
             if (typeof window.loadTrades === 'function') {
-                window.loadTrades();
+                const result = await window.loadTrades();
+                if (result && result.data) {
+                    window.trades = result.data;  // ✅ Mettre à jour window.trades
+                    console.log('[REFRESH] ✅ window.trades mis à jour:', window.trades.length, 'trades');
+                }
             }
             
             console.log('[REFRESH] 📝 Chargement des notes depuis Supabase...');
             if (typeof window.loadJournalEntries === 'function') {
-                window.loadJournalEntries();
+                await window.loadJournalEntries();
             }
             
             console.log('🔄 REFRESH - Nombre total de trades:', trades.length);
@@ -3639,7 +3643,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // Mise à jour de tous les modules
             console.log('[DATA] Appel updateTradesTable()...');
-            updateTradesTable();
+            if (typeof updateTradesTable === 'function') {
+                updateTradesTable();
+            } else {
+                console.error('[DATA] ❌ updateTradesTable non définie');
+            }
             
             console.log('[DATA] Appel updateDashboard()...');
             updateDashboard();

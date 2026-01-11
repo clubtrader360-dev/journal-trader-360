@@ -300,7 +300,7 @@ async function loadAccounts() {
     try {
       const { data, error } = await supabase
         .from('trades')
-        .select('id, instrument, quantity, entry_time, account_id')
+        .select('*')  // ✅ Charger TOUTES les colonnes
         .eq('user_id', window.currentUser.uuid)
         .order('entry_time', { ascending: false });
 
