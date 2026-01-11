@@ -215,20 +215,20 @@ async function loadAccounts() {
       console.log('[TRADES] 🕐 Exit timestamp créé:', exit_timestamp);
     }
 
-    // ✅ Normaliser la direction selon les valeurs possibles
-    let direction = (tradeData.trade_type || 'Long').toLowerCase().trim();
+    // ✅ Normaliser la direction selon les valeurs possibles (MAJUSCULES)
+    let direction = (tradeData.trade_type || 'Long').toUpperCase().trim();
     
     // Mapper les valeurs possibles
     const directionMap = {
-      'long': 'long',
-      'short': 'short',
-      'buy': 'long',
-      'sell': 'short',
-      'achat': 'long',
-      'vente': 'short'
+      'LONG': 'LONG',
+      'SHORT': 'SHORT',
+      'BUY': 'LONG',
+      'SELL': 'SHORT',
+      'ACHAT': 'LONG',
+      'VENTE': 'SHORT'
     };
     
-    direction = directionMap[direction] || 'long';  // Par défaut: long
+    direction = directionMap[direction] || 'LONG';  // Par défaut: LONG
     
     console.log('[TRADES] 📊 Direction normalisée:', tradeData.trade_type, '→', direction);
     
@@ -236,7 +236,7 @@ async function loadAccounts() {
       user_id: window.currentUser.uuid,
       account_id: tradeData.account_id,
       instrument: tradeData.symbol || 'ES',
-      direction: direction,  // ✅ Direction normalisée
+      direction: direction,  // ✅ Direction en MAJUSCULES (LONG/SHORT)
       quantity: tradeData.quantity || 1,
       entry_price: tradeData.entry_price || 0,
       exit_price: tradeData.exit_price || 0,
