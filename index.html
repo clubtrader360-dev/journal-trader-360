@@ -1021,7 +1021,61 @@ console.log('[OK] Fonctions modales exposées globalement');
     // ================================================================
     // FONCTION UI : Ajouter un compte (wiring uniquement)
     // ================================================================
-    
+    async function addAccountUI() {
+        console.log('[UI] addAccountUI() - START');
+
+        // ✅ 1) RÉCUPÉRER LES DONNÉES DU FORMULAIRE
+        const nameInput = document.getElementById('accountName');
+        const sizeInput = document.getElementById('accountSize');
+        const typeSelect = document.getElementById('accountType');
+
+        if (!nameInput || !sizeInput || !typeSelect) {
+            console.error('[UI] ❌ Erreur : champs DOM manquants');
+            alert('❌ Erreur : formulaire incomplet.');
+            return;
+        }
+
+        const accountData = {
+            name: nameInput.value.trim(),
+            type: typeSelect.value,
+            initial_balance: parseFloat(sizeInput.value)
+        };
+
+        console.log('[UI] Données formulaire extraites:', accountData);
+
+        // ✅ 2) APPEL MODULE BACKEND
+        if (!window.addAccount) {
+            console.error('[UI] ❌ Erreur : window.addAccount() manquant');
+            alert('❌ Erreur : module trades non chargé.');
+            return;
+        }
+
+        const { data, error } = await window.addAccount(accountData);
+
+        // ✅ 3) GESTION RÉSULTAT
+        if (error) {
+            console.error('[UI] ❌ Erreur addAccount:', error);
+            return;
+        }
+
+        console.log('[UI] ✅ Compte créé:', data);
+        alert(`✅ Compte "${data.name}" créé avec succès !`);
+
+        // ✅ 4) FERMETURE MODALE + RESET FORM
+        const modal = document.getElementById('addAccountModal');
+        if (modal) {
+            modal.style.display = 'none';
+            console.log('[UI] ✅ Modale fermée');
+        }
+
+        nameInput.value = '';
+        sizeInput.value = '';
+        typeSelect.value = 'demo';
+
+        console.log('[UI] ✅ Formulaire réinitialisé');
+    }
+
+    // ✅ EXPOSITION GLOBALE
     window.addAccountUI = addAccountUI;
 
     // ================================================================
@@ -2474,8 +2528,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         function showSection(sectionName) {
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.add('hidden');
-            }
-        window.showSection = showSection;);
+            });
             
             document.querySelectorAll('.sidebar-item').forEach(item => {
                 item.classList.remove('active');
@@ -3631,7 +3684,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         dateString === '2025-10-21' || tradeDate === '2025-10-21') {
                         console.log(`[DATE] Calendar check: cellDate=${dateString} vs tradeDate=${tradeDate} => ${isMatch ? '[OK] MATCH' : '[ERROR] NO MATCH'}`);
                     }
-        window.updateCalendar = updateCalendar;
                     
                     return isMatch;
                 });
@@ -3855,7 +3907,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 currentMonth = 11;
                 currentYear--;
             }
-        window.previousMonth = previousMonth;
             updateCalendar();
         }
 
