@@ -4752,7 +4752,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
         // Fonction pour mettre à jour la bannière TradersZella
         window.updateBanner = function() {
-            if (trades.length === 0) {
+            // ✅ Utiliser les trades filtrés par comptes actifs
+            const filteredTrades = getFilteredTrades();
+            console.log('[BANNER] Trades filtrés:', filteredTrades.length, 'sur', trades.length, 'total');
+            
+            if (filteredTrades.length === 0) {
                 // Réinitialiser les valeurs si pas de trades
                 document.getElementById('netPnlValue').textContent = '$0.00';
                 document.getElementById('tradeWinValue').textContent = '0%';
@@ -4768,20 +4772,20 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
 
             // Calculer Net P&L
-            const netPnl = trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+            const netPnl = filteredTrades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
             document.getElementById('netPnlValue').textContent = '$' + netPnl.toFixed(2);
             document.getElementById('netPnlValue').style.color = netPnl >= 0 ? '#10b981' : '#ef4444';
 
             // Calculer Trade Win %
-            const winningTrades = trades.filter(t => (parseFloat(t.pnl) || 0) > 0).length;
-            const tradeWinPercent = trades.length > 0 ? (winningTrades / trades.length * 100) : 0;
+            const winningTrades = filteredTrades.filter(t => (parseFloat(t.pnl) || 0) > 0).length;
+            const tradeWinPercent = filteredTrades.length > 0 ? (winningTrades / filteredTrades.length * 100) : 0;
             document.getElementById('tradeWinValue').textContent = tradeWinPercent.toFixed(1) + '%';
             document.getElementById('tradeWinBar').style.width = tradeWinPercent + '%';
 
             // Calculer Profit Factor
-            const totalProfit = trades.filter(t => (parseFloat(t.pnl) || 0) > 0)
+            const totalProfit = filteredTrades.filter(t => (parseFloat(t.pnl) || 0) > 0)
                                      .reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
-            const totalLoss = Math.abs(trades.filter(t => (parseFloat(t.pnl) || 0) < 0)
+            const totalLoss = Math.abs(filteredTrades.filter(t => (parseFloat(t.pnl) || 0) < 0)
                                             .reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0));
             const profitFactor = totalLoss > 0 ? totalProfit / totalLoss : 0;
             document.getElementById('profitFactorValue').textContent = profitFactor.toFixed(2);
@@ -4790,7 +4794,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
             // Calculer Day Win %
             const tradesByDay = {};
-            trades.forEach(t => {
+            filteredTrades.forEach(t => {
                 const day = t.entryTime.split('T')[0];
                 if (!tradesByDay[day]) tradesByDay[day] = 0;
                 tradesByDay[day] += parseFloat(t.pnl) || 0;
@@ -4803,14 +4807,14 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
             // Calculer Avg Win/Loss
             const avgWin = winningTrades > 0 ? totalProfit / winningTrades : 0;
-            const losingTrades = trades.length - winningTrades;
+            const losingTrades = filteredTrades.length - winningTrades;
             const avgLoss = losingTrades > 0 ? totalLoss / losingTrades : 0;
             const avgWinLoss = avgLoss > 0 ? avgWin / avgLoss : 0;
             document.getElementById('avgWinLossValue').textContent = avgWinLoss.toFixed(2);
             document.getElementById('avgWinLabel').textContent = '$' + avgWin.toFixed(0);
             document.getElementById('avgLossLabel').textContent = '$' + avgLoss.toFixed(0);
             
-            console.log("[OK] Banner mis à jour");
+            console.log("[BANNER] Mis à jour - Net P&L:", netPnl.toFixed(2), "| Win%:", tradeWinPercent.toFixed(1));
         }
 
         window.updateDashboard = function() {
@@ -5286,11 +5290,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const container = document.getElementById('protectionAnalysisContainer');
             if (!container) return;
             
-            // Récupérer les comptes actifs
-            const activeAccounts = accounts.map(a => a.id);
-            let filteredTrades = activeAccounts.length > 0 
-                ? trades.filter(trade => activeAccounts.includes(trade.accountId))
-                : trades;
+            // ✅ Utiliser getFilteredTrades() pour filtrer par comptes actifs
+            const filteredTrades = getFilteredTrades();
+            console.log('[PROTECTION] Trades filtrés:', filteredTrades.length, 'sur', trades.length, 'total');
             
             if (filteredTrades.length === 0) {
                 container.innerHTML = `
