@@ -30,10 +30,11 @@
         
         // Vérifier si on est en mode édition
         const modal = document.getElementById('addNoteModal');
-        const editingId = modal?.dataset.editingId;
-        const isEditing = editingId && editingId !== '';
+        const editingIdRaw = modal?.dataset.editingId;
+        const editingId = editingIdRaw ? parseInt(editingIdRaw, 10) : null;
+        const isEditing = editingId && !isNaN(editingId);
         
-        console.log('[JOURNAL] Mode:', isEditing ? 'ÉDITION' : 'AJOUT', 'ID:', editingId);
+        console.log('[JOURNAL] Mode:', isEditing ? 'ÉDITION' : 'AJOUT', 'ID (brut):', editingIdRaw, 'ID (converti):', editingId);
         
         // Récupération des données du formulaire
         const noteDate = document.getElementById('noteDate')?.value;
@@ -301,7 +302,12 @@
     
     // ===== FONCTION SUPPRESSION ENTRÉE =====
     async function deleteJournalEntry(entryId) {
-        console.log('[JOURNAL] deleteJournalEntry() - START', entryId);
+        console.log('[JOURNAL] deleteJournalEntry() - START');
+        console.log('[JOURNAL] entryId reçu (brut):', entryId, 'Type:', typeof entryId);
+        
+        // CORRECTION : Convertir l'ID en integer
+        const id = parseInt(entryId, 10);
+        console.log('[JOURNAL] entryId converti:', id, 'Type:', typeof id);
         
         if (!window.currentUser || !window.currentUser.uuid) {
             console.error('[JOURNAL] ❌ Utilisateur non connecté');
@@ -316,7 +322,7 @@
             const { error } = await supabase
                 .from('journal_entries')
                 .delete()
-                .eq('id', entryId)
+                .eq('id', id)
                 .eq('user_id', window.currentUser.uuid);
             
             if (error) {
@@ -342,7 +348,11 @@
     // ===== FONCTION VISUALISATION ENTRÉE =====
     async function viewJournalEntry(entryId) {
         console.log('[JOURNAL] viewJournalEntry() - START');
-        console.log('[JOURNAL] entryId reçu:', entryId, 'Type:', typeof entryId);
+        console.log('[JOURNAL] entryId reçu (brut):', entryId, 'Type:', typeof entryId);
+        
+        // CORRECTION : Convertir l'ID en integer
+        const id = parseInt(entryId, 10);
+        console.log('[JOURNAL] entryId converti:', id, 'Type:', typeof id);
         
         if (!window.currentUser || !window.currentUser.uuid) {
             console.error('[JOURNAL] ❌ Utilisateur non connecté');
@@ -354,12 +364,12 @@
         
         try {
             // Récupérer l'entrée depuis Supabase
-            console.log('[JOURNAL] Requête Supabase avec id:', entryId);
+            console.log('[JOURNAL] Requête Supabase avec id:', id);
             
             const { data, error } = await supabase
                 .from('journal_entries')
                 .select('*')
-                .eq('id', entryId)
+                .eq('id', id)
                 .eq('user_id', window.currentUser.uuid)
                 .single();
             
@@ -405,7 +415,11 @@ ${data.content}
     // ===== FONCTION ÉDITION ENTRÉE =====
     async function editJournalEntry(entryId) {
         console.log('[JOURNAL] editJournalEntry() - START');
-        console.log('[JOURNAL] entryId reçu:', entryId, 'Type:', typeof entryId);
+        console.log('[JOURNAL] entryId reçu (brut):', entryId, 'Type:', typeof entryId);
+        
+        // CORRECTION : Convertir l'ID en integer
+        const id = parseInt(entryId, 10);
+        console.log('[JOURNAL] entryId converti:', id, 'Type:', typeof id);
         
         if (!window.currentUser || !window.currentUser.uuid) {
             console.error('[JOURNAL] ❌ Utilisateur non connecté');
@@ -417,12 +431,12 @@ ${data.content}
         
         try {
             // Récupérer l'entrée depuis Supabase
-            console.log('[JOURNAL] Requête Supabase avec id:', entryId);
+            console.log('[JOURNAL] Requête Supabase avec id:', id);
             
             const { data, error } = await supabase
                 .from('journal_entries')
                 .select('*')
-                .eq('id', entryId)
+                .eq('id', id)
                 .eq('user_id', window.currentUser.uuid)
                 .single();
             
@@ -464,7 +478,7 @@ ${data.content}
             // Ouvrir la modale en mode édition
             const modal = document.getElementById('addNoteModal');
             if (modal) {
-                modal.dataset.editingId = entryId; // Stocker l'ID pour la sauvegarde
+                modal.dataset.editingId = id; // Stocker l'ID (converti) pour la sauvegarde
                 modal.style.display = 'block';
             }
             
