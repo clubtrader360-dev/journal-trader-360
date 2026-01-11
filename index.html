@@ -3617,8 +3617,37 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (typeof window.loadTrades === 'function') {
                 const result = await window.loadTrades();
                 if (result && result.data) {
-                    window.trades = result.data;  // ✅ Mettre à jour window.trades
-                    console.log('[REFRESH] ✅ window.trades mis à jour:', window.trades.length, 'trades');
+                    // ✅ Transformer les données Supabase pour correspondre au format attendu
+                    window.trades = result.data.map(trade => {
+                        // Calculer le PnL
+                        const pnl = (trade.exit_price - trade.entry_price) * trade.quantity * 
+                                    (trade.direction === 'LONG' ? 1 : -1) * 
+                                    (trade.instrument === 'ES' ? 50 : trade.instrument === 'NQ' ? 20 : 1);
+                        
+                        // Trouver le nom du compte
+                        const account = accounts.find(a => a.id === trade.account_id);
+                        
+                        return {
+                            id: trade.id,
+                            accountId: trade.account_id,
+                            accountName: account?.name || 'Compte inconnu',
+                            date: trade.trade_date,
+                            entryTime: trade.entry_time ? new Date(trade.entry_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '00:00',
+                            exitTime: trade.exit_time ? new Date(trade.exit_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '00:00',
+                            symbol: trade.instrument,
+                            type: trade.direction === 'LONG' ? 'Long' : 'Short',
+                            entryPrice: trade.entry_price,
+                            exitPrice: trade.exit_price,
+                            quantity: trade.quantity,
+                            pnl: trade.pnl || pnl,  // Utiliser manual_pnl si disponible, sinon calculer
+                            stopLoss: trade.stop_loss,
+                            takeProfit: trade.take_profit,
+                            setup: trade.setup || 'N/A',
+                            notes: trade.notes || ''
+                        };
+                    });
+                    console.log('[REFRESH] ✅ window.trades transformé et mis à jour:', window.trades.length, 'trades');
+                    console.log('[REFRESH] 📋 Exemple de trade transformé:', window.trades[0]);
                 }
             }
             
