@@ -1444,7 +1444,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                     <span id="currentMonth" class="text-xl font-bold">January 2025</span>
                                     <div class="text-sm text-gray-600 mt-1">
                                         Ce mois-ci &nbsp;&nbsp;&nbsp; Stats mensuelles: <span id="monthlyPnl" class="font-semibold">$0.00</span> &nbsp; <span id="monthlyDays">0 jours</span> &nbsp; 
-                                        <button onclick="updateCalendar(); console.log(" Calendrier manuellement rafraîchi");" class="text-blue-600 hover:text-blue-800" title="Rafraîchir le calendrier">
+                                        <button onclick="updateCalendar(); console.log('Calendrier manuellement rafraîchi');" class="text-blue-600 hover:text-blue-800" title="Rafraîchir le calendrier">
                                             <i class="fas fa-sync-alt"></i>
                                         </button>
                                         <button onclick="toggleCalendarSettings()" class="text-gray-600 hover:text-gray-800" title="Paramètres d'affichage">
@@ -2338,8 +2338,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (accounts.length === 0) {
                 return trades;
             }
-            // Sinon, filtrer par comptes actifs
-            const activeAccountIds = accounts.map(a => a.id);
+            // Sinon, filtrer par comptes actifs (cochés)
+            const activeAccountIds = accounts.filter(a => a.active !== false).map(a => a.id);
             return trades.filter(t => activeAccountIds.includes(t.accountId));
         }
 
@@ -2351,8 +2351,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log("  → updateTradesTable() appelée");
             const tbody = document.getElementById('tradesTableBody');
             
-            // ✅ Pas de filtre 'active' car la colonne n'existe pas dans Supabase
-            const activeAccounts = accounts.map(a => a.id);
+            // Filtrer par comptes actifs (cochés)
+            const activeAccounts = accounts.filter(a => a.active !== false).map(a => a.id);
             let filteredTrades = trades.filter(trade => activeAccounts.includes(trade.accountId));
             
             // Trier par date et heure (du plus récent au plus ancien)
@@ -4772,8 +4772,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
         window.updateDashboard = function() {
             console.log("  → updateDashboard() appelée");
-            // Si aucun compte actif, utiliser tous les trades
-            const activeAccounts = accounts.map(a => a.id);
+            // Filtrer par comptes actifs (cochés)
+            const activeAccounts = accounts.filter(a => a.active !== false).map(a => a.id);
+            console.log('[FILTER] Comptes actifs:', activeAccounts);
+            
             const filteredTrades = activeAccounts.length === 0 
                 ? trades 
                 : trades.filter(trade => activeAccounts.includes(trade.accountId));
@@ -5650,8 +5652,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
         window.updateCharts = function() {
             console.log("  → updateCharts() appelée");
-            // Si aucun compte actif, utiliser tous les trades
-            const activeAccounts = accounts.map(a => a.id);
+            // Filtrer par comptes actifs (cochés)
+            const activeAccounts = accounts.filter(a => a.active !== false).map(a => a.id);
+            console.log('[FILTER] Comptes actifs:', activeAccounts);
+            
             const filteredTrades = activeAccounts.length === 0 
                 ? trades 
                 : trades.filter(trade => activeAccounts.includes(trade.accountId));
