@@ -801,6 +801,99 @@ function showAddAccountModal() {
 
         console.log('[UI] ✅ addAccountUI() exposée globalement');
 
+// ========================================
+// PATCH V3.7 : addTradeUI() - MINIMAL
+// ========================================
+async function addTradeUI() {
+    console.log('[UI] addTradeUI() - START');
+    
+    // Lecture IDs DOM réels (extraits de l'audit)
+    const account_id = document.getElementById('tradeAccount')?.value;
+    const trade_date = document.getElementById('tradeDate')?.value;
+    const entry_time = document.getElementById('entryTime')?.value;
+    const exit_time = document.getElementById('exitTime')?.value;
+    const symbol = document.getElementById('symbol')?.value;
+    const trade_type = document.getElementById('tradeType')?.value;
+    const entry_price = parseFloat(document.getElementById('entryPrice')?.value);
+    const exit_price = parseFloat(document.getElementById('exitPrice')?.value);
+    const quantity = parseInt(document.getElementById('quantity')?.value);
+    const stop_loss = document.getElementById('stopLoss')?.value;
+    const take_profit = document.getElementById('takeProfit')?.value;
+    const setup = document.getElementById('setup')?.value;
+    const notes = document.getElementById('tradeNotes')?.value;
+    const manual_pnl = document.getElementById('manualPnL')?.value;
+    
+    // Protections (checkboxes)
+    const protections = [];
+    ['protectionVWAP', 'protectionMM20', 'protectionPivot', 'protectionClotureVeille', 'protectionLiquidite'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el?.checked) protections.push(el.value);
+    });
+    
+    console.log('[UI] Données extraites:', { account_id, trade_date, entry_time, exit_time, symbol, trade_type, entry_price, exit_price, quantity });
+    
+    // Validation
+    if (!account_id || !trade_date || !entry_time || !exit_time || !symbol || !trade_type || !entry_price || !exit_price || !quantity) {
+        console.error('[UI] ❌ Formulaire incomplet');
+        alert('⚠️ Veuillez remplir tous les champs obligatoires');
+        return;
+    }
+    
+    // Construction payload
+    const tradeData = {
+        account_id: parseInt(account_id),
+        symbol,
+        trade_type,
+        quantity,
+        entry_price,
+        exit_price,
+        entry_time,
+        exit_time,
+        trade_date,
+        stop_loss: stop_loss ? parseFloat(stop_loss) : null,
+        take_profit: take_profit ? parseFloat(take_profit) : null,
+        setup: setup || null,
+        notes: notes || null,
+        manual_pnl: manual_pnl ? parseFloat(manual_pnl) : null,
+        protections: protections.length > 0 ? protections.join(',') : null
+    };
+    
+    console.log('[UI] Payload final:', tradeData);
+    
+    // Appel module
+    if (typeof window.addTrade !== 'function') {
+        console.error('[UI] ❌ window.addTrade non disponible');
+        alert('⚠️ Erreur : module trades non chargé');
+        return;
+    }
+    
+    try {
+        const result = await window.addTrade(tradeData);
+        
+        if (result.error) {
+            console.error('[UI] ❌ Erreur:', result.error);
+            alert(`⚠️ ${result.error.message || 'Échec'}`);
+            return;
+        }
+        
+        console.log('[UI] ✅ Trade ajouté:', result.data);
+        alert('✅ Trade ajouté avec succès');
+        
+        closeModal('addTradeModal');
+        document.getElementById('tradeForm')?.reset();
+        
+        if (typeof window.refreshAllModules === 'function') {
+            window.refreshAllModules();
+        }
+    } catch (error) {
+        console.error('[UI] ❌ Exception:', error);
+        alert(`⚠️ ${error.message}`);
+    }
+}
+
+window.addTradeUI = addTradeUI;
+console.log('[UI] ✅ window.addTradeUI exposée');
+
         console.log('[OK] Modale addAccountModal affichée');
     } else {
         console.error('[ERROR] Modale addAccountModal introuvable');
@@ -928,61 +1021,7 @@ console.log('[OK] Fonctions modales exposées globalement');
     // ================================================================
     // FONCTION UI : Ajouter un compte (wiring uniquement)
     // ================================================================
-    async function addAccountUI() {
-        console.log('[UI] addAccountUI() - START');
-
-        // ✅ 1) RÉCUPÉRER LES DONNÉES DU FORMULAIRE
-        const nameInput = document.getElementById('accountName');
-        const sizeInput = document.getElementById('accountSize');
-        const typeSelect = document.getElementById('accountType');
-
-        if (!nameInput || !sizeInput || !typeSelect) {
-            console.error('[UI] ❌ Erreur : champs DOM manquants');
-            alert('❌ Erreur : formulaire incomplet.');
-            return;
-        }
-
-        const accountData = {
-            name: nameInput.value.trim(),
-            type: typeSelect.value,
-            initial_balance: parseFloat(sizeInput.value)
-        };
-
-        console.log('[UI] Données formulaire extraites:', accountData);
-
-        // ✅ 2) APPEL MODULE BACKEND
-        if (!window.addAccount) {
-            console.error('[UI] ❌ Erreur : window.addAccount() manquant');
-            alert('❌ Erreur : module trades non chargé.');
-            return;
-        }
-
-        const { data, error } = await window.addAccount(accountData);
-
-        // ✅ 3) GESTION RÉSULTAT
-        if (error) {
-            console.error('[UI] ❌ Erreur addAccount:', error);
-            return;
-        }
-
-        console.log('[UI] ✅ Compte créé:', data);
-        alert(`✅ Compte "${data.name}" créé avec succès !`);
-
-        // ✅ 4) FERMETURE MODALE + RESET FORM
-        const modal = document.getElementById('addAccountModal');
-        if (modal) {
-            modal.style.display = 'none';
-            console.log('[UI] ✅ Modale fermée');
-        }
-
-        nameInput.value = '';
-        sizeInput.value = '';
-        typeSelect.value = 'demo';
-
-        console.log('[UI] ✅ Formulaire réinitialisé');
-    }
-
-    // ✅ EXPOSITION GLOBALE
+    
     window.addAccountUI = addAccountUI;
 
     // ================================================================
@@ -1126,6 +1165,7 @@ window.viewStudentDetails = viewStudentDetails;
 window.closeStudentDetail = closeStudentDetail;
 window.deleteStudent = deleteStudent;
 window.approveStudent = approveStudent;
+window.refreshAllModules = refreshAllModules;
 console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.log('[INIT] ✅ Toutes les fonctions globales exposées');
                 console.log('[INIT] ✅ Initialisation terminée avec succès');
@@ -1924,7 +1964,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 </div>
                 
                 <div class="flex gap-4 mt-6">
-                    <button type="button" id="addTradeBtn" data-action="addTrade" class="trader-btn flex-1">Ajouter le Trade</button>
+                    <button type="button" id="addTradeBtn" onclick="addTradeUI()" class="trader-btn flex-1">Ajouter le Trade</button>
                     <button type="button" onclick="closeModal('addTradeModal')" class="trader-btn-secondary flex-1">Annuler</button>
                 </div>
             </form>
@@ -2489,6 +2529,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         }
 
         function addAccountCost() {
+            console.log('[COST] addAccountCost - START');
+            
             const accountId = document.getElementById('costAccountId').value;
             const costType = document.getElementById('costType').value;
             const costAmount = parseFloat(document.getElementById('costAmount').value);
@@ -2499,56 +2541,99 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            console.log('[UI] Ajout coût:', { accountId, costType, costAmount, costDescription });
+            // ✅ APPEL DU MODULE
+            if (!window.accountCostsAPI || !window.accountCostsAPI.create) {
+                console.error('[COST] ❌ Module accountCostsAPI non chargé');
+                alert('❌ Erreur : module non chargé');
+                return;
+            }
             
-            // TODO: Ajouter à Supabase quand la table sera créée
-            alert(`Coût ajouté: ${costAmount}€ (${costType})
-Fonctionnalité à connecter à Supabase`);
+            const costData = {
+                account_id: parseInt(accountId),
+                cost_type: costType,
+                amount: costAmount,
+                description: costDescription,
+                date: new Date().toISOString().split('T')[0]
+            };
             
-            // Réinitialiser le formulaire
-            document.getElementById('costAmount').value = '';
-            document.getElementById('costDescription').value = '';
+            console.log('[COST] Données:', costData);
             
-            closeModal('addAccountCostModal');
+            window.accountCostsAPI.create(costData).then(result => {
+                if (result.error) {
+                    console.error('[COST] ❌ Erreur:', result.error);
+                    alert(`❌ Erreur : ${result.error.message}`);
+                    return;
+                }
+                
+                console.log('[COST] ✅ Coût ajouté:', result.data);
+                alert(`✅ Coût de ${costAmount}€ ajouté avec succès`);
+                
+                // Réinitialiser
+                document.getElementById('costAmount').value = '';
+                document.getElementById('costDescription').value = '';
+                
+                closeModal('addAccountCostModal');
+                
+                // Recharger
+                if (typeof refreshAllModules === 'function') {
+                    refreshAllModules();
+                }
+            });
         }
 
+        
         function addPayout() {
+            console.log('[PAYOUT] addPayout - START');
+            
             const accountId = document.getElementById('payoutAccountId').value;
             const payoutAmount = parseFloat(document.getElementById('payoutAmount').value);
-            const payoutDate = document.getElementById('payoutDate').value;
-            const payoutNotes = document.getElementById('payoutNotes').value.trim();
+            const payoutDescription = document.getElementById('payoutDescription').value.trim();
             
-            if (!accountId || !payoutAmount || !payoutDate) {
+            if (!accountId || !payoutAmount) {
                 alert('Veuillez remplir tous les champs obligatoires');
                 return;
             }
             
-            console.log('[UI] Ajout payout:', { accountId, payoutAmount, payoutDate, payoutNotes });
+            // ✅ APPEL DU MODULE
+            if (!window.payoutsAPI || !window.payoutsAPI.create) {
+                console.error('[PAYOUT] ❌ Module payoutsAPI non chargé');
+                alert('❌ Erreur : module non chargé');
+                return;
+            }
             
-            // TODO: Ajouter à Supabase quand la table sera créée
-            alert(`Payout ajouté: ${payoutAmount}€
-Date: ${payoutDate}
-Fonctionnalité à connecter à Supabase`);
+            const payoutData = {
+                account_id: parseInt(accountId),
+                amount: payoutAmount,
+                description: payoutDescription,
+                date: new Date().toISOString().split('T')[0]
+            };
             
-            // Réinitialiser le formulaire
-            document.getElementById('payoutAmount').value = '';
-            document.getElementById('payoutDate').value = '';
-            document.getElementById('payoutNotes').value = '';
+            console.log('[PAYOUT] Données:', payoutData);
             
-            closeModal('addPayoutModal');
+            window.payoutsAPI.create(payoutData).then(result => {
+                if (result.error) {
+                    console.error('[PAYOUT] ❌ Erreur:', result.error);
+                    alert(`❌ Erreur : ${result.error.message}`);
+                    return;
+                }
+                
+                console.log('[PAYOUT] ✅ Payout ajouté:', result.data);
+                alert(`✅ Payout de ${payoutAmount}€ ajouté avec succès`);
+                
+                // Réinitialiser
+                document.getElementById('payoutAmount').value = '';
+                document.getElementById('payoutDescription').value = '';
+                
+                closeModal('addPayoutModal');
+                
+                // Recharger
+                if (typeof refreshAllModules === 'function') {
+                    refreshAllModules();
+                }
+            });
         }
 
-        function cancelCSVImport() {
-            console.log('[UI] cancelCSVImport appelée');
-            closeModal('importCSVModal');
-        }
-
-        function confirmCSVImport() {
-            console.log('[UI] confirmCSVImport appelée');
-            alert('Fonctionnalité "Import CSV" à implémenter');
-            closeModal('importCSVModal');
-        }
-
+        
         function deleteJournalEntry(timestamp) {
             console.log('[UI] deleteJournalEntry appelée pour:', timestamp);
             
