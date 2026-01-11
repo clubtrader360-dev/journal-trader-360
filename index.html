@@ -2425,7 +2425,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log('[COMPTABILITE] accountCosts:', accountCosts.length, 'payouts:', payouts.length);
             
             // 2️⃣ Mettre à jour le tableau des comptes achetés
-            const accountCostsTableBody = document.getElementById('accountCostsTableBody');
+            const accountCostsTableBody = document.getElementById('accountCostsTable');
             if (accountCostsTableBody) {
                 if (accountCosts.length === 0) {
                     accountCostsTableBody.innerHTML = `
@@ -2464,7 +2464,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
             
             // 3️⃣ Mettre à jour le tableau des payouts
-            const payoutsTableBody = document.getElementById('payoutsTableBody');
+            const payoutsTableBody = document.getElementById('payoutsTable');
             if (payoutsTableBody) {
                 if (payouts.length === 0) {
                     payoutsTableBody.innerHTML = `
