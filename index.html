@@ -24,7 +24,30 @@
     -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+
+        // ============================================================================
+        // WRAPPER UI : AJOUTER UN COMPTE
+        // ============================================================================
+        async function addAccountUI() {
+            console.log('[UI] addAccountUI - START');
+            
+            const result = await window.addAccount();
+            
+            if (result && !result.error) {
+                console.log('[UI] addAccountUI - ✅ OK');
+                const modal = document.getElementById('addAccountModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                    const form = modal.querySelector('form');
+                    if (form) form.reset();
+                }
+            } else {
+                console.error('[UI] addAccountUI - ❌ ERREUR:', result?.error);
+            }
+        }
+        window.addAccountUI = addAccountUI;
+</script>
     <style>
         :root {
             --trader-blue: #000B25;
@@ -742,19 +765,7 @@ function showAddAccountModal() {
         // UI WIRING : addAccountUI()
         // Appel module backend avec paramètres explicites
         // ========================================
-        async function addAccountUI() {
-            console.log('[UI] addAccountUI() - START');
-
-            // ✅ 1) RÉCUPÉRER LES DONNÉES DU FORMULAIRE
-            const nameInput = document.getElementById('accountName');
-            const sizeInput = document.getElementById('accountSize');
-            const typeSelect = document.getElementById('accountType');
-
-            if (!nameInput || !sizeInput || !typeSelect) {
-                console.error('[UI] ❌ Erreur : champs DOM manquants');
-                alert('❌ Erreur : formulaire incomplet.');
-                return;
-            }
+        
 
             const accountData = {
                 name: nameInput.value.trim(),
@@ -1021,19 +1032,7 @@ console.log('[OK] Fonctions modales exposées globalement');
     // ================================================================
     // FONCTION UI : Ajouter un compte (wiring uniquement)
     // ================================================================
-    async function addAccountUI() {
-        console.log('[UI] addAccountUI() - START');
-
-        // ✅ 1) RÉCUPÉRER LES DONNÉES DU FORMULAIRE
-        const nameInput = document.getElementById('accountName');
-        const sizeInput = document.getElementById('accountSize');
-        const typeSelect = document.getElementById('accountType');
-
-        if (!nameInput || !sizeInput || !typeSelect) {
-            console.error('[UI] ❌ Erreur : champs DOM manquants');
-            alert('❌ Erreur : formulaire incomplet.');
-            return;
-        }
+    
 
         const accountData = {
             name: nameInput.value.trim(),
