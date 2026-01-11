@@ -51,7 +51,47 @@
             return { data: null, error: 'Missing required fields' };
         }
         
-        console.log('[JOURNAL] Données collectées:', { noteDate, noteText, emotionBefore, emotionAfter, sessionRating });
+        console.log('[JOURNAL] Données collectées:', { noteDate, noteText, emotionBefore, emotionAfter, sessionRating, hasImage: !!imageFile });
+        
+        // Upload de l'image si présente
+        let imageUrl = null;
+        if (imageFile) {
+            console.log('[JOURNAL] 📤 Upload de l\'image:', imageFile.name);
+            
+            try {
+                // Créer un nom de fichier unique
+                const fileExt = imageFile.name.split('.').pop();
+                const fileName = `${window.currentUser.uuid}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                
+                console.log('[JOURNAL] Nom du fichier:', fileName);
+                
+                // Upload vers Supabase Storage
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('journal-images') // Nom du bucket (à créer dans Supabase)
+                    .upload(fileName, imageFile, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+                
+                if (uploadError) {
+                    console.error('[JOURNAL] ❌ Erreur upload image:', uploadError);
+                    alert('⚠️ Erreur lors de l\'upload de l\'image. La note sera enregistrée sans image.');
+                } else {
+                    console.log('[JOURNAL] ✅ Image uploadée:', uploadData);
+                    
+                    // Récupérer l'URL publique
+                    const { data: urlData } = supabase.storage
+                        .from('journal-images')
+                        .getPublicUrl(fileName);
+                    
+                    imageUrl = urlData.publicUrl;
+                    console.log('[JOURNAL] 🔗 URL publique:', imageUrl);
+                }
+            } catch (uploadErr) {
+                console.error('[JOURNAL] ❌ Exception upload:', uploadErr);
+                alert('⚠️ Erreur lors de l\'upload de l\'image. La note sera enregistrée sans image.');
+            }
+        }
         
         // Construction du payload
         const noteData = {
@@ -61,7 +101,7 @@
             emotion_before: emotionBefore || null,
             emotion_after: emotionAfter || null,
             session_rating: sessionRating ? parseInt(sessionRating) : null,
-            image_url: null // TODO: Upload image si nécessaire
+            image_url: imageUrl
         };
         
         console.log('[JOURNAL] Payload final:', noteData);
@@ -389,22 +429,86 @@
             
             console.log('[JOURNAL] ✅ Entrée récupérée:', data);
             
-            // Afficher dans une modale ou alert pour l'instant
-            const stars = '⭐'.repeat(data.session_rating || 0);
-            const emotions = [];
-            if (data.emotion_before) emotions.push(`Avant: ${data.emotion_before}`);
-            if (data.emotion_after) emotions.push(`Après: ${data.emotion_after}`);
+            // Afficher dans la modale visuelle
+            const modal = document.getElementById('viewNoteModal');
+            const titleElement = document.getElementById('viewNoteTitle');
+            const contentElement = document.getElementById('viewNoteContent');
             
-            const message = `
+            if (!modal || !contentElement) {
+                console.error('[JOURNAL] ❌ Modale viewNoteModal introuvable');
+                // Fallback : afficher dans un alert
+                const stars = '⭐'.repeat(data.session_rating || 0);
+                const emotions = [];
+                if (data.emotion_before) emotions.push(`Avant: ${data.emotion_before}`);
+                if (data.emotion_after) emotions.push(`Après: ${data.emotion_after}`);
+                
+                const message = `
 📅 Date: ${data.entry_date}
 ${stars ? `⭐ Notation: ${stars}\n` : ''}
 ${emotions.length > 0 ? `😊 Émotions: ${emotions.join(' | ')}\n` : ''}
 
 📝 Contenu:
 ${data.content}
-            `.trim();
+                `.trim();
+                
+                alert(message);
+                return;
+            }
             
-            alert(message);
+            // Construire le HTML de la modale
+            const stars = '⭐'.repeat(data.session_rating || 0);
+            let emotionsHtml = '';
+            
+            if (data.emotion_before || data.emotion_after) {
+                emotionsHtml = `
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-blue-900 mb-2">😊 Émotions</h3>
+                        <div class="text-sm text-blue-800">
+                            ${data.emotion_before ? `<span><strong>Avant:</strong> ${data.emotion_before}</span>` : ''}
+                            ${data.emotion_before && data.emotion_after ? ' <span class="mx-2">→</span> ' : ''}
+                            ${data.emotion_after ? `<span><strong>Après:</strong> ${data.emotion_after}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            let imageHtml = '';
+            if (data.image_url) {
+                imageHtml = `
+                    <div class="mt-4">
+                        <h3 class="font-semibold text-gray-800 mb-2">📸 Image</h3>
+                        <img src="${data.image_url}" alt="Image de la note" class="max-w-full h-auto rounded-lg border shadow-sm cursor-pointer hover:opacity-90 transition" onclick="viewImageZoom('${data.image_url}')" title="Cliquer pour agrandir">
+                    </div>
+                `;
+            }
+            
+            contentElement.innerHTML = `
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">📅 ${data.entry_date}</h3>
+                            ${stars ? `<div class="text-2xl mt-1">${stars}</div>` : ''}
+                        </div>
+                    </div>
+                </div>
+                
+                ${emotionsHtml}
+                
+                <div class="bg-white p-4 rounded-lg border">
+                    <h3 class="font-semibold text-gray-800 mb-2">📝 Contenu</h3>
+                    <p class="text-gray-700 whitespace-pre-wrap">${data.content}</p>
+                </div>
+                
+                ${imageHtml}
+            `;
+            
+            // Mettre à jour le titre
+            if (titleElement) {
+                titleElement.textContent = `📝 Note du ${data.entry_date}`;
+            }
+            
+            // Ouvrir la modale
+            modal.style.display = 'block';
             
         } catch (err) {
             console.error('[JOURNAL] ❌ Exception viewJournalEntry:', err);

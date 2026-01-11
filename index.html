@@ -2103,6 +2103,22 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         </div>
     </div>
 
+    <!-- View Note Modal (Nouvelle modale pour visualiser les notes) -->
+    <div id="viewNoteModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="close" onclick="closeModal('viewNoteModal')">&times;</span>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800" id="viewNoteTitle">📝 Note du Journal</h2>
+            
+            <div id="viewNoteContent" class="space-y-4">
+                <!-- Le contenu sera injecté par JavaScript -->
+            </div>
+            
+            <div class="flex gap-4 mt-6">
+                <button type="button" onclick="closeModal('viewNoteModal')" class="trader-btn-secondary flex-1">Fermer</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Account Cost Modal -->
     <div id="addAccountCostModal" class="modal">
         <div class="modal-content">
