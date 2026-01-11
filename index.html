@@ -1184,22 +1184,6 @@ console.log('[OK] Fonctions modales exposées globalement');
                     }
                 };
 
-                // Fonction previousMonth
-                window.previousMonth = function() {
-                    console.log('[CALENDAR] Mois précédent');
-                    if (typeof updateCalendar === 'function') {
-                        // Logique du calendrier (à implémenter)
-                    }
-                };
-
-                // Fonction nextMonth
-                window.nextMonth = function() {
-                    console.log('[CALENDAR] Mois suivant');
-                    if (typeof updateCalendar === 'function') {
-                        // Logique du calendrier (à implémenter)
-                    }
-                };
-
 // ========================================
 // PATCH MINIMAL : EXPOSITIONS MANQUANTES
 // À insérer dans index.html après ligne 1089
@@ -3523,31 +3507,45 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
         // Account Management
         // LEGACY - DÉSACTIVÉ - Utiliser window.loadAccounts() à la place
-        /*
         function updateAccountsList() {
             const container = document.getElementById('accountsList');
             const tradeAccountSelect = document.getElementById('tradeAccount');
             
+            if (!container) {
+                console.warn('[ACCOUNTS] ⚠️ #accountsList absent du DOM');
+                return;
+            }
+            
+            if (accounts.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Aucun compte. Cliquez sur + pour créer.</p>';
+                return;
+            }
+            
             container.innerHTML = accounts.map(account => `
                 <div class="account-item">
                     <input type="checkbox" class="account-checkbox" ${account.active ? 'checked' : ''} 
-                           onchange="toggleAccount(${account.id})">
-                    <div class="account-info">
+                           onchange="toggleAccount(${account.id})" 
+                           title="Activer/Désactiver ce compte dans les métriques">
+                    <div class="account-info" style="flex: 1;">
                         <div class="account-name">${account.name}</div>
-                        <div class="account-size">${formatAccountSize(account.size)}</div>
+                        <div class="account-size text-xs">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
                     </div>
-                    <div class="account-indicator" style="background-color: ${account.color}"></div>
-                    <button onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer le compte et tous ses trades">
+                    <button onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
             `).join('');
+            
+            console.log('[ACCOUNTS] ✅ accountsList mis à jour:', accounts.length, 'comptes');
 
             if (tradeAccountSelect) {
                 tradeAccountSelect.innerHTML = '<option value="">Sélectionner un compte...</option>' +
                     accounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
             }
         }
+        
+        // Exposition globale
+        window.updateAccountsList = updateAccountsList;
 
         function formatAccountSize(size) {
             const num = parseInt(size);
@@ -3560,13 +3558,29 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const account = accounts.find(a => a.id === accountId);
             if (account) {
                 account.active = !account.active;
-                // Données auto-sauvegardées dans Supabase
+                console.log(`[TOGGLE] Compte ${account.name} (ID: ${accountId}) → active: ${account.active}`);
+                
+                // Sauvegarder la sélection dans localStorage
+                const activeAccountIds = accounts.filter(a => a.active).map(a => a.id);
+                localStorage.setItem('activeAccountIds', JSON.stringify(activeAccountIds));
+                console.log('[TOGGLE] Sélection sauvegardée:', activeAccountIds);
+                
+                // Mettre à jour TOUTES les métriques
                 updateDashboard();
-                updateBanner(); // Mise à jour des barres visuelles
+                updateBanner();
                 updateCharts();
-                updateCalendar(); // Mise à jour du calendrier (inclut updateWeeklyStats)
+                updateCalendar();
+                updateTradesTable(); // ✅ AJOUT : Mettre à jour le tableau des trades
+                
+                // Mettre à jour aussi Protection Analysis si elle existe
+                if (typeof window.updateProtectionAnalysis === 'function') {
+                    window.updateProtectionAnalysis();
+                }
             }
         }
+        
+        // Exposition globale pour la sidebar
+        window.toggleAccount = toggleAccount;
 
         function showAddAccountModal() {
             document.getElementById('addAccountModal').style.display = 'block';
@@ -4547,9 +4561,34 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     // ✅ Initialiser active: true pour TOUS les comptes
                     accounts = accountsResult.data.map(account => ({
                         ...account,
-                        active: account.active !== false // Par défaut true
+                        active: true // Par défaut tous actifs
                     }));
-                    console.log('[REFRESH] ✅ window.accounts mis à jour:', accounts.length, 'comptes (active initialisé)');
+                    
+                    // ✅ Restaurer la sélection depuis localStorage
+                    const savedActiveIds = localStorage.getItem('activeAccountIds');
+                    if (savedActiveIds) {
+                        try {
+                            const activeIds = JSON.parse(savedActiveIds);
+                            console.log('[REFRESH] 📂 Restauration de la sélection:', activeIds);
+                            
+                            // Désactiver tous les comptes qui ne sont PAS dans la sélection sauvegardée
+                            accounts.forEach(account => {
+                                account.active = activeIds.includes(account.id);
+                            });
+                            
+                            console.log('[REFRESH] ✅ Sélection restaurée:', accounts.filter(a => a.active).map(a => a.name));
+                        } catch (e) {
+                            console.warn('[REFRESH] ⚠️ Erreur lors de la restauration:', e);
+                        }
+                    }
+                    
+                    console.log('[REFRESH] ✅ window.accounts mis à jour:', accounts.length, 'comptes');
+                    
+                    // ✅ Mettre à jour la sidebar avec les checkboxes restaurées
+                    if (typeof window.updateAccountsList === 'function') {
+                        window.updateAccountsList();
+                        console.log('[REFRESH] ✅ Sidebar mise à jour avec sélection restaurée');
+                    }
                 }
             }
             
