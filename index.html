@@ -2645,11 +2645,24 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 try {
                     // ÉTAPE 1: Créer le compte d'abord (nom libre)
                     console.log('[COST] Étape 1/2: Création du compte...');
+                    
+                    // Essayer d'extraire la taille du compte depuis le nom
+                    // Ex: "FTMO 100K" → 100000, "Tradeday 150K" → 150000
+                    let accountBalance = 100000; // Valeur par défaut : 100K
+                    
+                    const balanceMatch = costName.match(/(\d+)\s*K/i);
+                    if (balanceMatch) {
+                        accountBalance = parseInt(balanceMatch[1]) * 1000;
+                        console.log('[COST] Balance extraite du nom:', accountBalance);
+                    } else {
+                        console.log('[COST] Balance par défaut utilisée:', accountBalance);
+                    }
+                    
                     const accountData = {
                         name: costName,  // Nom libre : "FTMO 100K", "Tradeday 150K", etc.
                         type: 'Challenge',  // Type par défaut
-                        initial_balance: 0,  // Pas de balance pour un challenge
-                        current_balance: 0
+                        initial_balance: accountBalance,  // Balance extraite ou par défaut
+                        current_balance: accountBalance   // Même valeur au départ
                     };
                     
                     const accountResult = await window.tradesAPI.addAccount(accountData);
@@ -2754,11 +2767,22 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             return;
                         }
                         
+                        // Essayer d'extraire la taille du compte depuis le nom
+                        let accountBalance = 100000; // Valeur par défaut : 100K
+                        
+                        const balanceMatch = payoutAccountName.match(/(\d+)\s*K/i);
+                        if (balanceMatch) {
+                            accountBalance = parseInt(balanceMatch[1]) * 1000;
+                            console.log('[PAYOUT] Balance extraite du nom:', accountBalance);
+                        } else {
+                            console.log('[PAYOUT] Balance par défaut utilisée:', accountBalance);
+                        }
+                        
                         const accountData = {
                             name: payoutAccountName,
                             type: 'Funded',  // Type par défaut pour un payout
-                            initial_balance: 0,
-                            current_balance: 0
+                            initial_balance: accountBalance,
+                            current_balance: accountBalance
                         };
                         
                         const accountResult = await window.tradesAPI.addAccount(accountData);
