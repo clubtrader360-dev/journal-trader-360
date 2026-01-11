@@ -201,10 +201,39 @@ async function loadAccounts() {
       return { data: null, error: 'User not logged in' };
     }
 
+    // ✅ Combiner date + heure pour créer des timestamps complets
+    let entry_timestamp = null;
+    let exit_timestamp = null;
+    
+    if (tradeData.trade_date && tradeData.entry_time) {
+      entry_timestamp = `${tradeData.trade_date}T${tradeData.entry_time}:00`;
+      console.log('[TRADES] 🕐 Entry timestamp créé:', entry_timestamp);
+    }
+    
+    if (tradeData.trade_date && tradeData.exit_time) {
+      exit_timestamp = `${tradeData.trade_date}T${tradeData.exit_time}:00`;
+      console.log('[TRADES] 🕐 Exit timestamp créé:', exit_timestamp);
+    }
+
     const tradeWithUser = {
       user_id: window.currentUser.uuid,
-      ...tradeData
+      account_id: tradeData.account_id,
+      symbol: tradeData.symbol,
+      trade_type: tradeData.trade_type,
+      quantity: tradeData.quantity,
+      entry_price: tradeData.entry_price,
+      exit_price: tradeData.exit_price,
+      entry_time: entry_timestamp,
+      exit_time: exit_timestamp,
+      stop_loss: tradeData.stop_loss,
+      take_profit: tradeData.take_profit,
+      setup: tradeData.setup,
+      notes: tradeData.notes,
+      manual_pnl: tradeData.manual_pnl,
+      protections: tradeData.protections
     };
+    
+    console.log('[TRADES] 📦 Payload final avec timestamps:', tradeWithUser);
 
     try {
       const { data, error } = await supabase
