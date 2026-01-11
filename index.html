@@ -3145,7 +3145,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }, 100);
         }
 
-        function updateTradesTable() {
+        window.updateTradesTable = function() {
             console.log("  → updateTradesTable() appelée");
             const tbody = document.getElementById('tradesTableBody');
             const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
@@ -3723,8 +3723,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // Mise à jour de tous les modules
             console.log('[DATA] Appel updateTradesTable()...');
-            if (typeof updateTradesTable === 'function') {
-                updateTradesTable();
+            if (typeof window.updateTradesTable === 'function') {
+                window.updateTradesTable();
             } else {
                 console.error('[DATA] ❌ updateTradesTable non définie');
             }
