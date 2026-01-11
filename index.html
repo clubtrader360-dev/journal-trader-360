@@ -3206,18 +3206,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 `;
             }).join('');
         }
-        window.updateTradesTable = updateTradesTable;  // ✅ Exposer IMMÉDIATEMENT
-        
-        // ✅ Exposer toutes les fonctions de mise à jour globalement
-        window.updateTradesTable = updateTradesTable;
-        window.updateDashboard = updateDashboard;
-        window.updateBanner = updateBanner;
-        window.updateCharts = updateCharts;
-        window.updateCalendar = updateCalendar;
-        window.updateRecentTrades = updateRecentTrades;
-        window.updateProtectionAnalysis = updateProtectionAnalysis;
-        
-        console.log('[INIT] ✅ Fonctions de mise à jour exposées globalement');
+        console.log('[INIT] ✅ Fonctions de mise à jour définies comme window.*');
 
         function editTrade(tradeId) {
             const trade = trades.find(t => t.id === tradeId);
@@ -3643,15 +3632,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         // deleteJournalEntry déplacé vers supabase-journal.js
 
         // ✅ EXPOSER TOUTES LES FONCTIONS AVANT refreshAllModules
-        window.updateTradesTable = updateTradesTable;
-        window.updateDashboard = updateDashboard;
-        window.updateBanner = updateBanner;
-        window.updateCharts = updateCharts;
-        window.updateCalendar = updateCalendar;
-        window.updateRecentTrades = updateRecentTrades;
-        window.updateProtectionAnalysis = updateProtectionAnalysis;
-        console.log('[INIT] ✅ Toutes les fonctions update exposées');
-
         // Dashboard functions
 
         async function refreshAllModules() {
@@ -3793,7 +3773,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         }
 
         // Fonction pour mettre à jour la bannière TradersZella
-        function updateBanner() {
+        window.updateBanner = function() {
             if (trades.length === 0) {
                 // Réinitialiser les valeurs si pas de trades
                 document.getElementById('netPnlValue').textContent = '$0.00';
@@ -3855,7 +3835,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log("[OK] Banner mis à jour");
         }
 
-        function updateDashboard() {
+        window.updateDashboard = function() {
             console.log("  → updateDashboard() appelée");
             // Si aucun compte actif, utiliser tous les trades
             const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
@@ -3932,7 +3912,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         }
 
         // Calendar functions
-        function updateCalendar() {
+        window.updateCalendar = function() {
             console.log("  → updateCalendar() appelée");
             const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
                 "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
@@ -4234,7 +4214,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         
         // Nouvelle fonction: Mise à jour de l'affichage selon les préférences
 
-        function updateRecentTrades() {
+        window.updateRecentTrades = function() {
             console.log("  → updateRecentTrades() appelée");
             
             const container = document.getElementById('recentTradesContainer');
@@ -4316,7 +4296,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log(' Recent Trades mis à jour:', recentTrades.length, 'trades affichés');
         }
 
-        function updateProtectionAnalysis() {
+        window.updateProtectionAnalysis = function() {
             console.log("  → updateProtectionAnalysis() appelée");
             
             const container = document.getElementById('protectionAnalysisContainer');
@@ -4733,7 +4713,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             });
         }
 
-        function updateCharts() {
+        window.updateCharts = function() {
             console.log("  → updateCharts() appelée");
             // Si aucun compte actif, utiliser tous les trades
             const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
