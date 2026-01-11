@@ -2339,7 +2339,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return trades;
             }
             // Sinon, filtrer par comptes actifs
-            const activeAccountIds = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccountIds = accounts.map(a => a.id);
             return trades.filter(t => activeAccountIds.includes(t.accountId));
         }
 
@@ -2350,7 +2350,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         window.updateTradesTable = function() {
             console.log("  → updateTradesTable() appelée");
             const tbody = document.getElementById('tradesTableBody');
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+            
+            // ✅ Pas de filtre 'active' car la colonne n'existe pas dans Supabase
+            const activeAccounts = accounts.map(a => a.id);
             let filteredTrades = trades.filter(trade => activeAccounts.includes(trade.accountId));
             
             // Trier par date et heure (du plus récent au plus ancien)
@@ -3645,7 +3647,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             // Recharger les données depuis Supabase
             console.log('[REFRESH] 📦 Chargement des comptes depuis Supabase...');
             if (typeof window.loadAccounts === 'function') {
-                await window.loadAccounts();
+                const accountsResult = await window.loadAccounts();
+                if (accountsResult && accountsResult.data) {
+                    accounts = accountsResult.data;
+                    console.log('[REFRESH] ✅ window.accounts mis à jour:', accounts.length, 'comptes');
+                }
             }
             
             console.log('[REFRESH] 📊 Chargement des trades depuis Supabase...');
@@ -3674,13 +3680,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             entryPrice: trade.entry_price,
                             exitPrice: trade.exit_price,
                             quantity: trade.quantity,
-                            pnl: trade.pnl || pnl,  // Utiliser manual_pnl si disponible, sinon calculer
+                            pnl: trade.manual_pnl || pnl,  // Utiliser manual_pnl si disponible, sinon calculer
                             stopLoss: trade.stop_loss,
                             takeProfit: trade.take_profit,
                             setup: trade.setup || 'N/A',
                             notes: trade.notes || ''
                         };
                     });
+                    
+                    // ✅ Mettre à jour AUSSI la variable locale `trades`
+                    trades = window.trades;
+                    
                     console.log('[REFRESH] ✅ window.trades transformé et mis à jour:', window.trades.length, 'trades');
                     console.log('[REFRESH] 📋 Exemple de trade transformé:', window.trades[0]);
                 }
@@ -3694,7 +3704,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log('🔄 REFRESH - Nombre total de trades:', trades.length);
             console.log('🔄 REFRESH - Array trades:', trades);
             
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccounts = accounts.map(a => a.id);
             console.log('🔄 REFRESH - Comptes actifs:', activeAccounts);
             console.log('🔄 REFRESH - Tous les comptes:', accounts);
             
@@ -3842,7 +3852,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         window.updateDashboard = function() {
             console.log("  → updateDashboard() appelée");
             // Si aucun compte actif, utiliser tous les trades
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccounts = accounts.map(a => a.id);
             const filteredTrades = activeAccounts.length === 0 
                 ? trades 
                 : trades.filter(trade => activeAccounts.includes(trade.accountId));
@@ -3935,7 +3945,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // Filtrer par comptes actifs
             const filteredTrades = getFilteredTrades();
-            const activeAccountIds = accounts.length > 0 ? accounts.filter(a => a.active).map(a => a.id) : [];
+            const activeAccountIds = accounts.length > 0 ? accounts.map(a => a.id) : [];
             
             for (let i = 0; i < 42; i++) {
                 const date = new Date(startDate.getTime());
@@ -4043,7 +4053,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         // NOUVELLE FONCTION: Calcul des statistiques mensuelles
         function updateMonthlyStats() {
             // Filtrer par comptes actifs
-            const activeAccountIds = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccountIds = accounts.map(a => a.id);
             const filteredTrades = trades.filter(trade => activeAccountIds.includes(trade.accountId));
             
             // Filtrer les trades du mois courant
@@ -4094,7 +4104,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const lastDay = new Date(currentYear, currentMonth + 1, 0);
             
             // Filtrer par comptes actifs
-            const activeAccountIds = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccountIds = accounts.map(a => a.id);
             const filteredTrades = trades.filter(trade => activeAccountIds.includes(trade.accountId));
             
             // Grouper les trades par semaine du mois
@@ -4225,7 +4235,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (!container) return;
             
             // Récupérer les comptes actifs
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccounts = accounts.map(a => a.id);
             let filteredTrades = activeAccounts.length > 0 
                 ? trades.filter(trade => activeAccounts.includes(trade.accountId))
                 : trades;
@@ -4307,7 +4317,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (!container) return;
             
             // Récupérer les comptes actifs
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccounts = accounts.map(a => a.id);
             let filteredTrades = activeAccounts.length > 0 
                 ? trades.filter(trade => activeAccounts.includes(trade.accountId))
                 : trades;
@@ -4720,7 +4730,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         window.updateCharts = function() {
             console.log("  → updateCharts() appelée");
             // Si aucun compte actif, utiliser tous les trades
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+            const activeAccounts = accounts.map(a => a.id);
             const filteredTrades = activeAccounts.length === 0 
                 ? trades 
                 : trades.filter(trade => activeAccounts.includes(trade.accountId));
