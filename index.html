@@ -2613,7 +2613,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // ✅ DÉFINIR ET ATTACHER LES FONCTIONS D'AJOUT POUR COMPTABILITÉ
             // Fonction addAccountCost
-            window.addAccountCost = function() {
+            window.addAccountCost = async function() {
                 console.log('[COST] addAccountCost - START');
                 
                 // Lire les champs du formulaire (IDs corrects)
@@ -2629,34 +2629,62 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     return;
                 }
                 
-                // Vérifier si le module est chargé
-                if (!window.accountCostsAPI || !window.accountCostsAPI.create) {
-                    console.error('[COST] ❌ Module accountCostsAPI non chargé');
-                    alert('❌ Erreur : module non chargé. Veuillez rafraîchir la page.');
+                // Vérifier si les modules sont chargés
+                if (!window.tradesAPI || !window.tradesAPI.addAccount) {
+                    console.error('[COST] ❌ Module tradesAPI non chargé');
+                    alert('❌ Erreur : module tradesAPI non chargé. Veuillez rafraîchir la page.');
                     return;
                 }
                 
-                // Préparer les données pour Supabase
-                // Note: account_id sera NULL car on crée un nouveau compte
-                const costData = {
-                    account_id: null,  // Pas de compte existant
-                    cost_type: 'challenge',  // Type par défaut
-                    amount: costAmount,
-                    description: `${costName} - ${costNotes}`,
-                    date: costDate
-                };
+                if (!window.accountCostsAPI || !window.accountCostsAPI.create) {
+                    console.error('[COST] ❌ Module accountCostsAPI non chargé');
+                    alert('❌ Erreur : module accountCostsAPI non chargé. Veuillez rafraîchir la page.');
+                    return;
+                }
                 
-                console.log('[COST] Données pour Supabase:', costData);
-                
-                window.accountCostsAPI.create(costData).then(result => {
-                    if (result.error) {
-                        console.error('[COST] ❌ Erreur:', result.error);
-                        alert(`❌ Erreur : ${result.error.message || result.error}`);
+                try {
+                    // ÉTAPE 1: Créer le compte d'abord (nom libre)
+                    console.log('[COST] Étape 1/2: Création du compte...');
+                    const accountData = {
+                        name: costName,  // Nom libre : "FTMO 100K", "Tradeday 150K", etc.
+                        type: 'Challenge',  // Type par défaut
+                        initial_balance: 0,  // Pas de balance pour un challenge
+                        current_balance: 0
+                    };
+                    
+                    const accountResult = await window.tradesAPI.addAccount(accountData);
+                    
+                    if (accountResult.error || !accountResult.data) {
+                        console.error('[COST] ❌ Erreur création compte:', accountResult.error);
+                        alert(`❌ Erreur création du compte : ${accountResult.error?.message || accountResult.error}`);
                         return;
                     }
                     
-                    console.log('[COST] ✅ Coût ajouté:', result.data);
-                    alert(`✅ Coût de ${costAmount}€ ajouté avec succès`);
+                    const newAccountId = accountResult.data.id;
+                    console.log('[COST] ✅ Compte créé avec ID:', newAccountId);
+                    
+                    // ÉTAPE 2: Enregistrer le coût associé au compte
+                    console.log('[COST] Étape 2/2: Enregistrement du coût...');
+                    const costData = {
+                        account_id: newAccountId,  // ID du compte créé
+                        cost_type: 'challenge',
+                        cost: costAmount,  // Utiliser 'cost' au lieu de 'amount'
+                        notes: costNotes || `Achat compte ${costName}`,
+                        date: costDate
+                    };
+                    
+                    console.log('[COST] Données pour Supabase:', costData);
+                    
+                    const costResult = await window.accountCostsAPI.create(costData);
+                    
+                    if (costResult.error) {
+                        console.error('[COST] ❌ Erreur enregistrement coût:', costResult.error);
+                        alert(`❌ Compte créé mais erreur enregistrement du coût : ${costResult.error.message || costResult.error}`);
+                        return;
+                    }
+                    
+                    console.log('[COST] ✅ Coût enregistré:', costResult.data);
+                    alert(`✅ Compte "${costName}" créé avec un coût de ${costAmount}€`);
                     
                     // Fermer la modale
                     const modal = document.getElementById('addAccountCostModal');
@@ -2668,63 +2696,121 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     // Recharger les données
                     if (typeof window.refreshAllModules === 'function') {
-                        window.refreshAllModules();
+                        await window.refreshAllModules();
                     }
-                });
+                    
+                } catch (error) {
+                    console.error('[COST] ❌ Erreur inattendue:', error);
+                    alert(`❌ Erreur inattendue : ${error.message}`);
+                }
             };
             
             // Fonction addPayout
-            window.addPayout = function() {
+            window.addPayout = async function() {
                 console.log('[PAYOUT] addPayout - START');
                 
-                const accountId = document.getElementById('payoutAccountId').value;
-                const payoutAmount = parseFloat(document.getElementById('payoutAmount').value);
-                const payoutDescription = document.getElementById('payoutDescription').value.trim();
+                // Lire les champs du formulaire (IDs corrects)
+                const payoutDate = document.getElementById('payoutDate')?.value;
+                const payoutAccountName = document.getElementById('payoutAccount')?.value?.trim();
+                const payoutAmount = parseFloat(document.getElementById('payoutAmount')?.value);
+                const payoutNotes = document.getElementById('payoutNotes')?.value?.trim() || '';
                 
-                if (!accountId || !payoutAmount) {
-                    alert('Veuillez remplir tous les champs obligatoires');
+                console.log('[PAYOUT] Données extraites:', { payoutDate, payoutAccountName, payoutAmount, payoutNotes });
+                
+                if (!payoutDate || !payoutAccountName || !payoutAmount) {
+                    alert('Veuillez remplir tous les champs obligatoires (Date, Compte, Montant)');
                     return;
                 }
                 
-                // Vérifier si le module est chargé
+                // Vérifier si les modules sont chargés
                 if (!window.payoutsAPI || !window.payoutsAPI.create) {
                     console.error('[PAYOUT] ❌ Module payoutsAPI non chargé');
-                    alert('❌ Erreur : module non chargé. Veuillez rafraîchir la page.');
+                    alert('❌ Erreur : module payoutsAPI non chargé. Veuillez rafraîchir la page.');
                     return;
                 }
                 
-                const payoutData = {
-                    account_id: parseInt(accountId),
-                    amount: payoutAmount,
-                    description: payoutDescription,
-                    date: new Date().toISOString().split('T')[0]
-                };
+                try {
+                    // Chercher le compte par nom dans la liste actuelle
+                    let accountId = null;
+                    
+                    if (window.accounts && window.accounts.length > 0) {
+                        const matchingAccount = window.accounts.find(acc => 
+                            acc.name.toLowerCase() === payoutAccountName.toLowerCase()
+                        );
+                        
+                        if (matchingAccount) {
+                            accountId = matchingAccount.id;
+                            console.log('[PAYOUT] ✅ Compte trouvé:', matchingAccount.name, 'ID:', accountId);
+                        }
+                    }
+                    
+                    // Si le compte n'existe pas, créer un nouveau compte
+                    if (!accountId) {
+                        console.log('[PAYOUT] ⚠️ Compte non trouvé, création d\'un nouveau compte...');
+                        
+                        if (!window.tradesAPI || !window.tradesAPI.addAccount) {
+                            console.error('[PAYOUT] ❌ Module tradesAPI non chargé');
+                            alert('❌ Erreur : impossible de créer le compte. Veuillez rafraîchir la page.');
+                            return;
+                        }
+                        
+                        const accountData = {
+                            name: payoutAccountName,
+                            type: 'Funded',  // Type par défaut pour un payout
+                            initial_balance: 0,
+                            current_balance: 0
+                        };
+                        
+                        const accountResult = await window.tradesAPI.addAccount(accountData);
+                        
+                        if (accountResult.error || !accountResult.data) {
+                            console.error('[PAYOUT] ❌ Erreur création compte:', accountResult.error);
+                            alert(`❌ Erreur création du compte : ${accountResult.error?.message || accountResult.error}`);
+                            return;
+                        }
+                        
+                        accountId = accountResult.data.id;
+                        console.log('[PAYOUT] ✅ Nouveau compte créé avec ID:', accountId);
+                    }
+                    
+                    // Enregistrer le payout
+                    const payoutData = {
+                        account_id: accountId,
+                        amount: payoutAmount,
+                        notes: payoutNotes || `Payout ${payoutAccountName}`,
+                        date: payoutDate
+                    };
+                    
+                    console.log('[PAYOUT] Données pour Supabase:', payoutData);
                 
-                console.log('[PAYOUT] Données:', payoutData);
-                
-                window.payoutsAPI.create(payoutData).then(result => {
-                    if (result.error) {
-                        console.error('[PAYOUT] ❌ Erreur:', result.error);
-                        alert(`❌ Erreur : ${result.error.message || result.error}`);
+                    const payoutResult = await window.payoutsAPI.create(payoutData);
+                    
+                    if (payoutResult.error) {
+                        console.error('[PAYOUT] ❌ Erreur enregistrement payout:', payoutResult.error);
+                        alert(`❌ Erreur : ${payoutResult.error.message || payoutResult.error}`);
                         return;
                     }
                     
-                    console.log('[PAYOUT] ✅ Payout ajouté:', result.data);
-                    alert(`✅ Payout de ${payoutAmount}€ ajouté avec succès`);
+                    console.log('[PAYOUT] ✅ Payout enregistré:', payoutResult.data);
+                    alert(`✅ Payout de ${payoutAmount}€ ajouté avec succès pour "${payoutAccountName}"`);
                     
                     // Fermer la modale
                     const modal = document.getElementById('addPayoutModal');
                     if (modal) modal.style.display = 'none';
                     
                     // Réinitialiser le formulaire
-                    document.getElementById('payoutAmount').value = '';
-                    document.getElementById('payoutDescription').value = '';
+                    const form = document.getElementById('payoutForm');
+                    if (form) form.reset();
                     
                     // Recharger les données
                     if (typeof window.refreshAllModules === 'function') {
-                        window.refreshAllModules();
+                        await window.refreshAllModules();
                     }
-                });
+                    
+                } catch (error) {
+                    console.error('[PAYOUT] ❌ Erreur inattendue:', error);
+                    alert(`❌ Erreur inattendue : ${error.message}`);
+                }
             };
             
             // Attacher aux boutons de soumission
