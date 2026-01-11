@@ -2040,7 +2040,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 </div>
                 
                 <div class="flex gap-4 mt-6">
-                    <button type="button" id="addTradeBtn" onclick="addTradeUI()" class="trader-btn flex-1">Ajouter le Trade</button>
+                    <button type="button" id="addTradeBtn" class="trader-btn flex-1">Ajouter le Trade</button>
                     <button type="button" onclick="closeModal('addTradeModal')" class="trader-btn-secondary flex-1">Annuler</button>
                 </div>
             </form>
@@ -2359,6 +2359,23 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             updateCalendar();
             updateRecentTrades();
             updateProtectionAnalysis();
+            
+            // ✅ NOUVEAU : Attacher l'événement au bouton "Ajouter le Trade"
+            const addTradeBtn = document.getElementById('addTradeBtn');
+            if (addTradeBtn) {
+                addTradeBtn.addEventListener('click', function() {
+                    console.log('[UI] Bouton Ajouter le Trade cliqué');
+                    if (typeof window.addTradeUI === 'function') {
+                        window.addTradeUI();
+                    } else {
+                        console.error('[UI] ❌ window.addTradeUI non définie');
+                        alert('⚠️ Erreur : Fonction addTradeUI non chargée. Veuillez rafraîchir la page.');
+                    }
+                });
+                console.log('[UI] ✅ Événement attaché au bouton addTradeBtn');
+            } else {
+                console.error('[UI] ❌ Bouton addTradeBtn introuvable');
+            }
             
             console.log('[OK] Application chargée - Trades:', trades.length);
         });
