@@ -732,6 +732,74 @@
 // FONCTIONS MODALES GLOBALES
 // ========================================
 
+// ========================================
+// DÉCLARATIONS GLOBALES DES FONCTIONS UPDATE
+// (Doivent être définies AVANT toute utilisation)
+// ========================================
+window.updateTradesTable = function() {
+    console.log("  → updateTradesTable() appelée");
+    const tbody = document.getElementById('tradesTableBody');
+    const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
+    let filteredTrades = trades.filter(trade => activeAccounts.includes(trade.accountId));
+    
+    // Trier par date et heure (du plus récent au plus ancien)
+    filteredTrades = filteredTrades.sort((a, b) => {
+        const dateA = new Date(a.date + ' ' + (a.entryTime || '00:00:00'));
+        const dateB = new Date(b.date + ' ' + (b.entryTime || '00:00:00'));
+        return dateB - dateA;
+    });
+    
+    if (filteredTrades.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="px-6 py-4 text-center text-gray-500">
+                    Aucun trade enregistré pour les comptes sélectionnés.
+                </td>
+            </tr>`;
+        return;
+    }
+    
+    tbody.innerHTML = filteredTrades.map(trade => {
+        const account = accounts.find(a => a.id === trade.accountId);
+        const accountName = account ? account.name : 'Compte inconnu';
+        const accountColor = account ? (account.color || '#4A5568') : '#4A5568';
+        
+        const pnlClass = trade.pnl >= 0 ? 'text-green-600' : 'text-red-600';
+        const typeColor = trade.type === 'Long' ? 'text-green-600' : 'text-red-600';
+        
+        return `
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 text-sm text-gray-900">${trade.date}</td>
+                <td class="px-6 py-4">
+                    <span class="px-2 py-1 rounded text-xs font-medium text-white" 
+                          style="background-color: ${accountColor}">
+                        ${accountName}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">${trade.symbol}</td>
+                <td class="px-6 py-4">
+                    <span class="${typeColor} text-sm font-medium">${trade.type}</span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-900">${trade.entryPrice}</td>
+                <td class="px-6 py-4 text-sm text-gray-900">${trade.exitPrice}</td>
+                <td class="px-6 py-4 text-sm text-gray-900">${trade.quantity}</td>
+                <td class="px-6 py-4 text-sm font-medium ${pnlClass}">
+                    ${trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)} $
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500">${trade.setup || '-'}</td>
+                <td class="px-6 py-4 text-sm">
+                    <button onclick="viewTrade(${trade.id})" 
+                            class="text-indigo-600 hover:text-indigo-900">
+                        Voir
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+console.log('[INIT] ✅ window.updateTradesTable définie au début du script');
+
 // Afficher la modale d'ajout de compte
 function showAddAccountModal() {
     const modal = document.getElementById('addAccountModal');
@@ -3144,69 +3212,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.log("[OK] Trade ajouté et tous les modules rafraîchis");
             }, 100);
         }
-
-        window.updateTradesTable = function() {
-            console.log("  → updateTradesTable() appelée");
-            const tbody = document.getElementById('tradesTableBody');
-            const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
-            let filteredTrades = trades.filter(trade => activeAccounts.includes(trade.accountId));
-            
-            // Trier par date et heure (du plus récent au plus ancien)
-            filteredTrades = filteredTrades.sort((a, b) => {
-                const dateA = new Date(a.date + ' ' + (a.entryTime || '00:00:00'));
-                const dateB = new Date(b.date + ' ' + (b.entryTime || '00:00:00'));
-                return dateB - dateA; // Ordre décroissant (plus récent en premier)
-            });
-            
-            if (filteredTrades.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="10" class="px-6 py-4 text-center text-gray-500">
-                            Aucun trade enregistré pour les comptes sélectionnés.
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = filteredTrades.map((trade, index) => {
-                const pnlClass = trade.pnl >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
-                const account = accounts.find(a => a.id === trade.accountId);
-                return `
-                    <tr class="trade-row border-b hover:bg-gray-50">
-                        <td class="px-6 py-4 text-sm">${trade.date}</td>
-                        <td class="px-6 py-4 text-sm">
-                            <span class="px-2 py-1 rounded text-xs" style="background-color: ${account?.color}20; color: ${account?.color}">
-                                ${trade.accountName}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm font-medium">${trade.symbol}</td>
-                        <td class="px-6 py-4 text-sm">
-                            <span class="px-2 py-1 rounded text-xs ${trade.type === 'Long' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                ${trade.type}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-sm">$${trade.entryPrice}</td>
-                        <td class="px-6 py-4 text-sm">$${trade.exitPrice}</td>
-                        <td class="px-6 py-4 text-sm">${trade.quantity}</td>
-                        <td class="px-6 py-4 text-sm ${pnlClass}">$${trade.pnl.toFixed(2)}</td>
-                        <td class="px-6 py-4 text-sm">${trade.setup}</td>
-                        <td class="px-6 py-4 text-sm">
-                            <button onclick="viewTrade(${trade.id})" class="action-btn" style="color: #10b981; margin-right: 8px;" title="Voir">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button onclick="editTrade(${trade.id})" class="action-btn btn-modify" title="Modifier" style="margin-right: 8px;">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="deleteTrade(${trade.id})" class="action-btn btn-delete" title="Supprimer">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-        console.log('[INIT] ✅ Fonctions de mise à jour définies comme window.*');
 
         function editTrade(tradeId) {
             const trade = trades.find(t => t.id === tradeId);
