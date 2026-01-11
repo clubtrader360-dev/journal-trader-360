@@ -2360,25 +2360,123 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             updateRecentTrades();
             updateProtectionAnalysis();
             
+            // ✅ DÉFINIR addTradeUI ICI pour garantir qu'elle existe
+            window.addTradeUI = async function() {
+                console.log('[UI] addTradeUI() - START');
+                console.log('[UI] window.addTrade exists?', typeof window.addTrade);
+                
+                // Lecture IDs DOM réels (extraits de l'audit)
+                const account_id = document.getElementById('tradeAccount')?.value;
+                const trade_date = document.getElementById('tradeDate')?.value;
+                const entry_time = document.getElementById('entryTime')?.value;
+                const exit_time = document.getElementById('exitTime')?.value;
+                const symbol = document.getElementById('symbol')?.value;
+                const trade_type = document.getElementById('tradeType')?.value;
+                const entry_price = parseFloat(document.getElementById('entryPrice')?.value);
+                const exit_price = parseFloat(document.getElementById('exitPrice')?.value);
+                const quantity = parseInt(document.getElementById('quantity')?.value);
+                const stop_loss = document.getElementById('stopLoss')?.value;
+                const take_profit = document.getElementById('takeProfit')?.value;
+                const setup = document.getElementById('setup')?.value;
+                const notes = document.getElementById('tradeNotes')?.value;
+                const manual_pnl = document.getElementById('manualPnL')?.value;
+                
+                // Protections (checkboxes)
+                const protections = [];
+                ['protectionVWAP', 'protectionMM20', 'protectionPivot', 'protectionClotureVeille', 'protectionLiquidite'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el?.checked) protections.push(el.value);
+                });
+                
+                console.log('[UI] Données extraites:', { 
+                    account_id, trade_date, entry_time, exit_time, symbol, trade_type, 
+                    entry_price, exit_price, quantity, stop_loss, take_profit, setup, notes, manual_pnl 
+                });
+                
+                // Validation détaillée
+                const missingFields = [];
+                if (!account_id) missingFields.push('account_id');
+                if (!trade_date) missingFields.push('trade_date');
+                if (!entry_time) missingFields.push('entry_time');
+                if (!exit_time) missingFields.push('exit_time');
+                if (!symbol) missingFields.push('symbol');
+                if (!trade_type) missingFields.push('trade_type');
+                if (!entry_price || isNaN(entry_price)) missingFields.push('entry_price');
+                if (!exit_price || isNaN(exit_price)) missingFields.push('exit_price');
+                if (!quantity || isNaN(quantity)) missingFields.push('quantity');
+                
+                if (missingFields.length > 0) {
+                    console.error('[UI] ❌ Champs manquants:', missingFields);
+                    alert(`⚠️ Veuillez remplir tous les champs obligatoires:\n${missingFields.join(', ')}`);
+                    return;
+                }
+                
+                // Construction payload
+                const tradeData = {
+                    account_id: parseInt(account_id),
+                    symbol,
+                    trade_type,
+                    quantity,
+                    entry_price,
+                    exit_price,
+                    entry_time,
+                    exit_time,
+                    trade_date,
+                    stop_loss: stop_loss ? parseFloat(stop_loss) : null,
+                    take_profit: take_profit ? parseFloat(take_profit) : null,
+                    setup: setup || null,
+                    notes: notes || null,
+                    manual_pnl: manual_pnl ? parseFloat(manual_pnl) : null,
+                    protections: protections.length > 0 ? protections.join(',') : null
+                };
+                
+                console.log('[UI] Payload final:', tradeData);
+                
+                // Appel module
+                if (typeof window.addTrade !== 'function') {
+                    console.error('[UI] ❌ window.addTrade non disponible');
+                    alert('⚠️ Erreur : module trades non chargé');
+                    return;
+                }
+                
+                console.log('[UI] Appel window.addTrade() avec:', tradeData);
+                
+                try {
+                    const result = await window.addTrade(tradeData);
+                    
+                    console.log('[UI] Résultat de addTrade():', result);
+                    
+                    if (result.error) {
+                        console.error('[UI] ❌ Erreur:', result.error);
+                        alert(`⚠️ ${result.error.message || 'Échec'}`);
+                        return;
+                    }
+                    
+                    console.log('[UI] ✅ Trade ajouté:', result.data);
+                    alert('✅ Trade ajouté avec succès');
+                    
+                    closeModal('addTradeModal');
+                    document.getElementById('tradeForm')?.reset();
+                    
+                    if (typeof window.refreshAllModules === 'function') {
+                        window.refreshAllModules();
+                    }
+                } catch (error) {
+                    console.error('[UI] ❌ Exception:', error);
+                    alert(`⚠️ ${error.message}`);
+                }
+            };
+            console.log('[UI] ✅ window.addTradeUI définie dans DOMContentLoaded');
+            
             // ✅ NOUVEAU : Attacher l'événement au bouton "Ajouter le Trade"
             const addTradeBtn = document.getElementById('addTradeBtn');
             if (addTradeBtn) {
                 addTradeBtn.addEventListener('click', function() {
                     console.log('[UI] Bouton Ajouter le Trade cliqué');
-                    console.log('[UI] typeof window.addTradeUI:', typeof window.addTradeUI);
-                    console.log('[UI] typeof addTradeUI:', typeof addTradeUI);
-                    
-                    // Essayer window.addTradeUI d'abord
                     if (typeof window.addTradeUI === 'function') {
                         window.addTradeUI();
-                    } 
-                    // Si pas trouvé, essayer addTradeUI directement
-                    else if (typeof addTradeUI === 'function') {
-                        console.log('[UI] ⚠️ Utilisation de addTradeUI directement (non window.)');
-                        addTradeUI();
-                    } 
-                    else {
-                        console.error('[UI] ❌ addTradeUI non définie (ni window. ni global)');
+                    } else {
+                        console.error('[UI] ❌ window.addTradeUI non définie');
                         alert('⚠️ Erreur : Fonction addTradeUI non chargée. Veuillez rafraîchir la page.');
                     }
                 });
