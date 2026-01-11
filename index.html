@@ -3177,6 +3177,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 `;
             }).join('');
         }
+        
+        // ✅ Exposer toutes les fonctions de mise à jour globalement
+        window.updateTradesTable = updateTradesTable;
+        window.updateDashboard = updateDashboard;
+        window.updateBanner = updateBanner;
+        window.updateCharts = updateCharts;
+        window.updateCalendar = updateCalendar;
+        window.updateRecentTrades = updateRecentTrades;
+        window.updateProtectionAnalysis = updateProtectionAnalysis;
+        
+        console.log('[INIT] ✅ Fonctions de mise à jour exposées globalement');
 
         function editTrade(tradeId) {
             const trade = trades.find(t => t.id === tradeId);
@@ -3672,29 +3683,41 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // Mise à jour de tous les modules
             console.log('[DATA] Appel updateTradesTable()...');
-            if (typeof updateTradesTable === 'function') {
-                updateTradesTable();
+            if (typeof window.updateTradesTable === 'function') {
+                window.updateTradesTable();
             } else {
-                console.error('[DATA] ❌ updateTradesTable non définie');
+                console.error('[DATA] ❌ window.updateTradesTable non définie');
             }
             
             console.log('[DATA] Appel updateDashboard()...');
-            updateDashboard();
+            if (typeof window.updateDashboard === 'function') {
+                window.updateDashboard();
+            }
             
             console.log('[DATA] Appel updateBanner()...');
-            updateBanner();
+            if (typeof window.updateBanner === 'function') {
+                window.updateBanner();
+            }
             
             console.log('[DATA] Appel updateCharts()...');
-            updateCharts();
+            if (typeof window.updateCharts === 'function') {
+                window.updateCharts();
+            }
             
             console.log('[DATA] Appel updateCalendar()...');
-            updateCalendar();
+            if (typeof window.updateCalendar === 'function') {
+                window.updateCalendar();
+            }
             
             console.log('[DATA] Appel updateRecentTrades()...');
-            updateRecentTrades();
+            if (typeof window.updateRecentTrades === 'function') {
+                window.updateRecentTrades();
+            }
             
             console.log('[DATA] Appel updateProtectionAnalysis()...');
-            updateProtectionAnalysis();
+            if (typeof window.updateProtectionAnalysis === 'function') {
+                window.updateProtectionAnalysis();
+            }
             
             console.log("[OK] Rafraîchissement terminé");
             console.log("");
