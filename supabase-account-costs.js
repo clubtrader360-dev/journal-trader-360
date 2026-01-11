@@ -1,5 +1,5 @@
 // ================================================================
-// SUPABASE ACCOUNT COSTS MODULE - Version Professionnelle
+// SUPABASE ACCOUNT COSTS MODULE - Version Compatible index.html
 // ================================================================
 
 (() => {
@@ -55,23 +55,44 @@
     
     /**
      * Créer un nouveau coût
+     * Compatible avec addAccountCost() de index.html
      */
     async function createAccountCost(costData) {
         try {
-            // Validation
-            const required = ['user_id', 'account_id', 'date', 'cost'];
-            const missing = required.filter(field => !costData[field]);
+            log('create - Données reçues:', costData);
             
-            if (missing.length > 0) {
-                error('Champs manquants:', missing);
-                return { data: null, error: `Champs obligatoires manquants: ${missing.join(', ')}` };
+            // Ajouter user_id si manquant
+            if (!costData.user_id && window.currentUser) {
+                costData.user_id = window.currentUser.uuid;
+                log('user_id ajouté automatiquement:', costData.user_id);
             }
             
-            log('Création account_cost:', costData);
+            // Validation minimale
+            if (!costData.account_id) {
+                error('account_id manquant');
+                return { data: null, error: 'Compte non sélectionné' };
+            }
+            
+            if (!costData.amount && !costData.cost) {
+                error('Montant manquant (amount ou cost)');
+                return { data: null, error: 'Montant manquant' };
+            }
+            
+            // Normaliser le champ montant : "amount" OU "cost"
+            const finalData = {
+                user_id: costData.user_id,
+                account_id: costData.account_id,
+                cost_type: costData.cost_type || 'other',
+                amount: costData.amount || costData.cost,  // Accepte les 2 noms
+                description: costData.description || '',
+                date: costData.date || new Date().toISOString().split('T')[0]
+            };
+            
+            log('Création account_cost avec données normalisées:', finalData);
             
             const { data, error: err } = await supabase
                 .from('account_costs')
-                .insert([costData])
+                .insert([finalData])
                 .select()
                 .single();
             
@@ -164,5 +185,6 @@
         delete: deleteAccountCost
     };
     
-    log('✅ Module chargé');
+    log('✅ Module chargé et API exposée');
 })();
+        
