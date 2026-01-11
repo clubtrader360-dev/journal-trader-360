@@ -82,7 +82,7 @@
             const finalData = {
                 user_id: costData.user_id,
                 account_id: costData.account_id,
-                account_name: costData.account_name || 'Compte',  // Nom du compte
+                account_name: costData.account_name || costData.account_id?.toString() || 'Compte',  // Valeur par défaut
                 cost: costData.amount || costData.cost,  // Montant payé RÉEL
                 notes: costData.notes || costData.description || '',  // Notes optionnelles
                 date: costData.date || new Date().toISOString().split('T')[0]
