@@ -2597,10 +2597,45 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
         function showAddNoteModal() {
             const modal = document.getElementById('addNoteModal');
-            delete modal.dataset.editingTimestamp;
+            const form = document.getElementById('noteForm');
+            
+            // Réinitialiser le formulaire
+            if (form) {
+                form.reset();
+            }
+            
+            // Réinitialiser la date à aujourd'hui
+            const dateInput = document.getElementById('noteDate');
+            if (dateInput) {
+                dateInput.value = new Date().toISOString().split('T')[0];
+            }
+            
+            // Réinitialiser les étoiles
+            document.querySelectorAll('.star-rating').forEach(star => {
+                star.style.opacity = '0.3';
+                star.style.color = '#ccc';
+            });
+            document.getElementById('sessionRating').value = '0';
+            
+            // Réinitialiser l'aperçu de l'image
+            const imagePreview = document.getElementById('imagePreview');
+            if (imagePreview) {
+                imagePreview.classList.add('hidden');
+            }
+            
+            // Supprimer le mode édition
+            delete modal.dataset.editingId;
+            
+            // Changer le texte du bouton
             const btn = document.querySelector('#addNoteModal button[onclick="addNote()"]');
-            if (btn) btn.textContent = 'Ajouter la Note';
+            if (btn) {
+                btn.textContent = 'Ajouter la Note';
+            }
+            
+            // Ouvrir la modale
             modal.style.display = 'block';
+            
+            console.log('[UI] Formulaire addNote réinitialisé');
         }
 
         function showImportCSVModal() {

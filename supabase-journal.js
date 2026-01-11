@@ -162,6 +162,18 @@
                 form.reset();
             }
             
+            // Réinitialiser l'aperçu de l'image
+            const imagePreview = document.getElementById('imagePreview');
+            if (imagePreview) {
+                imagePreview.classList.add('hidden');
+            }
+            
+            // Réinitialiser les étoiles
+            document.querySelectorAll('.star-rating').forEach(star => {
+                star.style.opacity = '0.3';
+                star.style.color = '#ccc';
+            });
+            
             // Réinitialiser le texte du bouton
             const submitBtn = modal?.querySelector('.trader-btn');
             if (submitBtn) {
