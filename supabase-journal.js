@@ -304,15 +304,21 @@
     
     // ===== FONCTION VISUALISATION ENTRÉE =====
     async function viewJournalEntry(entryId) {
-        console.log('[JOURNAL] viewJournalEntry() - START', entryId);
+        console.log('[JOURNAL] viewJournalEntry() - START');
+        console.log('[JOURNAL] entryId reçu:', entryId, 'Type:', typeof entryId);
         
         if (!window.currentUser || !window.currentUser.uuid) {
             console.error('[JOURNAL] ❌ Utilisateur non connecté');
+            alert('❌ Vous devez être connecté');
             return;
         }
         
+        console.log('[JOURNAL] User UUID:', window.currentUser.uuid);
+        
         try {
             // Récupérer l'entrée depuis Supabase
+            console.log('[JOURNAL] Requête Supabase avec id:', entryId);
+            
             const { data, error } = await supabase
                 .from('journal_entries')
                 .select('*')
@@ -320,13 +326,16 @@
                 .eq('user_id', window.currentUser.uuid)
                 .single();
             
+            console.log('[JOURNAL] Résultat Supabase - data:', data, 'error:', error);
+            
             if (error) {
-                console.error('[JOURNAL] ❌ Erreur récupération entrée:', error);
-                alert('❌ Note non trouvée');
+                console.error('[JOURNAL] ❌ Erreur Supabase:', error);
+                alert(`❌ Erreur : ${error.message}`);
                 return;
             }
             
             if (!data) {
+                console.error('[JOURNAL] ❌ Aucune donnée retournée');
                 alert('❌ Note non trouvée');
                 return;
             }
@@ -358,15 +367,21 @@ ${data.content}
     
     // ===== FONCTION ÉDITION ENTRÉE =====
     async function editJournalEntry(entryId) {
-        console.log('[JOURNAL] editJournalEntry() - START', entryId);
+        console.log('[JOURNAL] editJournalEntry() - START');
+        console.log('[JOURNAL] entryId reçu:', entryId, 'Type:', typeof entryId);
         
         if (!window.currentUser || !window.currentUser.uuid) {
             console.error('[JOURNAL] ❌ Utilisateur non connecté');
+            alert('❌ Vous devez être connecté');
             return;
         }
         
+        console.log('[JOURNAL] User UUID:', window.currentUser.uuid);
+        
         try {
             // Récupérer l'entrée depuis Supabase
+            console.log('[JOURNAL] Requête Supabase avec id:', entryId);
+            
             const { data, error } = await supabase
                 .from('journal_entries')
                 .select('*')
@@ -374,13 +389,16 @@ ${data.content}
                 .eq('user_id', window.currentUser.uuid)
                 .single();
             
+            console.log('[JOURNAL] Résultat Supabase - data:', data, 'error:', error);
+            
             if (error) {
-                console.error('[JOURNAL] ❌ Erreur récupération entrée:', error);
-                alert('❌ Note non trouvée');
+                console.error('[JOURNAL] ❌ Erreur Supabase:', error);
+                alert(`❌ Erreur : ${error.message}`);
                 return;
             }
             
             if (!data) {
+                console.error('[JOURNAL] ❌ Aucune donnée retournée');
                 alert('❌ Note non trouvée');
                 return;
             }
