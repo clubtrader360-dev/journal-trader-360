@@ -1,6 +1,3 @@
-Fichier: supabase-trades_V3.7_MINIMAL.js
-Taille: 13 Ko, 358 lignes
-// ========================================
 // MODULE : TRADES + ACCOUNTS
 // Source de vérité : Supabase
 // IIFE isolée - Pas de globals au top-level
