@@ -2629,60 +2629,21 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     return;
                 }
                 
-                // Vérifier si les modules sont chargés
-                if (!window.tradesAPI || !window.tradesAPI.addAccount) {
-                    console.error('[COST] ❌ Module tradesAPI non chargé');
-                    alert('❌ Erreur : module tradesAPI non chargé. Veuillez rafraîchir la page.');
-                    return;
-                }
-                
+                // Vérifier si le module est chargé
                 if (!window.accountCostsAPI || !window.accountCostsAPI.create) {
                     console.error('[COST] ❌ Module accountCostsAPI non chargé');
-                    alert('❌ Erreur : module accountCostsAPI non chargé. Veuillez rafraîchir la page.');
+                    alert('❌ Erreur : module non chargé. Veuillez rafraîchir la page.');
                     return;
                 }
                 
                 try {
-                    // ÉTAPE 1: Créer le compte d'abord (nom libre)
-                    console.log('[COST] Étape 1/2: Création du compte...');
-                    
-                    // Essayer d'extraire la taille du compte depuis le nom
-                    // Ex: "FTMO 100K" → 100000, "Tradeday 150K" → 150000
-                    let accountBalance = 100000; // Valeur par défaut : 100K
-                    
-                    const balanceMatch = costName.match(/(\d+)\s*K/i);
-                    if (balanceMatch) {
-                        accountBalance = parseInt(balanceMatch[1]) * 1000;
-                        console.log('[COST] Balance extraite du nom:', accountBalance);
-                    } else {
-                        console.log('[COST] Balance par défaut utilisée:', accountBalance);
-                    }
-                    
-                    const accountData = {
-                        name: costName,  // Nom libre : "FTMO 100K", "Tradeday 150K", etc.
-                        type: 'Challenge',  // Type par défaut
-                        initial_balance: accountBalance,  // Balance extraite ou par défaut
-                        current_balance: accountBalance   // Même valeur au départ
-                    };
-                    
-                    const accountResult = await window.tradesAPI.addAccount(accountData);
-                    
-                    if (accountResult.error || !accountResult.data) {
-                        console.error('[COST] ❌ Erreur création compte:', accountResult.error);
-                        alert(`❌ Erreur création du compte : ${accountResult.error?.message || accountResult.error}`);
-                        return;
-                    }
-                    
-                    const newAccountId = accountResult.data.id;
-                    console.log('[COST] ✅ Compte créé avec ID:', newAccountId);
-                    
-                    // ÉTAPE 2: Enregistrer le coût associé au compte
-                    console.log('[COST] Étape 2/2: Enregistrement du coût...');
+                    // Enregistrer le coût (PAS de création de compte !)
+                    console.log('[COST] Enregistrement du coût...');
                     const costData = {
-                        account_id: newAccountId,  // ID du compte créé
-                        account_name: costName,    // Nom du compte (LIBRE)
+                        account_id: null,          // Pas de lien avec un compte de trading
+                        account_name: costName,    // Nom libre (ex: "Apex", "FTMO 100K")
                         cost: costAmount,          // Montant payé RÉEL (manuel)
-                        notes: costNotes || `Achat compte ${costName}`,
+                        notes: costNotes || '',
                         date: costDate
                     };
                     
@@ -2692,12 +2653,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     if (costResult.error) {
                         console.error('[COST] ❌ Erreur enregistrement coût:', costResult.error);
-                        alert(`❌ Compte créé mais erreur enregistrement du coût : ${costResult.error.message || costResult.error}`);
+                        alert(`❌ Erreur enregistrement du coût : ${costResult.error.message || costResult.error}`);
                         return;
                     }
                     
                     console.log('[COST] ✅ Coût enregistré:', costResult.data);
-                    alert(`✅ Compte "${costName}" créé avec un coût de ${costAmount}€`);
+                    alert(`✅ Coût de ${costAmount}€ pour "${costName}" enregistré avec succès`);
                     
                     // Fermer la modale
                     const modal = document.getElementById('addAccountCostModal');
@@ -2743,7 +2704,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
                 
                 try {
-                    // Chercher le compte par nom dans la liste actuelle
+                    // Chercher le compte par nom dans la liste actuelle (optionnel)
                     let accountId = null;
                     
                     if (window.accounts && window.accounts.length > 0) {
@@ -2754,54 +2715,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         if (matchingAccount) {
                             accountId = matchingAccount.id;
                             console.log('[PAYOUT] ✅ Compte trouvé:', matchingAccount.name, 'ID:', accountId);
-                        }
-                    }
-                    
-                    // Si le compte n'existe pas, créer un nouveau compte
-                    if (!accountId) {
-                        console.log('[PAYOUT] ⚠️ Compte non trouvé, création d\'un nouveau compte...');
-                        
-                        if (!window.tradesAPI || !window.tradesAPI.addAccount) {
-                            console.error('[PAYOUT] ❌ Module tradesAPI non chargé');
-                            alert('❌ Erreur : impossible de créer le compte. Veuillez rafraîchir la page.');
-                            return;
-                        }
-                        
-                        // Essayer d'extraire la taille du compte depuis le nom
-                        let accountBalance = 100000; // Valeur par défaut : 100K
-                        
-                        const balanceMatch = payoutAccountName.match(/(\d+)\s*K/i);
-                        if (balanceMatch) {
-                            accountBalance = parseInt(balanceMatch[1]) * 1000;
-                            console.log('[PAYOUT] Balance extraite du nom:', accountBalance);
                         } else {
-                            console.log('[PAYOUT] Balance par défaut utilisée:', accountBalance);
+                            console.log('[PAYOUT] ⚠️ Compte non trouvé dans la liste, enregistrement avec account_name seulement');
                         }
-                        
-                        const accountData = {
-                            name: payoutAccountName,
-                            type: 'Funded',  // Type par défaut pour un payout
-                            initial_balance: accountBalance,
-                            current_balance: accountBalance
-                        };
-                        
-                        const accountResult = await window.tradesAPI.addAccount(accountData);
-                        
-                        if (accountResult.error || !accountResult.data) {
-                            console.error('[PAYOUT] ❌ Erreur création compte:', accountResult.error);
-                            alert(`❌ Erreur création du compte : ${accountResult.error?.message || accountResult.error}`);
-                            return;
-                        }
-                        
-                        accountId = accountResult.data.id;
-                        console.log('[PAYOUT] ✅ Nouveau compte créé avec ID:', accountId);
                     }
                     
-                    // Enregistrer le payout
+                    // Enregistrer le payout (avec ou sans account_id)
                     const payoutData = {
-                        account_id: accountId,
+                        account_id: accountId,        // ID du compte si trouvé, sinon null
+                        account_name: payoutAccountName,  // Nom libre (ex: "Apex", "FTMO 100K")
                         amount: payoutAmount,
-                        notes: payoutNotes || `Payout ${payoutAccountName}`,
+                        notes: payoutNotes || '',
                         date: payoutDate
                     };
                     

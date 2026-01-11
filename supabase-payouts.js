@@ -68,9 +68,9 @@
             }
             
             // Validation minimale
-            if (!payoutData.account_id) {
-                error('account_id manquant');
-                return { data: null, error: 'Compte non sélectionné' };
+            if (!payoutData.account_name) {
+                error('account_name manquant');
+                return { data: null, error: 'Nom du compte manquant' };
             }
             
             if (!payoutData.amount) {
@@ -81,9 +81,10 @@
             // Préparer données pour Supabase
             const finalData = {
                 user_id: payoutData.user_id,
-                account_id: payoutData.account_id,
+                account_id: payoutData.account_id || null,  // Peut être null
+                account_name: payoutData.account_name,       // Nom libre
                 amount: payoutData.amount,
-                description: payoutData.description || '',
+                notes: payoutData.notes || payoutData.description || '',
                 date: payoutData.date || new Date().toISOString().split('T')[0]
             };
             
