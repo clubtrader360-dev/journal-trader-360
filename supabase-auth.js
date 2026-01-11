@@ -98,7 +98,7 @@
                 console.log('[OK] Email affiché:', window.currentUser.email);
             }
             
-            // Charger les comptes et trades (si les fonctions existent)
+            // Charger les comptes, trades et notes (si les fonctions existent)
             if (typeof window.loadAccounts === 'function') {
                 console.log('[OK] Appel window.loadAccounts()');
                 window.loadAccounts();
@@ -107,6 +107,11 @@
             if (typeof window.loadTrades === 'function') {
                 console.log('[OK] Appel window.loadTrades()');
                 window.loadTrades();
+            }
+            
+            if (typeof window.loadJournalEntries === 'function') {
+                console.log('[OK] Appel window.loadJournalEntries()');
+                window.loadJournalEntries();
             }
 
         } catch (err) {

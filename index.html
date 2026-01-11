@@ -2550,6 +2550,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
         // Navigation
         function showSection(sectionName) {
+            console.log('[UI] showSection() appelé avec:', sectionName);
+            
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.add('hidden');
             });
@@ -2562,12 +2564,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             event.target.classList.add('active');
             
             if (sectionName === 'dashboard') {
+                console.log('[UI] Section Dashboard - Mise à jour...');
                 updateDashboard();
                 updateBanner(); // Mise à jour des barres visuelles
                 updateCharts();
             } else if (sectionName === 'tradelog') {
+                console.log('[UI] Section Trade Log - Mise à jour...');
                 updateTradesTable();
             } else if (sectionName === 'dailyjournal') {
+                console.log('[UI] Section Journal Quotidien - Chargement des notes...');
                 updateJournalEntries();
             }
         }
@@ -3425,42 +3430,59 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         // Dashboard functions
 
         function refreshAllModules() {
-            console.log("");
-            console.log(" REFRESH - Début du rafraîchissement...");
-            console.log(' REFRESH - Nombre total de trades:', trades.length);
-            console.log(' REFRESH - Array trades:', trades);
+            console.log('');
+            console.log('🔄 REFRESH - Début du rafraîchissement...');
+            
+            // Recharger les données depuis Supabase
+            console.log('[REFRESH] 📦 Chargement des comptes depuis Supabase...');
+            if (typeof window.loadAccounts === 'function') {
+                window.loadAccounts();
+            }
+            
+            console.log('[REFRESH] 📊 Chargement des trades depuis Supabase...');
+            if (typeof window.loadTrades === 'function') {
+                window.loadTrades();
+            }
+            
+            console.log('[REFRESH] 📝 Chargement des notes depuis Supabase...');
+            if (typeof window.loadJournalEntries === 'function') {
+                window.loadJournalEntries();
+            }
+            
+            console.log('🔄 REFRESH - Nombre total de trades:', trades.length);
+            console.log('🔄 REFRESH - Array trades:', trades);
             
             const activeAccounts = accounts.filter(a => a.active).map(a => a.id);
-            console.log(' REFRESH - Comptes actifs:', activeAccounts);
-            console.log(' REFRESH - Tous les comptes:', accounts);
+            console.log('🔄 REFRESH - Comptes actifs:', activeAccounts);
+            console.log('🔄 REFRESH - Tous les comptes:', accounts);
             
             const filteredTrades = activeAccounts.length > 0 
                 ? trades.filter(trade => activeAccounts.includes(trade.accountId))
                 : trades;
             
-            console.log(' REFRESH - Trades filtrés:', filteredTrades.length);
-            console.log(' REFRESH - Détail trades filtrés:', filteredTrades);
+            console.log('🔄 REFRESH - Trades filtrés:', filteredTrades.length);
+            console.log('🔄 REFRESH - Détail trades filtrés:', filteredTrades);
             
             // Mise à jour de tous les modules
-            console.log("[DATA] Appel updateTradesTable()...");
+            console.log('[DATA] Appel updateTradesTable()...');
             updateTradesTable();
             
-            console.log("[DATA] Appel updateDashboard()...");
+            console.log('[DATA] Appel updateDashboard()...');
             updateDashboard();
             
-            console.log("[DATA] Appel updateBanner()...");
+            console.log('[DATA] Appel updateBanner()...');
             updateBanner();
             
-            console.log("[DATA] Appel updateCharts()...");
+            console.log('[DATA] Appel updateCharts()...');
             updateCharts();
             
-            console.log("[DATA] Appel updateCalendar()...");
+            console.log('[DATA] Appel updateCalendar()...');
             updateCalendar();
             
-            console.log("[DATA] Appel updateRecentTrades()...");
+            console.log('[DATA] Appel updateRecentTrades()...');
             updateRecentTrades();
             
-            console.log("[DATA] Appel updateProtectionAnalysis()...");
+            console.log('[DATA] Appel updateProtectionAnalysis()...');
             updateProtectionAnalysis();
             
             console.log("[OK] Rafraîchissement terminé");
