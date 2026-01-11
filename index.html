@@ -2161,7 +2161,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 </div>
                 
                 <div class="flex gap-4 mt-6">
-                    <button type="button" onclick="addAccountCost()" class="trader-btn flex-1">Ajouter</button>
+                    <button type="button" id="submitAccountCostBtn" class="trader-btn flex-1">Ajouter</button>
                     <button type="button" onclick="closeModal('addAccountCostModal')" class="trader-btn-secondary flex-1">Annuler</button>
                 </div>
             </form>
@@ -2196,7 +2196,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 </div>
                 
                 <div class="flex gap-4 mt-6">
-                    <button type="button" onclick="addPayout()" class="trader-btn flex-1" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Ajouter</button>
+                    <button type="button" id="submitPayoutBtn" class="trader-btn flex-1" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Ajouter</button>
                     <button type="button" onclick="closeModal('addPayoutModal')" class="trader-btn-secondary flex-1">Annuler</button>
                 </div>
             </form>
@@ -2609,6 +2609,136 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     showAddPayoutModal();
                 });
                 console.log('[UI] ✅ Événement attaché au bouton addPayoutBtn');
+            }
+            
+            // ✅ DÉFINIR ET ATTACHER LES FONCTIONS D'AJOUT POUR COMPTABILITÉ
+            // Fonction addAccountCost
+            window.addAccountCost = function() {
+                console.log('[COST] addAccountCost - START');
+                
+                const accountId = document.getElementById('costAccountId').value;
+                const costType = document.getElementById('costType').value;
+                const costAmount = parseFloat(document.getElementById('costAmount').value);
+                const costDescription = document.getElementById('costDescription').value.trim();
+                
+                if (!accountId || !costType || !costAmount) {
+                    alert('Veuillez remplir tous les champs obligatoires');
+                    return;
+                }
+                
+                // Vérifier si le module est chargé
+                if (!window.accountCostsAPI || !window.accountCostsAPI.create) {
+                    console.error('[COST] ❌ Module accountCostsAPI non chargé');
+                    alert('❌ Erreur : module non chargé. Veuillez rafraîchir la page.');
+                    return;
+                }
+                
+                const costData = {
+                    account_id: parseInt(accountId),
+                    cost_type: costType,
+                    amount: costAmount,
+                    description: costDescription,
+                    date: new Date().toISOString().split('T')[0]
+                };
+                
+                console.log('[COST] Données:', costData);
+                
+                window.accountCostsAPI.create(costData).then(result => {
+                    if (result.error) {
+                        console.error('[COST] ❌ Erreur:', result.error);
+                        alert(`❌ Erreur : ${result.error.message || result.error}`);
+                        return;
+                    }
+                    
+                    console.log('[COST] ✅ Coût ajouté:', result.data);
+                    alert(`✅ Coût de ${costAmount}€ ajouté avec succès`);
+                    
+                    // Fermer la modale
+                    const modal = document.getElementById('addAccountCostModal');
+                    if (modal) modal.style.display = 'none';
+                    
+                    // Réinitialiser le formulaire
+                    document.getElementById('costAmount').value = '';
+                    document.getElementById('costDescription').value = '';
+                    
+                    // Recharger les données
+                    if (typeof window.refreshAllModules === 'function') {
+                        window.refreshAllModules();
+                    }
+                });
+            };
+            
+            // Fonction addPayout
+            window.addPayout = function() {
+                console.log('[PAYOUT] addPayout - START');
+                
+                const accountId = document.getElementById('payoutAccountId').value;
+                const payoutAmount = parseFloat(document.getElementById('payoutAmount').value);
+                const payoutDescription = document.getElementById('payoutDescription').value.trim();
+                
+                if (!accountId || !payoutAmount) {
+                    alert('Veuillez remplir tous les champs obligatoires');
+                    return;
+                }
+                
+                // Vérifier si le module est chargé
+                if (!window.payoutsAPI || !window.payoutsAPI.create) {
+                    console.error('[PAYOUT] ❌ Module payoutsAPI non chargé');
+                    alert('❌ Erreur : module non chargé. Veuillez rafraîchir la page.');
+                    return;
+                }
+                
+                const payoutData = {
+                    account_id: parseInt(accountId),
+                    amount: payoutAmount,
+                    description: payoutDescription,
+                    date: new Date().toISOString().split('T')[0]
+                };
+                
+                console.log('[PAYOUT] Données:', payoutData);
+                
+                window.payoutsAPI.create(payoutData).then(result => {
+                    if (result.error) {
+                        console.error('[PAYOUT] ❌ Erreur:', result.error);
+                        alert(`❌ Erreur : ${result.error.message || result.error}`);
+                        return;
+                    }
+                    
+                    console.log('[PAYOUT] ✅ Payout ajouté:', result.data);
+                    alert(`✅ Payout de ${payoutAmount}€ ajouté avec succès`);
+                    
+                    // Fermer la modale
+                    const modal = document.getElementById('addPayoutModal');
+                    if (modal) modal.style.display = 'none';
+                    
+                    // Réinitialiser le formulaire
+                    document.getElementById('payoutAmount').value = '';
+                    document.getElementById('payoutDescription').value = '';
+                    
+                    // Recharger les données
+                    if (typeof window.refreshAllModules === 'function') {
+                        window.refreshAllModules();
+                    }
+                });
+            };
+            
+            // Attacher aux boutons de soumission
+            const submitAccountCostBtn = document.getElementById('submitAccountCostBtn');
+            if (submitAccountCostBtn) {
+                submitAccountCostBtn.addEventListener('click', function() {
+                    console.log('[UI] Bouton Soumettre coût cliqué');
+                    window.addAccountCost();
+                });
+                console.log('[UI] ✅ Événement attaché au bouton submitAccountCostBtn');
+            }
+            
+            const submitPayoutBtn = document.getElementById('submitPayoutBtn');
+            if (submitPayoutBtn) {
+                submitPayoutBtn.addEventListener('click', function() {
+                    console.log('[UI] Bouton Soumettre payout cliqué');
+                    window.addPayout();
+                });
+                console.log('[UI] ✅ Événement attaché au bouton submitPayoutBtn');
             }
             
             
