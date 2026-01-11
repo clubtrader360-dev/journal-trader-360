@@ -806,6 +806,7 @@ function showAddAccountModal() {
 // ========================================
 async function addTradeUI() {
     console.log('[UI] addTradeUI() - START');
+    console.log('[UI] window.addTrade exists?', typeof window.addTrade);
     
     // Lecture IDs DOM réels (extraits de l'audit)
     const account_id = document.getElementById('tradeAccount')?.value;
@@ -830,12 +831,26 @@ async function addTradeUI() {
         if (el?.checked) protections.push(el.value);
     });
     
-    console.log('[UI] Données extraites:', { account_id, trade_date, entry_time, exit_time, symbol, trade_type, entry_price, exit_price, quantity });
+    console.log('[UI] Données extraites:', { 
+        account_id, trade_date, entry_time, exit_time, symbol, trade_type, 
+        entry_price, exit_price, quantity, stop_loss, take_profit, setup, notes, manual_pnl 
+    });
     
-    // Validation
-    if (!account_id || !trade_date || !entry_time || !exit_time || !symbol || !trade_type || !entry_price || !exit_price || !quantity) {
-        console.error('[UI] ❌ Formulaire incomplet');
-        alert('⚠️ Veuillez remplir tous les champs obligatoires');
+    // Validation détaillée
+    const missingFields = [];
+    if (!account_id) missingFields.push('account_id');
+    if (!trade_date) missingFields.push('trade_date');
+    if (!entry_time) missingFields.push('entry_time');
+    if (!exit_time) missingFields.push('exit_time');
+    if (!symbol) missingFields.push('symbol');
+    if (!trade_type) missingFields.push('trade_type');
+    if (!entry_price || isNaN(entry_price)) missingFields.push('entry_price');
+    if (!exit_price || isNaN(exit_price)) missingFields.push('exit_price');
+    if (!quantity || isNaN(quantity)) missingFields.push('quantity');
+    
+    if (missingFields.length > 0) {
+        console.error('[UI] ❌ Champs manquants:', missingFields);
+        alert(`⚠️ Veuillez remplir tous les champs obligatoires:\n${missingFields.join(', ')}`);
         return;
     }
     
@@ -867,8 +882,12 @@ async function addTradeUI() {
         return;
     }
     
+    console.log('[UI] Appel window.addTrade() avec:', tradeData);
+    
     try {
         const result = await window.addTrade(tradeData);
+        
+        console.log('[UI] Résultat de addTrade():', result);
         
         if (result.error) {
             console.error('[UI] ❌ Erreur:', result.error);
