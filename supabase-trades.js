@@ -218,7 +218,7 @@ async function loadAccounts() {
     const tradeWithUser = {
       user_id: window.currentUser.uuid,
       account_id: tradeData.account_id,
-      symbol: tradeData.symbol,
+      instrument: tradeData.symbol,  // ✅ Renommer symbol en instrument
       trade_type: tradeData.trade_type,
       quantity: tradeData.quantity,
       entry_price: tradeData.entry_price,
