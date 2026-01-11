@@ -272,7 +272,7 @@
                     <p class="text-gray-700 whitespace-pre-wrap">${entry.content}</p>
                     ${entry.image_url ? `
                         <div class="mt-3">
-                            <img src="${entry.image_url}" alt="Note image" class="max-w-full h-48 object-contain border rounded cursor-pointer hover:opacity-80 transition" onclick="viewImageZoom('${entry.image_url}')" title="Cliquer pour agrandir">
+                            <img src="${entry.image_url}" alt="Note image" class="max-w-full h-48 object-contain border rounded" title="Image de la note" onerror="console.error('[JOURNAL] ❌ Erreur chargement image:', '${entry.image_url}')">
                         </div>
                     ` : ''}
                 </div>
