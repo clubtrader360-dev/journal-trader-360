@@ -240,6 +240,9 @@
             const stars = '⭐'.repeat(entry.session_rating || 0);
             const hasEmotions = entry.emotion_before || entry.emotion_after;
             
+            // DEBUG : Log pour chaque entrée
+            console.log('[JOURNAL] 🖼️ Affichage note ID:', entry.id, 'Image URL:', entry.image_url);
+            
             return `
                 <div class="border-b pb-4 mb-4 last:border-b-0">
                     <div class="flex justify-between items-start mb-2">
