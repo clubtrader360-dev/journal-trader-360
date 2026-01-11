@@ -3206,6 +3206,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 `;
             }).join('');
         }
+        window.updateTradesTable = updateTradesTable;  // ✅ Exposer IMMÉDIATEMENT
         
         // ✅ Exposer toutes les fonctions de mise à jour globalement
         window.updateTradesTable = updateTradesTable;
@@ -3640,6 +3641,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
         // Fonction pour supprimer une note
         // deleteJournalEntry déplacé vers supabase-journal.js
+
+        // ✅ EXPOSER TOUTES LES FONCTIONS AVANT refreshAllModules
+        window.updateTradesTable = updateTradesTable;
+        window.updateDashboard = updateDashboard;
+        window.updateBanner = updateBanner;
+        window.updateCharts = updateCharts;
+        window.updateCalendar = updateCalendar;
+        window.updateRecentTrades = updateRecentTrades;
+        window.updateProtectionAnalysis = updateProtectionAnalysis;
+        console.log('[INIT] ✅ Toutes les fonctions update exposées');
 
         // Dashboard functions
 
