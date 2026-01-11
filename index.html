@@ -2485,6 +2485,25 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.error('[UI] ❌ Bouton addTradeBtn introuvable');
             }
             
+            
+            // ✅ EXPOSER LES FONCTIONS DE MISE À JOUR GLOBALEMENT
+            // Ces fonctions sont définies plus loin dans le code, mais on les expose ici
+            // pour qu'elles soient accessibles à refreshAllModules()
+            setTimeout(() => {
+                if (typeof updateTradesTable !== 'undefined') {
+                    window.updateTradesTable = updateTradesTable;
+                    window.updateDashboard = updateDashboard;
+                    window.updateBanner = updateBanner;
+                    window.updateCharts = updateCharts;
+                    window.updateCalendar = updateCalendar;
+                    window.updateRecentTrades = updateRecentTrades;
+                    window.updateProtectionAnalysis = updateProtectionAnalysis;
+                    console.log('[INIT] ✅ Fonctions de mise à jour exposées globalement (via setTimeout)');
+                } else {
+                    console.error('[INIT] ❌ updateTradesTable non définie au moment de l\'exposition');
+                }
+            }, 100);
+            
             console.log('[OK] Application chargée - Trades:', trades.length);
         });
 
