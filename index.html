@@ -48,7 +48,7 @@
         .trader-btn {
             background: linear-gradient(135deg, var(--trader-gold) 0%, #b8932c 100%);
             color: var(--trader-blue);
-            border: none;
+            border: 2px solid transparent;
             padding: 12px 24px;
             border-radius: 12px;
             font-weight: 600;
@@ -57,8 +57,11 @@
         }
         
         .trader-btn:hover {
+            background: var(--trader-blue);
+            color: var(--trader-gold);
+            border: 2px solid var(--trader-gold);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(172, 134, 43, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 11, 37, 0.3);
         }
         
         .trader-btn-secondary {
@@ -1003,6 +1006,84 @@ function showAddPayoutModal() {
     }
 }
 
+// ========================================
+// 📝 FONCTION: Modifier un compte acheté
+// ========================================
+function editAccountCost(costId) {
+    console.log('[EDIT] editAccountCost() - ID:', costId);
+    
+    // Charger les données depuis window.accountCosts
+    const cost = window.accountCosts?.find(c => c.id === costId);
+    
+    if (!cost) {
+        alert('❌ Compte acheté non trouvé');
+        console.error('[EDIT] Compte acheté non trouvé, ID:', costId);
+        return;
+    }
+    
+    console.log('[EDIT] Données chargées:', cost);
+    
+    // Remplir le formulaire
+    document.getElementById('accountCostDate').value = cost.date;
+    document.getElementById('accountCostAccountId').value = cost.account_id;
+    document.getElementById('accountCostAmount').value = cost.cost;
+    document.getElementById('accountCostNotes').value = cost.notes || '';
+    
+    // Marquer le modal en mode édition
+    const modal = document.getElementById('addAccountCostModal');
+    modal.dataset.editingId = costId;
+    
+    // Changer le titre et le bouton
+    const modalTitle = modal.querySelector('h2');
+    if (modalTitle) modalTitle.textContent = 'Modifier un Compte Acheté';
+    
+    const submitBtn = document.getElementById('submitAccountCostBtn');
+    if (submitBtn) submitBtn.textContent = 'Modifier';
+    
+    // Ouvrir le modal
+    modal.style.display = 'block';
+    console.log('[EDIT] Modal ouvert en mode édition');
+}
+
+// ========================================
+// 📝 FONCTION: Modifier un payout
+// ========================================
+function editPayout(payoutId) {
+    console.log('[EDIT] editPayout() - ID:', payoutId);
+    
+    // Charger les données depuis window.payouts
+    const payout = window.payouts?.find(p => p.id === payoutId);
+    
+    if (!payout) {
+        alert('❌ Payout non trouvé');
+        console.error('[EDIT] Payout non trouvé, ID:', payoutId);
+        return;
+    }
+    
+    console.log('[EDIT] Données chargées:', payout);
+    
+    // Remplir le formulaire
+    document.getElementById('payoutDate').value = payout.date;
+    document.getElementById('payoutAccountId').value = payout.account_id;
+    document.getElementById('payoutAmount').value = payout.amount;
+    document.getElementById('payoutNotes').value = payout.notes || '';
+    
+    // Marquer le modal en mode édition
+    const modal = document.getElementById('addPayoutModal');
+    modal.dataset.editingId = payoutId;
+    
+    // Changer le titre et le bouton
+    const modalTitle = modal.querySelector('h2');
+    if (modalTitle) modalTitle.textContent = 'Modifier un Payout';
+    
+    const submitBtn = document.getElementById('submitPayoutBtn');
+    if (submitBtn) submitBtn.textContent = 'Modifier';
+    
+    // Ouvrir le modal
+    modal.style.display = 'block';
+    console.log('[EDIT] Modal ouvert en mode édition');
+}
+
 // Fermer une modale
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -1061,6 +1142,8 @@ window.showAddNoteModal = showAddNoteModal;
 window.showImportCSVModal = showImportCSVModal;
 window.showAddAccountCostModal = showAddAccountCostModal;
 window.showAddPayoutModal = showAddPayoutModal;
+window.editAccountCost = editAccountCost;
+window.editPayout = editPayout;
 window.closeModal = closeModal;
 window.closeViewTradeModal = closeViewTradeModal;
 window.closeViewJournalModal = closeViewJournalModal;
