@@ -958,6 +958,16 @@ function showAddAccountCostModal() {
             console.log('[OK] Formulaire accountCostForm réinitialisé');
         }
         
+        // ✅ Réinitialiser le mode édition
+        delete modal.dataset.editingId;
+        
+        // ✅ Réinitialiser le titre et le bouton
+        const modalTitle = modal.querySelector('h2');
+        if (modalTitle) modalTitle.textContent = 'Ajouter un Compte Acheté';
+        
+        const submitBtn = document.getElementById('submitAccountCostBtn');
+        if (submitBtn) submitBtn.textContent = 'Ajouter';
+        
         modal.style.display = 'block';
         console.log('[OK] Modale addAccountCostModal affichée');
     } else {
@@ -975,6 +985,16 @@ function showAddPayoutModal() {
             form.reset();
             console.log('[OK] Formulaire payoutForm réinitialisé');
         }
+        
+        // ✅ Réinitialiser le mode édition
+        delete modal.dataset.editingId;
+        
+        // ✅ Réinitialiser le titre et le bouton
+        const modalTitle = modal.querySelector('h2');
+        if (modalTitle) modalTitle.textContent = 'Ajouter un Payout';
+        
+        const submitBtn = document.getElementById('submitPayoutBtn');
+        if (submitBtn) submitBtn.textContent = 'Ajouter';
         
         modal.style.display = 'block';
         console.log('[OK] Modale addPayoutModal affichée');
@@ -3296,7 +3316,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         ` : ''}
                     </div>
                     <button id="closeModalBtnPayout" 
-                            style="margin-top: 20px; width: 100%; padding: 14px; background: #1e3a5f; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            style="margin-top: 20px; width: 100%; padding: 14px; background: linear-gradient(135deg, #ac862b 0%, #d4af37 100%); color: #000B25; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         <i class="fas fa-times-circle" style="margin-right: 8px;"></i>Fermer
                     </button>
                 </div>
