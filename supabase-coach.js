@@ -398,6 +398,41 @@
     async function loadCoachAccountingFromSupabase() {
         console.log('[COACH] 💰 Chargement comptabilité globale...');
 
+        // ✅ RESET COMPLET de tous les éléments AVANT de charger
+        try {
+            const totalInvestedEl = document.getElementById('coachTotalInvested');
+            const totalPayoutsEl = document.getElementById('coachTotalPayouts');
+            const totalProfitEl = document.getElementById('coachNetProfit');
+            const roiEl = document.getElementById('coachROI');
+            const detailTableBody = document.getElementById('coachAccountingBreakdown');
+            const costsTableBody = document.getElementById('coachAllCostsTable');
+            const payoutsTableBody = document.getElementById('coachAllPayoutsTable');
+            
+            // Reset KPIs
+            if (totalInvestedEl) totalInvestedEl.textContent = '0.00';
+            if (totalPayoutsEl) totalPayoutsEl.textContent = '0.00';
+            if (totalProfitEl) {
+                totalProfitEl.textContent = '$0.00';
+                totalProfitEl.style.color = '#6b7280';
+            }
+            if (roiEl) roiEl.textContent = '0%';
+            
+            // Reset tableaux
+            if (detailTableBody) {
+                detailTableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Chargement...</td></tr>';
+            }
+            if (costsTableBody) {
+                costsTableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Chargement...</td></tr>';
+            }
+            if (payoutsTableBody) {
+                payoutsTableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i>Chargement...</td></tr>';
+            }
+            
+            console.log('[COACH] ✅ Reset complet effectué');
+        } catch (err) {
+            console.error('[COACH] ❌ Erreur lors du reset:', err);
+        }
+
         try {
             const studentsData = await getAllStudentsData();
             
