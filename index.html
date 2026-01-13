@@ -6719,34 +6719,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         
         
         
-        function getAllStudentsData() {
-            // Fonction pour le coach : récupérer toutes les données de tous les élèves actifs
-                        loadAllUsers();
-            const activeStudents = allUsers.filter(u => u.role === 'student' && u.status === 'active');
-            console.log(' Élèves actifs trouvés:', activeStudents.length);
-            
-            const allStudentsData = [];
-            activeStudents.forEach(student => {
-                const userDataKey = `club_trader_360_user_${student.id}_data`;
-                                
-                if (userData) {
-                    try {
-                        const parsed = JSON.parse(userData);
-                                                allStudentsData.push({
-                            user: student,
-                            data: parsed
-                        });
-                    } catch (e) {
-                        console.error(`[ERROR] Erreur chargement données élève ${student.email}:`, e);
-                    }
-                } else {
-                    }
-            });
-            
-            console.log(' Total élèves avec données:', allStudentsData.length);
-            return allStudentsData;
-        }
-        
         // ===== FONCTIONS INTERFACE COACH =====
         
         function showCoachSection(sectionName) {
