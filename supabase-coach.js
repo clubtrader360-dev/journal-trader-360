@@ -641,6 +641,69 @@
         const netProfit = totalPayouts - totalCosts;
         const roi = totalCosts > 0 ? ((netProfit / totalCosts) * 100).toFixed(1) : 0;
         
+        // Générer le calendrier du mois en cours
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+        
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - firstDay.getDay());
+        
+        let calendarHTML = '';
+        const daysOfWeek = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+        
+        // Header du calendrier
+        calendarHTML += '<div class="grid grid-cols-7 gap-1 mb-2">';
+        daysOfWeek.forEach(day => {
+            calendarHTML += `<div class="text-center text-xs font-semibold text-gray-600 py-1">${day}</div>`;
+        });
+        calendarHTML += '</div>';
+        
+        // Grille du calendrier
+        calendarHTML += '<div class="grid grid-cols-7 gap-1">';
+        for (let i = 0; i < 42; i++) {
+            const date = new Date(startDate.getTime());
+            date.setDate(date.getDate() + i);
+            
+            const isCurrentMonth = date.getMonth() === currentMonth;
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const dateString = `${year}-${month}-${day}`;
+            
+            // Filtrer les trades du jour
+            const dayTrades = trades.filter(trade => {
+                if (!trade.date) return false;
+                const tradeDate = trade.date.split('T')[0];
+                return tradeDate === dateString;
+            });
+            
+            const dayPnl = dayTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
+            
+            let cellClass = 'text-center p-1.5 rounded text-xs';
+            if (!isCurrentMonth) {
+                cellClass += ' text-gray-300 bg-gray-50';
+            } else if (dayTrades.length > 0) {
+                cellClass += dayPnl > 0 
+                    ? ' bg-green-100 text-green-800 font-semibold' 
+                    : ' bg-red-100 text-red-800 font-semibold';
+            } else {
+                cellClass += ' text-gray-700';
+            }
+            
+            let cellContent = `<div class="font-semibold">${date.getDate()}</div>`;
+            if (dayTrades.length > 0 && isCurrentMonth) {
+                cellContent += `<div class="text-[10px] font-bold mt-0.5">${dayPnl > 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>`;
+            }
+            
+            calendarHTML += `<div class="${cellClass}">${cellContent}</div>`;
+        }
+        calendarHTML += '</div>';
+        
         // Créer le modal HTML
         const modalHTML = `
             <div id="studentDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onclick="closeStudentDetailsModal(event)">
@@ -725,7 +788,7 @@
                         </div>
                         
                         <!-- Account Details -->
-                        <div>
+                        <div class="border-b pb-3">
                             <h3 class="text-base font-semibold text-gray-800 mb-2 flex items-center">
                                 <i class="fas fa-info-circle mr-2 text-purple-600"></i>
                                 Informations
@@ -742,6 +805,27 @@
                                 <div class="flex justify-between py-1.5">
                                     <span class="text-gray-600">UUID</span>
                                     <span class="font-mono text-xs text-gray-500">${student.uuid.substring(0, 8)}...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Calendrier -->
+                        <div>
+                            <h3 class="text-base font-semibold text-gray-800 mb-2 flex items-center">
+                                <i class="fas fa-calendar-alt mr-2 text-indigo-600"></i>
+                                Calendrier ${monthNames[currentMonth]} ${currentYear}
+                            </h3>
+                            <div class="bg-gray-50 p-3 rounded">
+                                ${calendarHTML}
+                            </div>
+                            <div class="flex justify-center gap-4 mt-2 text-xs">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-green-100 rounded mr-1"></div>
+                                    <span class="text-gray-600">Gain</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-red-100 rounded mr-1"></div>
+                                    <span class="text-gray-600">Perte</span>
                                 </div>
                             </div>
                         </div>
