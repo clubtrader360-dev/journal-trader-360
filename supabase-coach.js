@@ -457,12 +457,16 @@
             // Afficher les KPIs
             const totalInvestedEl = document.getElementById('coachTotalInvested');
             const totalPayoutsEl = document.getElementById('coachTotalPayouts');
-            const totalProfitEl = document.getElementById('coachTotalProfit');
+            const totalProfitEl = document.getElementById('coachNetProfit');  // ✅ BON ID
             const roiEl = document.getElementById('coachROI');
             
             if (totalInvestedEl) totalInvestedEl.textContent = totalInvested.toFixed(2);
             if (totalPayoutsEl) totalPayoutsEl.textContent = totalPayouts.toFixed(2);
-            if (totalProfitEl) totalProfitEl.textContent = (totalPayouts - totalInvested).toFixed(2);
+            if (totalProfitEl) {
+                const profit = totalPayouts - totalInvested;
+                totalProfitEl.textContent = '$' + profit.toFixed(2);
+                totalProfitEl.style.color = profit >= 0 ? '#10b981' : '#ef4444';  // Vert si positif, rouge si négatif
+            }
             if (roiEl && totalInvested > 0) {
                 const roi = ((totalPayouts - totalInvested) / totalInvested * 100).toFixed(1);
                 roiEl.textContent = roi + '%';
@@ -471,14 +475,21 @@
             // Afficher le tableau "Détail par Élève"
             const detailTableBody = document.getElementById('coachAccountingDetailTable');
             if (detailTableBody) {
-                if (studentsData.length === 0) {
+                // Filtrer les élèves qui ont au moins un coût OU un payout
+                const studentsWithAccounting = studentsData.filter(studentData => {
+                    const costs = studentData.data.accountCosts || [];
+                    const payouts = studentData.data.payouts || [];
+                    return costs.length > 0 || payouts.length > 0;
+                });
+
+                if (studentsWithAccounting.length === 0) {
                     detailTableBody.innerHTML = `
                         <tr>
                             <td colspan="5" class="px-6 py-4 text-center text-gray-500">Aucune donnée comptable</td>
                         </tr>
                     `;
                 } else {
-                    const detailRows = studentsData.map(studentData => {
+                    const detailRows = studentsWithAccounting.map(studentData => {
                         const costs = studentData.data.accountCosts || [];
                         const payouts = studentData.data.payouts || [];
                         const totalCosts = costs.reduce((sum, c) => sum + parseFloat(c.amount || c.cost || c.price || 0), 0);
