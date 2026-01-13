@@ -1,7 +1,8 @@
 // ====================================
-// COACH DASHBOARD GLOBAL
+// COACH DASHBOARD GLOBAL - v2.0
 // ====================================
 // Dashboard complet pour le coach avec tous les graphiques et stats agrégées de tous les élèves
+// Mise à jour: Fix conflit avec ancienne fonction index.html
 
 (function() {
     'use strict';
