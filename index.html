@@ -3102,10 +3102,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     setup: setup || null,
                     notes: notes || null,
                     manual_pnl: manual_pnl ? parseFloat(manual_pnl) : null,
-                    protections: protections.length > 0 ? protections.join(',') : null
+                    protections: protections.length > 0 ? protections : null // ✅ Envoyer un ARRAY
                 };
                 
-                console.log('[UI] Payload final:', tradeData);
+                console.log('[UI] Payload final avec protections:', tradeData.protections);
                 
                 // Appel module
                 if (typeof window.addTrade !== 'function') {
@@ -4622,6 +4622,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             stopLoss: trade.stop_loss,
                             takeProfit: trade.take_profit,
                             setup: trade.setup || 'N/A',
+                            protections: trade.protections || [],  // ✅ Ajouter les protections (ARRAY)
                             notes: trade.notes || ''
                         };
                     });
