@@ -657,9 +657,9 @@
         const daysOfWeek = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
         
         // Header du calendrier
-        calendarHTML += '<div class="grid grid-cols-7 gap-1 mb-2">';
+        calendarHTML += '<div class="grid grid-cols-7 gap-1 mb-1">';
         daysOfWeek.forEach(day => {
-            calendarHTML += `<div class="text-center text-xs font-semibold text-gray-600 py-1">${day}</div>`;
+            calendarHTML += `<div class="text-center text-[10px] font-bold text-gray-700 py-1">${day}</div>`;
         });
         calendarHTML += '</div>';
         
@@ -684,20 +684,22 @@
             
             const dayPnl = dayTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
             
-            let cellClass = 'text-center p-1.5 rounded text-xs';
+            let cellClass = 'text-center p-1 rounded-lg text-xs min-h-[45px] flex flex-col justify-center';
             if (!isCurrentMonth) {
-                cellClass += ' text-gray-300 bg-gray-50';
+                cellClass += ' text-gray-400 bg-white';
             } else if (dayTrades.length > 0) {
-                cellClass += dayPnl > 0 
-                    ? ' bg-green-100 text-green-800 font-semibold' 
-                    : ' bg-red-100 text-red-800 font-semibold';
+                if (dayPnl > 0) {
+                    cellClass += ' bg-green-500 text-white font-bold shadow-sm';
+                } else {
+                    cellClass += ' bg-red-500 text-white font-bold shadow-sm';
+                }
             } else {
-                cellClass += ' text-gray-700';
+                cellClass += ' text-gray-600 bg-white border border-gray-200';
             }
             
-            let cellContent = `<div class="font-semibold">${date.getDate()}</div>`;
+            let cellContent = `<div class="font-semibold text-sm">${date.getDate()}</div>`;
             if (dayTrades.length > 0 && isCurrentMonth) {
-                cellContent += `<div class="text-[10px] font-bold mt-0.5">${dayPnl > 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>`;
+                cellContent += `<div class="text-[10px] font-bold mt-0.5">${dayPnl > 0 ? '+' : ''}$${Math.abs(dayPnl).toFixed(0)}</div>`;
             }
             
             calendarHTML += `<div class="${cellClass}">${cellContent}</div>`;
@@ -707,7 +709,7 @@
         // Créer le modal HTML
         const modalHTML = `
             <div id="studentDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onclick="closeStudentDetailsModal(event)">
-                <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+                <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
                     <!-- Header - Plus compact -->
                     <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-3 flex-shrink-0">
                         <div class="flex justify-between items-center">
@@ -815,17 +817,21 @@
                                 <i class="fas fa-calendar-alt mr-2 text-indigo-600"></i>
                                 Calendrier ${monthNames[currentMonth]} ${currentYear}
                             </h3>
-                            <div class="bg-gray-50 p-3 rounded">
+                            <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-3 rounded-lg border border-gray-200">
                                 ${calendarHTML}
                             </div>
-                            <div class="flex justify-center gap-4 mt-2 text-xs">
+                            <div class="flex justify-center gap-6 mt-3 text-xs">
                                 <div class="flex items-center">
-                                    <div class="w-3 h-3 bg-green-100 rounded mr-1"></div>
-                                    <span class="text-gray-600">Gain</span>
+                                    <div class="w-4 h-4 bg-green-500 rounded shadow-sm mr-1.5"></div>
+                                    <span class="text-gray-700 font-medium">Gain</span>
                                 </div>
                                 <div class="flex items-center">
-                                    <div class="w-3 h-3 bg-red-100 rounded mr-1"></div>
-                                    <span class="text-gray-600">Perte</span>
+                                    <div class="w-4 h-4 bg-red-500 rounded shadow-sm mr-1.5"></div>
+                                    <span class="text-gray-700 font-medium">Perte</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-4 h-4 bg-white border-2 border-gray-300 rounded mr-1.5"></div>
+                                    <span class="text-gray-700 font-medium">Aucun trade</span>
                                 </div>
                             </div>
                         </div>
