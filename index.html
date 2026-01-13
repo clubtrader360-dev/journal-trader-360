@@ -2316,6 +2316,273 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         // Variables import CSV
         let csvParsedTrades = [];
 
+        // ========================================
+        // FONCTIONS IMPORT CSV
+        // ========================================
+        
+        function handleCSVUpload(event) {
+            console.log('[CSV] handleCSVUpload - START');
+            const file = event.target.files[0];
+            
+            if (!file) {
+                console.warn('[CSV] Aucun fichier sélectionné');
+                return;
+            }
+            
+            // Vérifier le compte cible
+            const targetAccountId = document.getElementById('csvTargetAccount')?.value;
+            if (!targetAccountId) {
+                alert('⚠️ Veuillez sélectionner un compte de destination');
+                return;
+            }
+            
+            // Afficher le nom du fichier
+            document.getElementById('csvFileNameText').textContent = file.name;
+            document.getElementById('csvFileName').style.display = 'block';
+            
+            // Lire le fichier CSV
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csvText = e.target.result;
+                    console.log('[CSV] Fichier lu:', csvText.substring(0, 200) + '...');
+                    
+                    // Parser le CSV
+                    const parsedTrades = parseCSV(csvText, parseInt(targetAccountId));
+                    
+                    if (parsedTrades.length === 0) {
+                        alert('❌ Aucun trade valide trouvé dans le fichier CSV');
+                        return;
+                    }
+                    
+                    // Stocker les trades parsés
+                    csvParsedTrades = parsedTrades;
+                    
+                    // Afficher la prévisualisation
+                    displayCSVPreview(parsedTrades);
+                    
+                    // Passer à l'étape 2
+                    document.getElementById('csvUploadStep').style.display = 'none';
+                    document.getElementById('csvPreviewStep').style.display = 'block';
+                    
+                    console.log('[CSV] ✅', parsedTrades.length, 'trades prêts à être importés');
+                } catch (err) {
+                    console.error('[CSV] ❌ Erreur parsing:', err);
+                    alert('❌ Erreur lors de la lecture du fichier CSV: ' + err.message);
+                }
+            };
+            
+            reader.onerror = function() {
+                console.error('[CSV] ❌ Erreur lecture fichier');
+                alert('❌ Erreur lors de la lecture du fichier');
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        function parseCSV(csvText, targetAccountId) {
+            console.log('[CSV] parseCSV - START', 'targetAccountId:', targetAccountId);
+            
+            // Séparer les lignes
+            const lines = csvText.trim().split('\n').map(l => l.trim()).filter(l => l);
+            
+            if (lines.length < 2) {
+                throw new Error('Le fichier CSV doit contenir au moins un en-tête et une ligne de données');
+            }
+            
+            // Parser l'en-tête
+            const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+            console.log('[CSV] En-tête détecté:', header);
+            
+            // Trouver les indices des colonnes
+            const colIndices = {
+                date: header.findIndex(h => h.includes('date')),
+                symbol: header.findIndex(h => h.includes('symbol') || h.includes('instrument')),
+                type: header.findIndex(h => h.includes('type') || h.includes('direction') || h.includes('side')),
+                entryPrice: header.findIndex(h => h.includes('entry') && (h.includes('price') || h.includes('prix'))),
+                exitPrice: header.findIndex(h => h.includes('exit') && (h.includes('price') || h.includes('prix'))),
+                quantity: header.findIndex(h => h.includes('quantity') || h.includes('qty') || h.includes('contracts')),
+                pnl: header.findIndex(h => h.includes('p&l') || h.includes('pnl') || h.includes('profit')),
+                entryTime: header.findIndex(h => h.includes('entry') && h.includes('time')),
+                exitTime: header.findIndex(h => h.includes('exit') && h.includes('time'))
+            };
+            
+            console.log('[CSV] Indices des colonnes:', colIndices);
+            
+            // Vérifier les colonnes obligatoires
+            const missingCols = [];
+            if (colIndices.date === -1) missingCols.push('Date');
+            if (colIndices.symbol === -1) missingCols.push('Symbol');
+            if (colIndices.type === -1) missingCols.push('Type');
+            if (colIndices.entryPrice === -1) missingCols.push('Entry Price');
+            if (colIndices.exitPrice === -1) missingCols.push('Exit Price');
+            if (colIndices.quantity === -1) missingCols.push('Quantity');
+            
+            if (missingCols.length > 0) {
+                throw new Error('Colonnes manquantes: ' + missingCols.join(', '));
+            }
+            
+            // Parser les trades
+            const trades = [];
+            for (let i = 1; i < lines.length; i++) {
+                try {
+                    const values = lines[i].split(',').map(v => v.trim());
+                    
+                    // Normaliser le type
+                    let tradeType = values[colIndices.type].toUpperCase();
+                    if (tradeType === 'BUY') tradeType = 'LONG';
+                    if (tradeType === 'SELL') tradeType = 'SHORT';
+                    
+                    // Calculer le P&L si pas fourni
+                    const symbol = values[colIndices.symbol].toUpperCase();
+                    const entryPrice = parseFloat(values[colIndices.entryPrice]);
+                    const exitPrice = parseFloat(values[colIndices.exitPrice]);
+                    const quantity = parseInt(values[colIndices.quantity]);
+                    
+                    let pnl = colIndices.pnl !== -1 ? parseFloat(values[colIndices.pnl]) : null;
+                    
+                    if (pnl === null) {
+                        // Calcul automatique pour ES et MES
+                        const multiplier = symbol === 'MES' ? 5 : symbol === 'ES' ? 50 : 1;
+                        pnl = (exitPrice - entryPrice) * quantity * multiplier;
+                        if (tradeType === 'SHORT') pnl = -pnl;
+                    }
+                    
+                    const trade = {
+                        account_id: targetAccountId,
+                        trade_date: values[colIndices.date],
+                        symbol: symbol,
+                        trade_type: tradeType,
+                        entry_price: entryPrice,
+                        exit_price: exitPrice,
+                        quantity: quantity,
+                        entry_time: colIndices.entryTime !== -1 ? values[colIndices.entryTime] : '09:30',
+                        exit_time: colIndices.exitTime !== -1 ? values[colIndices.exitTime] : '16:00',
+                        pnl: pnl,
+                        setup: null,
+                        notes: null,
+                        protections: null
+                    };
+                    
+                    trades.push(trade);
+                    console.log('[CSV] Trade parsé:', i, trade);
+                } catch (err) {
+                    console.warn('[CSV] ⚠️ Ligne', i, 'ignorée:', err.message);
+                }
+            }
+            
+            return trades;
+        }
+        
+        function displayCSVPreview(trades) {
+            const tbody = document.getElementById('csvPreviewTable');
+            const tradeCount = document.getElementById('csvTradeCount');
+            const importCount = document.getElementById('csvImportCount');
+            
+            tradeCount.textContent = trades.length;
+            importCount.textContent = trades.length;
+            
+            tbody.innerHTML = trades.map((trade, idx) => {
+                const pnlColor = trade.pnl >= 0 ? 'text-green-600' : 'text-red-600';
+                const pnlBg = trade.pnl >= 0 ? 'bg-green-50' : 'bg-red-50';
+                
+                return `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-3 py-2 text-sm">${trade.trade_date}</td>
+                        <td class="px-3 py-2 text-sm font-medium">${trade.symbol}</td>
+                        <td class="px-3 py-2 text-sm">
+                            <span class="px-2 py-1 rounded text-xs ${trade.trade_type === 'LONG' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}">
+                                ${trade.trade_type}
+                            </span>
+                        </td>
+                        <td class="px-3 py-2 text-sm">${trade.entry_price.toFixed(2)}</td>
+                        <td class="px-3 py-2 text-sm">${trade.exit_price.toFixed(2)}</td>
+                        <td class="px-3 py-2 text-sm">${trade.quantity}</td>
+                        <td class="px-3 py-2 text-sm ${pnlColor} font-semibold">${trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}$</td>
+                        <td class="px-3 py-2 text-center">
+                            <span class="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-700">
+                                <i class="fas fa-clock mr-1"></i>En attente
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        async function confirmCSVImport() {
+            console.log('[CSV] confirmCSVImport - START');
+            
+            if (csvParsedTrades.length === 0) {
+                alert('⚠️ Aucun trade à importer');
+                return;
+            }
+            
+            if (!window.addTrade || typeof window.addTrade !== 'function') {
+                alert('❌ Module d\'import non disponible');
+                console.error('[CSV] window.addTrade non disponible');
+                return;
+            }
+            
+            try {
+                let successCount = 0;
+                let errorCount = 0;
+                
+                for (let i = 0; i < csvParsedTrades.length; i++) {
+                    try {
+                        const trade = csvParsedTrades[i];
+                        console.log('[CSV] Import trade', i + 1, '/', csvParsedTrades.length);
+                        
+                        const result = await window.addTrade(trade);
+                        
+                        if (result && !result.error) {
+                            successCount++;
+                        } else {
+                            errorCount++;
+                            console.error('[CSV] ❌ Erreur import trade', i + 1, ':', result?.error);
+                        }
+                    } catch (err) {
+                        errorCount++;
+                        console.error('[CSV] ❌ Exception import trade', i + 1, ':', err);
+                    }
+                }
+                
+                console.log('[CSV] ✅ Import terminé:', successCount, 'réussis,', errorCount, 'échoués');
+                
+                // Fermer la modal
+                document.getElementById('importCSVModal').style.display = 'none';
+                
+                // Réinitialiser
+                csvParsedTrades = [];
+                document.getElementById('csvFileInput').value = '';
+                document.getElementById('csvUploadStep').style.display = 'block';
+                document.getElementById('csvPreviewStep').style.display = 'none';
+                document.getElementById('csvFileName').style.display = 'none';
+                
+                // Rafraîchir les données
+                if (typeof window.refreshAllModules === 'function') {
+                    await window.refreshAllModules();
+                }
+                
+                // Afficher le résultat
+                alert(`✅ Import terminé !\n\n${successCount} trade(s) importé(s)\n${errorCount} erreur(s)`);
+                
+            } catch (err) {
+                console.error('[CSV] ❌ Erreur globale:', err);
+                alert('❌ Erreur lors de l\'import: ' + err.message);
+            }
+        }
+        
+        function cancelCSVImport() {
+            console.log('[CSV] cancelCSVImport - Annulation');
+            
+            // Réinitialiser
+            csvParsedTrades = [];
+            document.getElementById('csvFileInput').value = '';
+            document.getElementById('csvUploadStep').style.display = 'block';
+            document.getElementById('csvPreviewStep').style.display = 'none';
+            document.getElementById('csvFileName').style.display = 'none';
+        }
+
         // FONCTION HELPER: Obtenir les trades filtrés par compte
         function getFilteredTrades() {
             // Si aucun compte n'existe, retourner tous les trades
