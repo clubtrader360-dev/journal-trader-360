@@ -6784,6 +6784,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         
         function loadCoachDashboard() {
             console.log("[DATA] Chargement dashboard coach...");
+            
+            // Appeler la fonction Supabase si elle existe
+            if (typeof loadCoachStats === 'function') {
+                loadCoachStats();
+            }
+            
             const studentsData = getAllStudentsData();
             
             // Calculer les stats globales
