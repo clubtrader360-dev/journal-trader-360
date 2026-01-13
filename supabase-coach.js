@@ -641,7 +641,7 @@
         const netProfit = totalPayouts - totalCosts;
         const roi = totalCosts > 0 ? ((netProfit / totalCosts) * 100).toFixed(1) : 0;
         
-        // Générer le calendrier EXACTEMENT comme dans le dashboard élève
+        // Préparer les variables pour le calendrier
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
@@ -653,60 +653,6 @@
         startDate.setDate(startDate.getDate() - firstDay.getDay());
         
         const daysOfWeek = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-        
-        let calendarHTML = '';
-        
-        // Header jours de la semaine
-        calendarHTML += '<div class="grid grid-cols-7 gap-2 mb-4">';
-        daysOfWeek.forEach(day => {
-            calendarHTML += `<div class="text-center font-semibold text-gray-600 py-2">${day}</div>`;
-        });
-        calendarHTML += '</div>';
-        
-        // Grille calendrier
-        calendarHTML += '<div class="grid grid-cols-7 gap-2">';
-        for (let i = 0; i < 42; i++) {
-            const date = new Date(startDate.getTime());
-            date.setDate(date.getDate() + i);
-            
-            const isCurrentMonth = date.getMonth() === currentMonth;
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const dateString = `${year}-${month}-${day}`;
-            
-            const dayTrades = trades.filter(trade => {
-                if (!trade.date) return false;
-                const tradeDate = trade.date.split('T')[0];
-                return tradeDate === dateString;
-            });
-            
-            const dayPnl = dayTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
-            
-            let className = 'text-center py-3 cursor-pointer rounded transition-all';
-            if (!isCurrentMonth) {
-                className += ' text-gray-300';
-            } else if (dayTrades.length > 0) {
-                className += dayPnl > 0 ? ' bg-green-100 text-green-800 hover:bg-green-200' : ' bg-red-100 text-red-800 hover:bg-red-200';
-            } else {
-                className += ' text-gray-700 hover:bg-gray-100';
-            }
-            
-            let cellContent = `<div class="font-semibold">${date.getDate()}</div>`;
-            
-            if (dayTrades.length > 0 && isCurrentMonth) {
-                const tradeCount = dayTrades.length;
-                const winningTrades = dayTrades.filter(t => t.pnl > 0).length;
-                const winRate = ((winningTrades / tradeCount) * 100).toFixed(0);
-                
-                cellContent += '<div class="text-xs mt-1 space-y-0.5">';
-                cellContent += `<div class="font-semibold">${dayPnl > 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>`;
-                cellContent += '</div>';
-            }
-            
-            calendarHTML += `<div class="${className}">${cellContent}</div>`;
-        }
-        calendarHTML += '</div>';
         
         // Créer le modal HTML avec layout VERTICAL scrollable
         const modalHTML = `
@@ -806,7 +752,15 @@
                                 </h3>
                             </div>
                             
-                            ${calendarHTML}
+                            <!-- Header jours de la semaine -->
+                            <div class="grid grid-cols-7 gap-2 mb-4">
+                                ${daysOfWeek.map(day => `<div class="text-center font-semibold text-gray-600 py-2">${day}</div>`).join('')}
+                            </div>
+                            
+                            <!-- Grille calendrier - Sera remplie par JavaScript -->
+                            <div id="modalCalendarGrid" class="grid grid-cols-7 gap-2">
+                                <!-- Les cellules seront ajoutées ici -->
+                            </div>
                         </div>
                         
                         <!-- Informations -->
@@ -853,6 +807,51 @@
             existingModal.remove();
         }
         document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // MAINTENANT remplir le calendrier avec les vraies cellules
+        const calendarGrid = document.getElementById('modalCalendarGrid');
+        if (calendarGrid) {
+            let calendarCells = '';
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate.getTime());
+                date.setDate(date.getDate() + i);
+                
+                const isCurrentMonth = date.getMonth() === currentMonth;
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const dateString = `${year}-${month}-${day}`;
+                
+                const dayTrades = trades.filter(trade => {
+                    if (!trade.date) return false;
+                    const tradeDate = trade.date.split('T')[0];
+                    return tradeDate === dateString;
+                });
+                
+                const dayPnl = dayTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
+                
+                let className = 'text-center py-3 cursor-pointer rounded transition-all';
+                if (!isCurrentMonth) {
+                    className += ' text-gray-300';
+                } else if (dayTrades.length > 0) {
+                    className += dayPnl > 0 ? ' bg-green-100 text-green-800 hover:bg-green-200' : ' bg-red-100 text-red-800 hover:bg-red-200';
+                } else {
+                    className += ' text-gray-700 hover:bg-gray-100';
+                }
+                
+                let cellContent = `<div class="font-semibold">${date.getDate()}</div>`;
+                
+                if (dayTrades.length > 0 && isCurrentMonth) {
+                    cellContent += '<div class="text-xs mt-1 space-y-0.5">';
+                    cellContent += `<div class="font-semibold">${dayPnl > 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>`;
+                    cellContent += '</div>';
+                }
+                
+                calendarCells += `<div class="${className}">${cellContent}</div>`;
+            }
+            calendarGrid.innerHTML = calendarCells;
+            console.log('[COACH] 📅 Calendrier rempli avec', trades.length, 'trades');
+        }
         
         console.log('[COACH] 📊 Modal détails ouvert pour:', student.email);
     }
