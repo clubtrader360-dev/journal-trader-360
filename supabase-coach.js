@@ -473,7 +473,9 @@
             }
 
             // Afficher le tableau "Détail par Élève"
-            const detailTableBody = document.getElementById('coachAccountingDetailTable');
+            const detailTableBody = document.getElementById('coachAccountingBreakdown');  // ✅ BON ID
+            console.log('[COACH] 🔍 Element coachAccountingBreakdown:', detailTableBody ? 'TROUVÉ' : '❌ INTROUVABLE');
+            
             if (detailTableBody) {
                 // Filtrer les élèves qui ont au moins un coût OU un payout
                 const studentsWithAccounting = studentsData.filter(studentData => {
@@ -481,6 +483,8 @@
                     const payouts = studentData.data.payouts || [];
                     return costs.length > 0 || payouts.length > 0;
                 });
+
+                console.log('[COACH] 👥 Élèves avec comptabilité:', studentsWithAccounting.length);
 
                 if (studentsWithAccounting.length === 0) {
                     detailTableBody.innerHTML = `
@@ -508,8 +512,13 @@
                         `;
                     }).join('');
                     
+                    console.log('[COACH] 📋 HTML généré pour', studentsWithAccounting.length, 'élève(s)');
+                    console.log('[COACH] 📋 Premier élève:', studentsWithAccounting[0]?.user?.email);
                     detailTableBody.innerHTML = detailRows;
+                    console.log('[COACH] ✅ Tableau Détail par Élève mis à jour');
                 }
+            } else {
+                console.error('[COACH] ❌ Element coachAccountingBreakdown NOT FOUND in DOM');
             }
 
             // Afficher les tableaux "Tous les Comptes Achetés" et "Tous les Payouts"
