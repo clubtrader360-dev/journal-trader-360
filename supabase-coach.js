@@ -331,6 +331,28 @@
                     .select('*')
                     .eq('user_id', uuid);
 
+                // Calculer le P&L si manquant
+                if (trades && trades.length > 0) {
+                    trades.forEach(trade => {
+                        if (trade.pnl === null || trade.pnl === undefined) {
+                            // Calculer automatiquement le P&L
+                            const entry = parseFloat(trade.entry) || 0;
+                            const exit = parseFloat(trade.exit) || 0;
+                            const quantity = parseFloat(trade.quantity) || 1;
+                            
+                            if (trade.type === 'Long') {
+                                trade.pnl = (exit - entry) * quantity;
+                            } else if (trade.type === 'Short') {
+                                trade.pnl = (entry - exit) * quantity;
+                            } else {
+                                trade.pnl = 0;
+                            }
+                            
+                            console.log(`[COACH] 🔧 P&L calculé pour trade ${trade.id}: ${trade.pnl.toFixed(2)}`);
+                        }
+                    });
+                }
+
                 // Récupérer accounts
                 const { data: accounts, error: accountsError } = await supabase
                     .from('accounts')
