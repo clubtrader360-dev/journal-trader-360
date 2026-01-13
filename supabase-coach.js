@@ -641,7 +641,7 @@
         const netProfit = totalPayouts - totalCosts;
         const roi = totalCosts > 0 ? ((netProfit / totalCosts) * 100).toFixed(1) : 0;
         
-        // Générer le calendrier du mois en cours
+        // Générer le calendrier EXACTEMENT comme dans le dashboard élève
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
@@ -649,22 +649,22 @@
             "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
         
         const firstDay = new Date(currentYear, currentMonth, 1);
-        const lastDay = new Date(currentYear, currentMonth + 1, 0);
         const startDate = new Date(firstDay);
         startDate.setDate(startDate.getDate() - firstDay.getDay());
         
-        let calendarHTML = '';
         const daysOfWeek = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
         
-        // Header du calendrier
-        calendarHTML += '<div class="grid grid-cols-7 gap-1 mb-1">';
+        let calendarHTML = '';
+        
+        // Header jours de la semaine
+        calendarHTML += '<div class="grid grid-cols-7 gap-2 mb-4">';
         daysOfWeek.forEach(day => {
-            calendarHTML += `<div class="text-center text-[10px] font-bold text-gray-700 py-1">${day}</div>`;
+            calendarHTML += `<div class="text-center font-semibold text-gray-600 py-2">${day}</div>`;
         });
         calendarHTML += '</div>';
         
-        // Grille du calendrier
-        calendarHTML += '<div class="grid grid-cols-7 gap-1">';
+        // Grille calendrier
+        calendarHTML += '<div class="grid grid-cols-7 gap-2">';
         for (let i = 0; i < 42; i++) {
             const date = new Date(startDate.getTime());
             date.setDate(date.getDate() + i);
@@ -675,7 +675,6 @@
             const day = String(date.getDate()).padStart(2, '0');
             const dateString = `${year}-${month}-${day}`;
             
-            // Filtrer les trades du jour
             const dayTrades = trades.filter(trade => {
                 if (!trade.date) return false;
                 const tradeDate = trade.date.split('T')[0];
@@ -684,38 +683,42 @@
             
             const dayPnl = dayTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
             
-            let cellClass = 'text-center p-1 rounded-lg text-xs min-h-[45px] flex flex-col justify-center';
+            let className = 'text-center py-3 cursor-pointer rounded transition-all';
             if (!isCurrentMonth) {
-                cellClass += ' text-gray-400 bg-white';
+                className += ' text-gray-300';
             } else if (dayTrades.length > 0) {
-                if (dayPnl > 0) {
-                    cellClass += ' bg-green-500 text-white font-bold shadow-sm';
-                } else {
-                    cellClass += ' bg-red-500 text-white font-bold shadow-sm';
-                }
+                className += dayPnl > 0 ? ' bg-green-100 text-green-800 hover:bg-green-200' : ' bg-red-100 text-red-800 hover:bg-red-200';
             } else {
-                cellClass += ' text-gray-600 bg-white border border-gray-200';
+                className += ' text-gray-700 hover:bg-gray-100';
             }
             
-            let cellContent = `<div class="font-semibold text-sm">${date.getDate()}</div>`;
+            let cellContent = `<div class="font-semibold">${date.getDate()}</div>`;
+            
             if (dayTrades.length > 0 && isCurrentMonth) {
-                cellContent += `<div class="text-[10px] font-bold mt-0.5">${dayPnl > 0 ? '+' : ''}$${Math.abs(dayPnl).toFixed(0)}</div>`;
+                const tradeCount = dayTrades.length;
+                const winningTrades = dayTrades.filter(t => t.pnl > 0).length;
+                const winRate = ((winningTrades / tradeCount) * 100).toFixed(0);
+                
+                cellContent += '<div class="text-xs mt-1 space-y-0.5">';
+                cellContent += `<div class="font-semibold">${dayPnl > 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>`;
+                cellContent += '</div>';
             }
             
-            calendarHTML += `<div class="${cellClass}">${cellContent}</div>`;
+            calendarHTML += `<div class="${className}">${cellContent}</div>`;
         }
         calendarHTML += '</div>';
         
-        // Créer le modal HTML
+        // Créer le modal HTML avec layout 2 colonnes
         const modalHTML = `
             <div id="studentDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onclick="closeStudentDetailsModal(event)">
-                <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
-                    <!-- Header - Plus compact -->
-                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-3 flex-shrink-0">
+                <div class="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+                    
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 flex-shrink-0">
                         <div class="flex justify-between items-center">
                             <div>
-                                <h2 class="text-xl font-bold">${student.name}</h2>
-                                <p class="text-blue-100 text-sm">${student.email}</p>
+                                <h2 class="text-2xl font-bold">${student.name}</h2>
+                                <p class="text-blue-100">${student.email}</p>
                             </div>
                             <button onclick="closeStudentDetailsModal()" class="text-white hover:text-gray-200 text-3xl font-bold leading-none">
                                 &times;
@@ -723,129 +726,126 @@
                         </div>
                     </div>
                     
-                    <!-- Body - Scrollable -->
-                    <div class="overflow-y-auto flex-1 p-5 space-y-4">
-                        <!-- Trading Stats -->
-                        <div class="border-b pb-3">
-                            <h3 class="text-base font-semibold text-gray-800 mb-2 flex items-center">
-                                <i class="fas fa-chart-line mr-2 text-blue-600"></i>
-                                Statistiques de Trading
-                            </h3>
-                            <div class="grid grid-cols-3 gap-3">
-                                <div class="bg-gray-50 p-2 rounded text-center">
-                                    <div class="text-xs text-gray-600">Total</div>
-                                    <div class="text-xl font-bold text-gray-800">${trades.length}</div>
+                    <!-- Body avec 2 colonnes -->
+                    <div class="overflow-y-auto flex-1 p-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            
+                            <!-- Colonne gauche: Statistiques -->
+                            <div class="space-y-6">
+                                <!-- Trading Stats -->
+                                <div class="bg-white rounded-lg border border-gray-200 p-5">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center border-b pb-2">
+                                        <i class="fas fa-chart-line mr-2 text-blue-600"></i>
+                                        Statistiques de Trading
+                                    </h3>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                                            <div class="text-sm text-gray-600">Total Trades</div>
+                                            <div class="text-2xl font-bold text-gray-800">${trades.length}</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                                            <div class="text-sm text-gray-600">Win Rate</div>
+                                            <div class="text-2xl font-bold ${parseFloat(winRate) >= 50 ? 'text-green-600' : 'text-red-600'}">${winRate}%</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                                            <div class="text-sm text-gray-600">Gagnants</div>
+                                            <div class="text-2xl font-bold text-green-600">${wins}</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                                            <div class="text-sm text-gray-600">Perdants</div>
+                                            <div class="text-2xl font-bold text-red-600">${losses}</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-3 rounded-lg text-center col-span-2">
+                                            <div class="text-sm text-gray-600">P&L Total</div>
+                                            <div class="text-3xl font-bold ${totalPnl >= 0 ? 'text-green-600' : 'text-red-600'}">$${totalPnl.toFixed(2)}</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-3 rounded-lg text-center col-span-2">
+                                            <div class="text-sm text-gray-600">P&L Moyen par Trade</div>
+                                            <div class="text-2xl font-bold ${avgPnl >= 0 ? 'text-green-600' : 'text-red-600'}">$${avgPnl}</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="bg-gray-50 p-2 rounded text-center">
-                                    <div class="text-xs text-gray-600">Win Rate</div>
-                                    <div class="text-xl font-bold ${parseFloat(winRate) >= 50 ? 'text-green-600' : 'text-red-600'}">${winRate}%</div>
+                                
+                                <!-- Comptabilité -->
+                                <div class="bg-white rounded-lg border border-gray-200 p-5">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center border-b pb-2">
+                                        <i class="fas fa-dollar-sign mr-2 text-green-600"></i>
+                                        Comptabilité
+                                    </h3>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                                            <div class="text-sm text-gray-600">Comptes</div>
+                                            <div class="text-2xl font-bold text-gray-800">${accounts.length}</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                                            <div class="text-sm text-gray-600">Total Investi</div>
+                                            <div class="text-xl font-bold text-red-600">$${totalCosts.toFixed(2)}</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                                            <div class="text-sm text-gray-600">Total Payouts</div>
+                                            <div class="text-xl font-bold text-green-600">$${totalPayouts.toFixed(2)}</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                                            <div class="text-sm text-gray-600">Bénéfice Net</div>
+                                            <div class="text-xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}">$${netProfit.toFixed(2)}</div>
+                                        </div>
+                                        <div class="bg-gray-50 p-3 rounded-lg text-center col-span-2">
+                                            <div class="text-sm text-gray-600">ROI</div>
+                                            <div class="text-3xl font-bold ${roi >= 0 ? 'text-green-600' : 'text-red-600'}">${roi}%</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="bg-gray-50 p-2 rounded text-center">
-                                    <div class="text-xs text-gray-600">Gagnants</div>
-                                    <div class="text-xl font-bold text-green-600">${wins}</div>
-                                </div>
-                                <div class="bg-gray-50 p-2 rounded text-center">
-                                    <div class="text-xs text-gray-600">Perdants</div>
-                                    <div class="text-xl font-bold text-red-600">${losses}</div>
-                                </div>
-                                <div class="bg-gray-50 p-2 rounded text-center">
-                                    <div class="text-xs text-gray-600">P&L Total</div>
-                                    <div class="text-xl font-bold ${totalPnl >= 0 ? 'text-green-600' : 'text-red-600'}">$${totalPnl.toFixed(2)}</div>
-                                </div>
-                                <div class="bg-gray-50 p-2 rounded text-center">
-                                    <div class="text-xs text-gray-600">P&L Moyen</div>
-                                    <div class="text-xl font-bold ${avgPnl >= 0 ? 'text-green-600' : 'text-red-600'}">$${avgPnl}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Accounting Stats -->
-                        <div class="border-b pb-3">
-                            <h3 class="text-base font-semibold text-gray-800 mb-2 flex items-center">
-                                <i class="fas fa-dollar-sign mr-2 text-green-600"></i>
-                                Comptabilité
-                            </h3>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-gray-50 p-2 rounded text-center">
-                                    <div class="text-xs text-gray-600">Comptes</div>
-                                    <div class="text-xl font-bold text-gray-800">${accounts.length}</div>
-                                </div>
-                                <div class="bg-gray-50 p-2 rounded text-center">
-                                    <div class="text-xs text-gray-600">Investi</div>
-                                    <div class="text-xl font-bold text-red-600">$${totalCosts.toFixed(2)}</div>
-                                </div>
-                                <div class="bg-gray-50 p-2 rounded text-center">
-                                    <div class="text-xs text-gray-600">Payouts</div>
-                                    <div class="text-xl font-bold text-green-600">$${totalPayouts.toFixed(2)}</div>
-                                </div>
-                                <div class="bg-gray-50 p-2 rounded text-center">
-                                    <div class="text-xs text-gray-600">Bénéfice Net</div>
-                                    <div class="text-xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}">$${netProfit.toFixed(2)}</div>
-                                </div>
-                                <div class="bg-gray-50 p-2 rounded text-center col-span-2">
-                                    <div class="text-xs text-gray-600">ROI</div>
-                                    <div class="text-2xl font-bold ${roi >= 0 ? 'text-green-600' : 'text-red-600'}">${roi}%</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Account Details -->
-                        <div class="border-b pb-3">
-                            <h3 class="text-base font-semibold text-gray-800 mb-2 flex items-center">
-                                <i class="fas fa-info-circle mr-2 text-purple-600"></i>
-                                Informations
-                            </h3>
-                            <div class="space-y-1 text-sm">
-                                <div class="flex justify-between py-1.5 border-b">
-                                    <span class="text-gray-600">Date d'inscription</span>
-                                    <span class="font-semibold">${new Date(student.created_at).toLocaleDateString('fr-FR')}</span>
-                                </div>
-                                <div class="flex justify-between py-1.5 border-b">
-                                    <span class="text-gray-600">Statut</span>
-                                    <span class="px-2 py-0.5 rounded text-xs bg-green-100 text-green-800">Actif</span>
-                                </div>
-                                <div class="flex justify-between py-1.5">
-                                    <span class="text-gray-600">UUID</span>
-                                    <span class="font-mono text-xs text-gray-500">${student.uuid.substring(0, 8)}...</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Calendrier -->
-                        <div>
-                            <h3 class="text-base font-semibold text-gray-800 mb-2 flex items-center">
-                                <i class="fas fa-calendar-alt mr-2 text-indigo-600"></i>
-                                Calendrier ${monthNames[currentMonth]} ${currentYear}
-                            </h3>
-                            <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-3 rounded-lg border border-gray-200">
-                                ${calendarHTML}
-                            </div>
-                            <div class="flex justify-center gap-6 mt-3 text-xs">
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-green-500 rounded shadow-sm mr-1.5"></div>
-                                    <span class="text-gray-700 font-medium">Gain</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-red-500 rounded shadow-sm mr-1.5"></div>
-                                    <span class="text-gray-700 font-medium">Perte</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <div class="w-4 h-4 bg-white border-2 border-gray-300 rounded mr-1.5"></div>
-                                    <span class="text-gray-700 font-medium">Aucun trade</span>
+                                
+                                <!-- Informations -->
+                                <div class="bg-white rounded-lg border border-gray-200 p-5">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center border-b pb-2">
+                                        <i class="fas fa-info-circle mr-2 text-purple-600"></i>
+                                        Informations
+                                    </h3>
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between py-2 border-b">
+                                            <span class="text-gray-600 font-medium">Date d'inscription</span>
+                                            <span class="font-semibold">${new Date(student.created_at).toLocaleDateString('fr-FR')}</span>
+                                        </div>
+                                        <div class="flex justify-between py-2 border-b">
+                                            <span class="text-gray-600 font-medium">Statut</span>
+                                            <span class="px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 font-semibold">Actif</span>
+                                        </div>
+                                        <div class="flex justify-between py-2">
+                                            <span class="text-gray-600 font-medium">UUID</span>
+                                            <span class="font-mono text-xs text-gray-500">${student.uuid.substring(0, 8)}...</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                            
+                            <!-- Colonne droite: Calendrier -->
+                            <div>
+                                <div class="bg-white rounded-lg border border-gray-200 p-6">
+                                    <div class="flex justify-between items-center mb-6">
+                                        <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                                            <i class="fas fa-calendar-alt mr-2 text-indigo-600"></i>
+                                            ${monthNames[currentMonth]} ${currentYear}
+                                        </h3>
+                                    </div>
+                                    
+                                    ${calendarHTML}
+                                </div>
+                            </div>
+                            
                         </div>
                     </div>
                     
-                    <!-- Footer - Plus compact -->
-                    <div class="bg-gray-50 px-5 py-3 flex-shrink-0 flex justify-end space-x-2 border-t">
-                        <button onclick="closeStudentDetailsModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 transition">
+                    <!-- Footer -->
+                    <div class="bg-gray-50 px-6 py-4 flex-shrink-0 flex justify-end space-x-3 border-t">
+                        <button onclick="closeStudentDetailsModal()" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium">
                             Fermer
                         </button>
-                        <button onclick="closeStudentDetailsModal(); revokeAccess('${student.uuid}')" class="px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition">
-                            <i class="fas fa-ban mr-1"></i>Révoquer
+                        <button onclick="closeStudentDetailsModal(); revokeAccess('${student.uuid}')" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">
+                            <i class="fas fa-ban mr-2"></i>Révoquer Accès
                         </button>
                     </div>
+                    
                 </div>
             </div>
         `;
