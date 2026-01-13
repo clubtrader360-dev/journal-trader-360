@@ -196,9 +196,8 @@
             if (typeof loadCoachRegistrationsFromSupabase === 'function') {
                 await loadCoachRegistrationsFromSupabase();
             }
-            if (typeof refreshAllModules === 'function') {
-                refreshAllModules();
-            }
+            // ⚠️ NE PAS appeler refreshAllModules() pour le Coach !
+            // refreshAllModules() est uniquement pour les élèves
 
         } catch (err) {
             console.error('[ERROR] Erreur inattendue coach login:', err);
