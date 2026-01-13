@@ -358,6 +358,8 @@ async function loadAccounts() {
   // ========================================
   // 6️⃣ DELETE ACCOUNT
   // ========================================
+  // 6️⃣ DELETE ACCOUNT (+ trades associés)
+  // ========================================
   async function deleteAccount(accountId) {
     console.log('[TRADES] deleteAccount() - START', accountId);
 
@@ -367,6 +369,54 @@ async function loadAccounts() {
     }
 
     try {
+      // ✅ ÉTAPE 1 : Vérifier s'il y a des trades associés
+      console.log('[TRADES] 🔍 Vérification des trades associés...');
+      const { data: associatedTrades, error: checkError } = await supabase
+        .from('trades')
+        .select('id')
+        .eq('account_id', accountId)
+        .eq('user_id', window.currentUser.uuid);
+      
+      if (checkError) {
+        console.error('[TRADES] ❌ Erreur vérification trades:', checkError);
+        return { data: null, error: checkError };
+      }
+      
+      const tradeCount = associatedTrades?.length || 0;
+      console.log('[TRADES] 📊 Nombre de trades associés:', tradeCount);
+      
+      // ✅ ÉTAPE 2 : Confirmation si des trades existent
+      if (tradeCount > 0) {
+        const confirm = window.confirm(
+          `⚠️ Ce compte contient ${tradeCount} trade(s).\n\n` +
+          `Si vous supprimez ce compte, tous les trades associés seront également supprimés.\n\n` +
+          `Voulez-vous continuer ?`
+        );
+        
+        if (!confirm) {
+          console.log('[TRADES] 🚫 Suppression annulée par l\'utilisateur');
+          return { data: null, error: 'Cancelled by user' };
+        }
+        
+        // ✅ ÉTAPE 3 : Supprimer les trades associés
+        console.log('[TRADES] 🗑️ Suppression des', tradeCount, 'trades associés...');
+        const { error: deleteTradesError } = await supabase
+          .from('trades')
+          .delete()
+          .eq('account_id', accountId)
+          .eq('user_id', window.currentUser.uuid);
+        
+        if (deleteTradesError) {
+          console.error('[TRADES] ❌ Erreur suppression trades:', deleteTradesError);
+          alert('❌ Erreur lors de la suppression des trades. Le compte n\'a pas été supprimé.');
+          return { data: null, error: deleteTradesError };
+        }
+        
+        console.log('[TRADES] ✅ Trades associés supprimés');
+      }
+      
+      // ✅ ÉTAPE 4 : Supprimer le compte
+      console.log('[TRADES] 🗑️ Suppression du compte...');
       const { error } = await supabase
         .from('accounts')
         .delete()
@@ -379,7 +429,16 @@ async function loadAccounts() {
       }
 
       console.log('[TRADES] ✅ Compte supprimé:', accountId);
+      
+      // ✅ ÉTAPE 5 : Recharger les comptes ET les trades
       await loadAccounts();
+      await loadTrades();
+      
+      // ✅ ÉTAPE 6 : Rafraîchir l'interface
+      if (typeof window.refreshAllModules === 'function') {
+        window.refreshAllModules();
+      }
+      
       return { data: true, error: null };
     } catch (err) {
       console.error('[TRADES] ❌ Exception deleteAccount:', err);
