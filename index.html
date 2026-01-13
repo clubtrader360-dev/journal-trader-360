@@ -2394,17 +2394,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const header = lines[0].split(',').map(h => h.trim().toLowerCase());
             console.log('[CSV] En-tête détecté:', header);
             
-            // Trouver les indices des colonnes
+            // Trouver les indices des colonnes (détection améliorée)
             const colIndices = {
-                date: header.findIndex(h => h.includes('date')),
-                symbol: header.findIndex(h => h.includes('symbol') || h.includes('instrument')),
+                date: header.findIndex(h => h.includes('date') || h.includes('tradeday') || h.includes('day')),
+                symbol: header.findIndex(h => h.includes('symbol') || h.includes('instrument') || h.includes('contract')),
                 type: header.findIndex(h => h.includes('type') || h.includes('direction') || h.includes('side')),
-                entryPrice: header.findIndex(h => h.includes('entry') && (h.includes('price') || h.includes('prix'))),
-                exitPrice: header.findIndex(h => h.includes('exit') && (h.includes('price') || h.includes('prix'))),
-                quantity: header.findIndex(h => h.includes('quantity') || h.includes('qty') || h.includes('contracts')),
+                entryPrice: header.findIndex(h => (h.includes('entry') && h.includes('price')) || h === 'entryprice'),
+                exitPrice: header.findIndex(h => (h.includes('exit') && h.includes('price')) || h === 'exitprice'),
+                quantity: header.findIndex(h => h.includes('quantity') || h.includes('qty') || h.includes('contracts') || h.includes('size')),
                 pnl: header.findIndex(h => h.includes('p&l') || h.includes('pnl') || h.includes('profit')),
-                entryTime: header.findIndex(h => h.includes('entry') && h.includes('time')),
-                exitTime: header.findIndex(h => h.includes('exit') && h.includes('time'))
+                entryTime: header.findIndex(h => (h.includes('entry') || h.includes('entered')) && (h.includes('time') || h.includes('at'))),
+                exitTime: header.findIndex(h => (h.includes('exit') || h.includes('exited')) && (h.includes('time') || h.includes('at')))
             };
             
             console.log('[CSV] Indices des colonnes:', colIndices);
@@ -2433,12 +2433,64 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     if (tradeType === 'BUY') tradeType = 'LONG';
                     if (tradeType === 'SELL') tradeType = 'SHORT';
                     
-                    // Calculer le P&L si pas fourni
-                    const symbol = values[colIndices.symbol].toUpperCase();
+                    // Extraire le symbole (nettoyer les suffixes comme U5, M5, etc.)
+                    let symbol = values[colIndices.symbol].toUpperCase();
+                    // Détecter ES ou MES dans le nom du contrat (ex: ESU5 → ES)
+                    if (symbol.startsWith('ES') && symbol.length > 2) symbol = 'ES';
+                    if (symbol.startsWith('MES') && symbol.length > 3) symbol = 'MES';
+                    if (symbol.startsWith('NQ') && symbol.length > 2) symbol = 'NQ';
+                    
+                    // Parser les prix et quantité
                     const entryPrice = parseFloat(values[colIndices.entryPrice]);
                     const exitPrice = parseFloat(values[colIndices.exitPrice]);
                     const quantity = parseInt(values[colIndices.quantity]);
                     
+                    // Extraire la date (gérer les timestamps complets)
+                    let tradeDate = values[colIndices.date];
+                    if (tradeDate.includes(' ')) {
+                        // Format: "07/22/2025 14:02:09 +08:00" → "07/22/2025"
+                        tradeDate = tradeDate.split(' ')[0];
+                    }
+                    // Convertir MM/DD/YYYY en YYYY-MM-DD
+                    if (tradeDate.includes('/')) {
+                        const parts = tradeDate.split('/');
+                        if (parts.length === 3) {
+                            tradeDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+                        }
+                    }
+                    
+                    // Extraire les heures (gérer les timestamps complets)
+                    let entryTime = '09:30';
+                    let exitTime = '16:00';
+                    
+                    if (colIndices.entryTime !== -1) {
+                        const entryTimeValue = values[colIndices.entryTime];
+                        if (entryTimeValue.includes(' ')) {
+                            // Format: "07/22/2025 14:02:09 +08:00" → "14:02:09"
+                            const timePart = entryTimeValue.split(' ')[1];
+                            if (timePart) {
+                                const [h, m] = timePart.split(':');
+                                entryTime = `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+                            }
+                        } else {
+                            entryTime = entryTimeValue;
+                        }
+                    }
+                    
+                    if (colIndices.exitTime !== -1) {
+                        const exitTimeValue = values[colIndices.exitTime];
+                        if (exitTimeValue.includes(' ')) {
+                            const timePart = exitTimeValue.split(' ')[1];
+                            if (timePart) {
+                                const [h, m] = timePart.split(':');
+                                exitTime = `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+                            }
+                        } else {
+                            exitTime = exitTimeValue;
+                        }
+                    }
+                    
+                    // Calculer le P&L si pas fourni
                     let pnl = colIndices.pnl !== -1 ? parseFloat(values[colIndices.pnl]) : null;
                     
                     if (pnl === null) {
@@ -2450,14 +2502,14 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     const trade = {
                         account_id: targetAccountId,
-                        trade_date: values[colIndices.date],
+                        trade_date: tradeDate,
                         symbol: symbol,
                         trade_type: tradeType,
                         entry_price: entryPrice,
                         exit_price: exitPrice,
                         quantity: quantity,
-                        entry_time: colIndices.entryTime !== -1 ? values[colIndices.entryTime] : '09:30',
-                        exit_time: colIndices.exitTime !== -1 ? values[colIndices.exitTime] : '16:00',
+                        entry_time: entryTime,
+                        exit_time: exitTime,
                         pnl: pnl,
                         setup: null,
                         notes: null,
