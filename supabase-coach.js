@@ -331,25 +331,26 @@
                     .select('*')
                     .eq('user_id', uuid);
 
-                // Calculer le P&L si manquant
+                // Calculer le P&L avec la MÊME formule que côté élève
                 if (trades && trades.length > 0) {
                     trades.forEach(trade => {
-                        if (trade.pnl === null || trade.pnl === undefined) {
-                            // Calculer automatiquement le P&L
-                            const entry = parseFloat(trade.entry) || 0;
-                            const exit = parseFloat(trade.exit) || 0;
-                            const quantity = parseFloat(trade.quantity) || 1;
-                            
-                            if (trade.type === 'Long') {
-                                trade.pnl = (exit - entry) * quantity;
-                            } else if (trade.type === 'Short') {
-                                trade.pnl = (entry - exit) * quantity;
-                            } else {
-                                trade.pnl = 0;
-                            }
-                            
-                            console.log(`[COACH] 🔧 P&L calculé pour trade ${trade.id}: ${trade.pnl.toFixed(2)}`);
-                        }
+                        // Calculer le P&L
+                        const entryPrice = parseFloat(trade.entry_price) || 0;
+                        const exitPrice = parseFloat(trade.exit_price) || 0;
+                        const quantity = parseFloat(trade.quantity) || 1;
+                        const direction = trade.direction || 'LONG';
+                        const instrument = trade.instrument || 'ES';
+                        
+                        // Formule : (exit - entry) * quantity * direction * multiplier
+                        const directionMultiplier = direction === 'LONG' ? 1 : -1;
+                        const instrumentMultiplier = instrument === 'ES' ? 50 : instrument === 'NQ' ? 20 : 1;
+                        
+                        const calculatedPnl = (exitPrice - entryPrice) * quantity * directionMultiplier * instrumentMultiplier;
+                        
+                        // Utiliser manual_pnl si disponible, sinon le calculé
+                        trade.pnl = parseFloat(trade.manual_pnl) || calculatedPnl;
+                        
+                        console.log(`[COACH] 🔧 Trade ${trade.id} (${instrument} ${direction}): ${trade.pnl.toFixed(2)}`);
                     });
                 }
 
