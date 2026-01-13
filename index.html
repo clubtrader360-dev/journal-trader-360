@@ -4783,6 +4783,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             <button onclick="viewTrade(${trade.id})" class="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50" title="Voir détails">
                                 <i class="fas fa-eye"></i>
                             </button>
+                            <button onclick="editTrade(${trade.id})" class="text-yellow-600 hover:text-yellow-800 px-2 py-1 rounded hover:bg-yellow-50" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteTrade(${trade.id})" class="text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50" title="Supprimer">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -7207,7 +7213,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 `;
             }
             
-            if (trade.protections && trade.protections.length > 0) {
+            if (trade.protections && Array.isArray(trade.protections) && trade.protections.length > 0) {
                 html += `
                     <div class="view-modal-section">
                         <span class="view-modal-label">Protections</span>
