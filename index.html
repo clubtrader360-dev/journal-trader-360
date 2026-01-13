@@ -1925,10 +1925,28 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 <div class="flex justify-between items-center mb-6">
                     <h1 class="text-3xl font-bold text-gray-800">Comptabilité & Payouts</h1>
                     <div class="flex gap-3">
-                        <button id="addAccountCostBtn" class="trader-btn-gold">
+                        <button id="addAccountCostBtn" class="trader-btn-gold" onclick="
+                            // Réinitialiser le formulaire
+                            document.getElementById('accountCostForm').reset();
+                            // Supprimer le mode édition
+                            delete document.getElementById('accountCostForm').dataset.editingId;
+                            // Réinitialiser le bouton
+                            document.getElementById('submitAccountCostBtn').textContent = 'Ajouter';
+                            // Ouvrir le modal
+                            document.getElementById('addAccountCostModal').style.display = 'block';
+                        ">
                             <i class="fas fa-credit-card mr-2"></i>Ajouter un compte acheté
                         </button>
-                        <button id="addPayoutBtn" class="trader-btn-blue">
+                        <button id="addPayoutBtn" class="trader-btn-blue" onclick="
+                            // Réinitialiser le formulaire
+                            document.getElementById('payoutForm').reset();
+                            // Supprimer le mode édition
+                            delete document.getElementById('payoutForm').dataset.editingId;
+                            // Réinitialiser le bouton
+                            document.getElementById('submitPayoutBtn').textContent = 'Ajouter';
+                            // Ouvrir le modal
+                            document.getElementById('addPayoutModal').style.display = 'block';
+                        ">
                             <i class="fas fa-money-bill-wave mr-2"></i>Ajouter un payout
                         </button>
                     </div>
