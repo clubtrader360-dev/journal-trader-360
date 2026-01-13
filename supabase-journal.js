@@ -285,14 +285,14 @@
                             ${stars ? `<span class="text-sm text-gray-500">${stars}</span>` : ''}
                         </div>
                         <div class="flex gap-2">
-                            <button class="btn-view-journal text-green-600 hover:text-green-800 px-2 py-1 rounded hover:bg-green-50" title="Voir" data-entry-id="${entry.id}">
-                                <i class="fas fa-eye"></i>
+                            <button class="btn-view-journal text-gray-700 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-50" title="Voir" data-entry-id="${entry.id}">
+                                👁️
                             </button>
-                            <button class="btn-edit-journal text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50" title="Modifier" data-entry-id="${entry.id}">
-                                <i class="fas fa-edit"></i>
+                            <button class="btn-edit-journal px-2 py-1 rounded hover:bg-blue-50" style="color: #000B25;" title="Modifier" data-entry-id="${entry.id}">
+                                ✏️
                             </button>
                             <button class="btn-delete-journal text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50" title="Supprimer" data-entry-id="${entry.id}">
-                                <i class="fas fa-trash"></i>
+                                🗑️
                             </button>
                         </div>
                     </div>

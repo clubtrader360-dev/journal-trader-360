@@ -2882,21 +2882,22 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             <div class="flex items-center gap-2">
                                 <!-- 👁️ Voir -->
                                 <button onclick="viewTrade(${trade.id})" 
-                                        class="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50" 
+                                        class="text-gray-700 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-50" 
                                         title="Voir détails">
-                                    <i class="fas fa-eye"></i>
+                                    👁️
                                 </button>
                                 <!-- ✏️ Modifier -->
                                 <button onclick="editTrade(${trade.id})" 
-                                        class="text-yellow-600 hover:text-yellow-800 px-2 py-1 rounded hover:bg-yellow-50" 
+                                        class="px-2 py-1 rounded hover:bg-blue-50" 
+                                        style="color: #000B25;"
                                         title="Modifier">
-                                    <i class="fas fa-edit"></i>
+                                    ✏️
                                 </button>
                                 <!-- 🗑️ Supprimer -->
                                 <button onclick="deleteTrade(${trade.id})" 
                                         class="text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50" 
                                         title="Supprimer">
-                                    <i class="fas fa-trash"></i>
+                                    🗑️
                                 </button>
                             </div>
                         </td>
@@ -2944,19 +2945,20 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                 </td>
                                 <td class="px-6 py-4 text-sm">
                                     <button onclick="viewAccountCost(${cost.id})" 
-                                            class="text-blue-600 hover:text-blue-900 mr-2" 
+                                            class="text-gray-700 hover:text-gray-900 mr-2" 
                                             title="Voir les détails">
-                                        <i class="fas fa-eye"></i>
+                                        👁️
                                     </button>
                                     <button onclick="editAccountCost(${cost.id})" 
-                                            class="text-indigo-600 hover:text-indigo-900 mr-2" 
+                                            class="mr-2" 
+                                            style="color: #000B25;"
                                             title="Modifier">
-                                        <i class="fas fa-edit"></i>
+                                        ✏️
                                     </button>
                                     <button onclick="deleteAccountCost(${cost.id})" 
                                             class="text-red-600 hover:text-red-900" 
                                             title="Supprimer">
-                                        <i class="fas fa-trash"></i>
+                                        🗑️
                                     </button>
                                 </td>
                             </tr>
@@ -2990,19 +2992,20 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                 </td>
                                 <td class="px-6 py-4 text-sm">
                                     <button onclick="viewPayout(${payout.id})" 
-                                            class="text-blue-600 hover:text-blue-900 mr-2" 
+                                            class="text-gray-700 hover:text-gray-900 mr-2" 
                                             title="Voir les détails">
-                                        <i class="fas fa-eye"></i>
+                                        👁️
                                     </button>
                                     <button onclick="editPayout(${payout.id})" 
-                                            class="text-indigo-600 hover:text-indigo-900 mr-2" 
+                                            class="mr-2" 
+                                            style="color: #000B25;"
                                             title="Modifier">
-                                        <i class="fas fa-edit"></i>
+                                        ✏️
                                     </button>
                                     <button onclick="deletePayout(${payout.id})" 
                                             class="text-red-600 hover:text-red-900" 
                                             title="Supprimer">
-                                        <i class="fas fa-trash"></i>
+                                        🗑️
                                     </button>
                                 </td>
                             </tr>
@@ -5035,14 +5038,14 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="${tradePnlClass} font-bold">${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toFixed(2)}</span>
-                            <button onclick="viewTrade(${trade.id})" class="text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50" title="Voir détails">
-                                <i class="fas fa-eye"></i>
+                            <button onclick="viewTrade(${trade.id})" class="text-gray-700 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-50" title="Voir détails">
+                                👁️
                             </button>
-                            <button onclick="editTrade(${trade.id})" class="text-yellow-600 hover:text-yellow-800 px-2 py-1 rounded hover:bg-yellow-50" title="Modifier">
-                                <i class="fas fa-edit"></i>
+                            <button onclick="editTrade(${trade.id})" class="px-2 py-1 rounded hover:bg-blue-50" style="color: #000B25;" title="Modifier">
+                                ✏️
                             </button>
                             <button onclick="deleteTrade(${trade.id})" class="text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50" title="Supprimer">
-                                <i class="fas fa-trash"></i>
+                                🗑️
                             </button>
                         </div>
                     </div>
