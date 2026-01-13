@@ -622,8 +622,21 @@
         }
     }
 
+    // ===== VARIABLES GLOBALES POUR NAVIGATION CALENDRIER MODAL =====
+    let modalCalendarMonth = new Date().getMonth();
+    let modalCalendarYear = new Date().getFullYear();
+    let currentStudentData = null;
+    
     // ===== FONCTION VOIR DÉTAILS ÉLÈVE =====
     function viewStudentDetails(studentData) {
+        // Stocker les données de l'élève pour la navigation
+        currentStudentData = studentData;
+        
+        // Réinitialiser au mois courant
+        const now = new Date();
+        modalCalendarMonth = now.getMonth();
+        modalCalendarYear = now.getFullYear();
+        
         const student = studentData.user;
         const trades = studentData.data.trades || [];
         const accounts = studentData.data.accounts || [];
@@ -642,15 +655,8 @@
         const roi = totalCosts > 0 ? ((netProfit / totalCosts) * 100).toFixed(1) : 0;
         
         // Préparer les variables pour le calendrier
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
         const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
             "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
-        
-        const firstDay = new Date(currentYear, currentMonth, 1);
-        const startDate = new Date(firstDay);
-        startDate.setDate(startDate.getDate() - firstDay.getDay());
         
         const daysOfWeek = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
         
@@ -773,10 +779,16 @@
                             <div>
                                 <div class="bg-white rounded-lg border border-gray-200 p-4">
                                     <div class="flex justify-between items-center mb-4">
-                                        <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                                        <button onclick="previousModalMonth()" class="text-gray-600 hover:text-gray-800 p-2 rounded hover:bg-gray-100 transition">
+                                            <i class="fas fa-chevron-left text-xl"></i>
+                                        </button>
+                                        <h3 id="modalCalendarTitle" class="text-lg font-bold text-gray-800 flex items-center">
                                             <i class="fas fa-calendar-alt mr-2 text-indigo-600"></i>
-                                            ${monthNames[currentMonth]} ${currentYear}
+                                            <span id="modalMonthYear">${monthNames[modalCalendarMonth]} ${modalCalendarYear}</span>
                                         </h3>
+                                        <button onclick="nextModalMonth()" class="text-gray-600 hover:text-gray-800 p-2 rounded hover:bg-gray-100 transition">
+                                            <i class="fas fa-chevron-right text-xl"></i>
+                                        </button>
                                     </div>
                                     
                                     <!-- Header jours de la semaine -->
@@ -816,12 +828,31 @@
         }
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         
-        // MAINTENANT remplir le calendrier avec les vraies cellules
+        // MAINTENANT remplir le calendrier
+        updateModalCalendar();
+    }
+    
+    // ===== FONCTION DE MISE À JOUR DU CALENDRIER MODAL =====
+    function updateModalCalendar() {
+        if (!currentStudentData) return;
+        
+        const trades = currentStudentData.data.trades || [];
+        const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+        const daysOfWeek = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+        
+        // Mettre à jour le titre
+        const monthYearSpan = document.getElementById('modalMonthYear');
+        if (monthYearSpan) {
+            monthYearSpan.textContent = `${monthNames[modalCalendarMonth]} ${modalCalendarYear}`;
+        }
+        
+        const firstDay = new Date(modalCalendarYear, modalCalendarMonth, 1);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - firstDay.getDay());
+        
         const calendarGrid = document.getElementById('modalCalendarGrid');
         if (calendarGrid) {
-            console.log('[COACH] 📅 Début remplissage calendrier avec', trades.length, 'trades');
-            console.log('[COACH] 📅 Premier trade:', trades[0]);
-            
             let calendarCells = '';
             let tradesFound = 0;
             
@@ -829,7 +860,7 @@
                 const date = new Date(startDate.getTime());
                 date.setDate(date.getDate() + i);
                 
-                const isCurrentMonth = date.getMonth() === currentMonth;
+                const isCurrentMonth = date.getMonth() === modalCalendarMonth;
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
                 const day = String(date.getDate()).padStart(2, '0');
@@ -843,7 +874,6 @@
                 
                 if (dayTrades.length > 0) {
                     tradesFound++;
-                    console.log('[COACH] 📅 Jour', dateString, ':', dayTrades.length, 'trades');
                 }
                 
                 const dayPnl = dayTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
@@ -868,10 +898,26 @@
                 calendarCells += `<div class="${className}">${cellContent}</div>`;
             }
             calendarGrid.innerHTML = calendarCells;
-            console.log('[COACH] 📅 Calendrier rempli! Jours avec trades:', tradesFound);
         }
-        
-        console.log('[COACH] 📊 Modal détails ouvert pour:', student.email);
+    }
+    
+    // ===== FONCTIONS DE NAVIGATION CALENDRIER =====
+    function previousModalMonth() {
+        modalCalendarMonth--;
+        if (modalCalendarMonth < 0) {
+            modalCalendarMonth = 11;
+            modalCalendarYear--;
+        }
+        updateModalCalendar();
+    }
+    
+    function nextModalMonth() {
+        modalCalendarMonth++;
+        if (modalCalendarMonth > 11) {
+            modalCalendarMonth = 0;
+            modalCalendarYear++;
+        }
+        updateModalCalendar();
     }
     
     // Fermer le modal
@@ -899,7 +945,9 @@
     window.loadCoachStats = loadCoachStats;
     window.viewStudentDetails = viewStudentDetails;
     window.closeStudentDetailsModal = closeStudentDetailsModal;
+    window.previousModalMonth = previousModalMonth;
+    window.nextModalMonth = nextModalMonth;
 
-    console.log('[OK] Fonctions coach exportées: loadCoachRegistrations, approveRegistration, rejectRegistration, revokeAccess, reactivateUser, loadCoachStats, getAllStudentsData, loadCoachAccountingFromSupabase, viewStudentDetails, closeStudentDetailsModal');
+    console.log('[OK] Fonctions coach exportées: loadCoachRegistrations, approveRegistration, rejectRegistration, revokeAccess, reactivateUser, loadCoachStats, getAllStudentsData, loadCoachAccountingFromSupabase, viewStudentDetails, closeStudentDetailsModal, previousModalMonth, nextModalMonth');
 
 })();
