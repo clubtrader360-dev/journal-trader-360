@@ -425,17 +425,23 @@
                 const costs = studentData.data.accountCosts || [];
                 const payouts = studentData.data.payouts || [];
 
+                console.log(`[COACH] 💵 ${studentData.user.email}: ${costs.length} coûts, ${payouts.length} payouts`);
+
                 costs.forEach(cost => {
-                    const costAmount = parseFloat(cost.cost || 0);
+                    // Accepter 'amount' OU 'cost' OU 'price'
+                    const costAmount = parseFloat(cost.amount || cost.cost || cost.price || 0);
+                    console.log(`[COACH]   📤 Coût: ${cost.account_name || 'N/A'} - $${costAmount}`);
                     totalInvested += costAmount;
                     allCosts.push({
                         ...cost,
-                        studentEmail: studentData.user.email
+                        studentEmail: studentData.user.email,
+                        amount: costAmount  // Normaliser le montant
                     });
                 });
 
                 payouts.forEach(payout => {
                     const payoutAmount = parseFloat(payout.amount || 0);
+                    console.log(`[COACH]   📥 Payout: $${payoutAmount} le ${payout.date || 'N/A'}`);
                     totalPayouts += payoutAmount;
                     allPayouts.push({
                         ...payout,
@@ -475,7 +481,7 @@
                     const detailRows = studentsData.map(studentData => {
                         const costs = studentData.data.accountCosts || [];
                         const payouts = studentData.data.payouts || [];
-                        const totalCosts = costs.reduce((sum, c) => sum + parseFloat(c.cost || 0), 0);
+                        const totalCosts = costs.reduce((sum, c) => sum + parseFloat(c.amount || c.cost || c.price || 0), 0);
                         const totalPayoutsStudent = payouts.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
                         const balance = totalPayoutsStudent - totalCosts;
                         const roiStudent = totalCosts > 0 ? ((balance / totalCosts) * 100).toFixed(1) : '0.0';
@@ -507,10 +513,10 @@
                 } else {
                     const costsRows = allCosts.map(cost => `
                         <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="px-6 py-4">${new Date(cost.purchase_date).toLocaleDateString('fr-FR')}</td>
+                            <td class="px-6 py-4">${new Date(cost.purchase_date || cost.date || Date.now()).toLocaleDateString('fr-FR')}</td>
                             <td class="px-6 py-4">${cost.studentEmail}</td>
-                            <td class="px-6 py-4">${cost.name}</td>
-                            <td class="px-6 py-4 text-red-600">$${parseFloat(cost.cost).toFixed(2)}</td>
+                            <td class="px-6 py-4">${cost.account_name || cost.name || 'N/A'}</td>
+                            <td class="px-6 py-4 text-red-600">$${cost.amount.toFixed(2)}</td>
                         </tr>
                     `).join('');
                     costsTableBody.innerHTML = costsRows;
@@ -528,9 +534,9 @@
                 } else {
                     const payoutsRows = allPayouts.map(payout => `
                         <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="px-6 py-4">${new Date(payout.payout_date).toLocaleDateString('fr-FR')}</td>
+                            <td class="px-6 py-4">${new Date(payout.payout_date || payout.date || Date.now()).toLocaleDateString('fr-FR')}</td>
                             <td class="px-6 py-4">${payout.studentEmail}</td>
-                            <td class="px-6 py-4">${payout.account}</td>
+                            <td class="px-6 py-4">${payout.account_name || payout.account || 'N/A'}</td>
                             <td class="px-6 py-4 text-green-600">$${parseFloat(payout.amount).toFixed(2)}</td>
                         </tr>
                     `).join('');
