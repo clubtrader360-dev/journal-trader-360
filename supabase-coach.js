@@ -657,7 +657,7 @@
         // Créer le modal HTML avec layout VERTICAL scrollable
         const modalHTML = `
             <div id="studentDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onclick="closeStudentDetailsModal(event)">
-                <div class="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+                <div class="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[85vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
                     
                     <!-- Header -->
                     <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 flex-shrink-0">
@@ -673,116 +673,124 @@
                     </div>
                     
                     <!-- Body SCROLLABLE -->
-                    <div class="overflow-y-auto flex-1 p-6 space-y-6">
+                    <div class="overflow-y-auto flex-1 p-4 space-y-4">
                         
-                        <!-- Statistiques de Trading -->
-                        <div class="bg-white rounded-lg border border-gray-200 p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center border-b pb-3">
-                                <i class="fas fa-chart-line mr-2 text-blue-600"></i>
-                                Statistiques de Trading
-                            </h3>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div class="text-center">
-                                    <div class="text-sm text-gray-600 mb-1">Total Trades</div>
-                                    <div class="text-3xl font-bold text-gray-800">${trades.length}</div>
+                        <!-- Grille 2 colonnes: Stats + Comptabilité | Calendrier + Infos -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            
+                            <!-- Colonne Gauche -->
+                            <div class="space-y-4">
+                                <!-- Statistiques de Trading -->
+                                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center border-b pb-2">
+                                        <i class="fas fa-chart-line mr-2 text-blue-600"></i>
+                                        Statistiques de Trading
+                                    </h3>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="text-center">
+                                            <div class="text-xs text-gray-600 mb-1">Total</div>
+                                            <div class="text-2xl font-bold text-gray-800">${trades.length}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-xs text-gray-600 mb-1">Win Rate</div>
+                                            <div class="text-2xl font-bold ${parseFloat(winRate) >= 50 ? 'text-green-600' : 'text-red-600'}">${winRate}%</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-xs text-gray-600 mb-1">Gagnants</div>
+                                            <div class="text-2xl font-bold text-green-600">${wins}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-xs text-gray-600 mb-1">Perdants</div>
+                                            <div class="text-2xl font-bold text-red-600">${losses}</div>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3 mt-3 pt-3 border-t">
+                                        <div class="text-center">
+                                            <div class="text-xs text-gray-600 mb-1">P&L Total</div>
+                                            <div class="text-2xl font-bold ${totalPnl >= 0 ? 'text-green-600' : 'text-red-600'}">$${totalPnl.toFixed(2)}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-xs text-gray-600 mb-1">P&L Moyen</div>
+                                            <div class="text-2xl font-bold ${avgPnl >= 0 ? 'text-green-600' : 'text-red-600'}">$${avgPnl}</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="text-center">
-                                    <div class="text-sm text-gray-600 mb-1">Win Rate</div>
-                                    <div class="text-3xl font-bold ${parseFloat(winRate) >= 50 ? 'text-green-600' : 'text-red-600'}">${winRate}%</div>
+                                
+                                <!-- Comptabilité -->
+                                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center border-b pb-2">
+                                        <i class="fas fa-dollar-sign mr-2 text-green-600"></i>
+                                        Comptabilité
+                                    </h3>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="text-center">
+                                            <div class="text-xs text-gray-600 mb-1">Comptes</div>
+                                            <div class="text-2xl font-bold text-gray-800">${accounts.length}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-xs text-gray-600 mb-1">Investi</div>
+                                            <div class="text-xl font-bold text-red-600">$${totalCosts.toFixed(2)}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-xs text-gray-600 mb-1">Payouts</div>
+                                            <div class="text-xl font-bold text-green-600">$${totalPayouts.toFixed(2)}</div>
+                                        </div>
+                                        <div class="text-center">
+                                            <div class="text-xs text-gray-600 mb-1">Bénéfice</div>
+                                            <div class="text-xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}">$${netProfit.toFixed(2)}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-3 pt-3 border-t">
+                                        <div class="text-xs text-gray-600 mb-1">ROI</div>
+                                        <div class="text-3xl font-bold ${roi >= 0 ? 'text-green-600' : 'text-red-600'}">${roi}%</div>
+                                    </div>
                                 </div>
-                                <div class="text-center">
-                                    <div class="text-sm text-gray-600 mb-1">Gagnants</div>
-                                    <div class="text-3xl font-bold text-green-600">${wins}</div>
+                                
+                                <!-- Informations -->
+                                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                                    <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center border-b pb-2">
+                                        <i class="fas fa-info-circle mr-2 text-purple-600"></i>
+                                        Informations
+                                    </h3>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between py-2 border-b">
+                                            <span class="text-gray-600">Inscription</span>
+                                            <span class="font-bold">${new Date(student.created_at).toLocaleDateString('fr-FR')}</span>
+                                        </div>
+                                        <div class="flex justify-between py-2 border-b">
+                                            <span class="text-gray-600">Statut</span>
+                                            <span class="px-3 py-1 rounded-full text-xs bg-green-100 text-green-800 font-bold">Actif</span>
+                                        </div>
+                                        <div class="flex justify-between py-2">
+                                            <span class="text-gray-600">UUID</span>
+                                            <span class="font-mono text-xs text-gray-500">${student.uuid.substring(0, 8)}...</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="text-center">
-                                    <div class="text-sm text-gray-600 mb-1">Perdants</div>
-                                    <div class="text-3xl font-bold text-red-600">${losses}</div>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t">
-                                <div class="text-center">
-                                    <div class="text-sm text-gray-600 mb-1">P&L Total</div>
-                                    <div class="text-4xl font-bold ${totalPnl >= 0 ? 'text-green-600' : 'text-red-600'}">$${totalPnl.toFixed(2)}</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-sm text-gray-600 mb-1">P&L Moyen par Trade</div>
-                                    <div class="text-4xl font-bold ${avgPnl >= 0 ? 'text-green-600' : 'text-red-600'}">$${avgPnl}</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Comptabilité -->
-                        <div class="bg-white rounded-lg border border-gray-200 p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center border-b pb-3">
-                                <i class="fas fa-dollar-sign mr-2 text-green-600"></i>
-                                Comptabilité
-                            </h3>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                <div class="text-center">
-                                    <div class="text-sm text-gray-600 mb-1">Comptes</div>
-                                    <div class="text-3xl font-bold text-gray-800">${accounts.length}</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-sm text-gray-600 mb-1">Total Investi</div>
-                                    <div class="text-2xl font-bold text-red-600">$${totalCosts.toFixed(2)}</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-sm text-gray-600 mb-1">Total Payouts</div>
-                                    <div class="text-2xl font-bold text-green-600">$${totalPayouts.toFixed(2)}</div>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t">
-                                <div class="text-center">
-                                    <div class="text-sm text-gray-600 mb-1">Bénéfice Net</div>
-                                    <div class="text-3xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}">$${netProfit.toFixed(2)}</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-sm text-gray-600 mb-1">ROI</div>
-                                    <div class="text-4xl font-bold ${roi >= 0 ? 'text-green-600' : 'text-red-600'}">${roi}%</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Calendrier - EXACTEMENT comme dashboard élève -->
-                        <div class="bg-white rounded-lg border border-gray-200 p-6">
-                            <div class="flex justify-between items-center mb-6">
-                                <h3 class="text-xl font-bold text-gray-800 flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-indigo-600"></i>
-                                    Calendrier ${monthNames[currentMonth]} ${currentYear}
-                                </h3>
                             </div>
                             
-                            <!-- Header jours de la semaine -->
-                            <div class="grid grid-cols-7 gap-2 mb-4">
-                                ${daysOfWeek.map(day => `<div class="text-center font-semibold text-gray-600 py-2">${day}</div>`).join('')}
+                            <!-- Colonne Droite: Calendrier -->
+                            <div>
+                                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                                            <i class="fas fa-calendar-alt mr-2 text-indigo-600"></i>
+                                            ${monthNames[currentMonth]} ${currentYear}
+                                        </h3>
+                                    </div>
+                                    
+                                    <!-- Header jours de la semaine -->
+                                    <div class="grid grid-cols-7 gap-2 mb-3">
+                                        ${daysOfWeek.map(day => `<div class="text-center font-semibold text-gray-600 text-xs py-1">${day}</div>`).join('')}
+                                    </div>
+                                    
+                                    <!-- Grille calendrier - Sera remplie par JavaScript -->
+                                    <div id="modalCalendarGrid" class="grid grid-cols-7 gap-2">
+                                        <!-- Les cellules seront ajoutées ici -->
+                                    </div>
+                                </div>
                             </div>
                             
-                            <!-- Grille calendrier - Sera remplie par JavaScript -->
-                            <div id="modalCalendarGrid" class="grid grid-cols-7 gap-2">
-                                <!-- Les cellules seront ajoutées ici -->
-                            </div>
-                        </div>
-                        
-                        <!-- Informations -->
-                        <div class="bg-white rounded-lg border border-gray-200 p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center border-b pb-3">
-                                <i class="fas fa-info-circle mr-2 text-purple-600"></i>
-                                Informations
-                            </h3>
-                            <div class="space-y-3">
-                                <div class="flex justify-between py-3 border-b">
-                                    <span class="text-gray-600 font-medium">Date d'inscription</span>
-                                    <span class="font-bold text-lg">${new Date(student.created_at).toLocaleDateString('fr-FR')}</span>
-                                </div>
-                                <div class="flex justify-between py-3 border-b">
-                                    <span class="text-gray-600 font-medium">Statut</span>
-                                    <span class="px-4 py-1 rounded-full text-sm bg-green-100 text-green-800 font-bold">Actif</span>
-                                </div>
-                                <div class="flex justify-between py-3">
-                                    <span class="text-gray-600 font-medium">UUID</span>
-                                    <span class="font-mono text-sm text-gray-500">${student.uuid.substring(0, 8)}...</span>
-                                </div>
-                            </div>
                         </div>
                         
                     </div>
@@ -828,8 +836,8 @@
                 const dateString = `${year}-${month}-${day}`;
                 
                 const dayTrades = trades.filter(trade => {
-                    if (!trade.date) return false;
-                    const tradeDate = trade.date.split('T')[0];
+                    // CORRECTION: utiliser trade_date au lieu de date
+                    const tradeDate = (trade.trade_date || trade.date || '').split('T')[0];
                     return tradeDate === dateString;
                 });
                 
