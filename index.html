@@ -3556,9 +3556,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // Attendre que refreshAllModules soit définie (définie plus tard dans le script)
             setTimeout(async () => {
-                if (typeof window.refreshAllModules === 'function') {
+                // ⚠️ NE charger les données QUE si on est en mode ÉLÈVE (pas Coach)
+                if (typeof window.refreshAllModules === 'function' && !window.currentUser?.role?.includes('coach')) {
                     await window.refreshAllModules();
                     console.log('[INIT] ✅ Données chargées et affichées automatiquement');
+                } else if (window.currentUser?.role?.includes('coach')) {
+                    console.log('[INIT] ℹ️ Mode Coach - Pas de refresh automatique');
                 } else {
                     console.warn('[INIT] ⚠️ window.refreshAllModules non définie après timeout');
                 }
