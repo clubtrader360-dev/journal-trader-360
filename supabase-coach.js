@@ -302,14 +302,84 @@
         }
     }
 
+    // ===== FONCTION RÉCUPÉRER TOUS LES ÉLÈVES AVEC LEURS DONNÉES =====
+    async function getAllStudentsData() {
+        console.log('[COACH] 📊 Chargement données de tous les élèves...');
+
+        try {
+            // Récupérer tous les élèves actifs
+            const { data: students, error: studentsError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('role', 'student')
+                .eq('status', 'active');
+
+            if (studentsError) {
+                console.error('[ERROR] Erreur récupération élèves:', studentsError);
+                return [];
+            }
+
+            console.log('[COACH] ✅ Élèves actifs trouvés:', students.length);
+
+            // Pour chaque élève, récupérer ses trades et comptes
+            const studentsWithData = await Promise.all(students.map(async (student) => {
+                const uuid = student.uuid;
+
+                // Récupérer trades
+                const { data: trades, error: tradesError } = await supabase
+                    .from('trades')
+                    .select('*')
+                    .eq('user_uuid', uuid);
+
+                // Récupérer accounts
+                const { data: accounts, error: accountsError } = await supabase
+                    .from('accounts')
+                    .select('*')
+                    .eq('user_uuid', uuid);
+
+                // Récupérer account_costs
+                const { data: accountCosts, error: costsError } = await supabase
+                    .from('account_costs')
+                    .select('*')
+                    .eq('user_uuid', uuid);
+
+                // Récupérer payouts
+                const { data: payouts, error: payoutsError } = await supabase
+                    .from('payouts')
+                    .select('*')
+                    .eq('user_uuid', uuid);
+
+                console.log(`[COACH] 📈 ${student.email}: ${trades?.length || 0} trades, ${accounts?.length || 0} comptes`);
+
+                return {
+                    user: student,
+                    data: {
+                        trades: trades || [],
+                        accounts: accounts || [],
+                        accountCosts: accountCosts || [],
+                        payouts: payouts || []
+                    }
+                };
+            }));
+
+            console.log('[COACH] ✅ Données complètes chargées pour', studentsWithData.length, 'élèves');
+            return studentsWithData;
+
+        } catch (err) {
+            console.error('[ERROR] Exception getAllStudentsData:', err);
+            return [];
+        }
+    }
+
     // ===== EXPORT DES FONCTIONS =====
     window.loadCoachRegistrationsFromSupabase = loadCoachRegistrationsFromSupabase;
     window.approveRegistration = approveRegistration;
     window.rejectRegistration = rejectRegistration;
     window.revokeAccess = revokeAccess;
+    window.getAllStudentsData = getAllStudentsData;
     window.reactivateUser = reactivateUser;
     window.loadCoachStats = loadCoachStats;
 
-    console.log('[OK] Fonctions coach exportées: loadCoachRegistrations, approveRegistration, rejectRegistration, revokeAccess, reactivateUser, loadCoachStats');
+    console.log('[OK] Fonctions coach exportées: loadCoachRegistrations, approveRegistration, rejectRegistration, revokeAccess, reactivateUser, loadCoachStats, getAllStudentsData');
 
 })();
