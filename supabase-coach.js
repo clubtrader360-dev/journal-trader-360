@@ -811,7 +811,12 @@
         // MAINTENANT remplir le calendrier avec les vraies cellules
         const calendarGrid = document.getElementById('modalCalendarGrid');
         if (calendarGrid) {
+            console.log('[COACH] 📅 Début remplissage calendrier avec', trades.length, 'trades');
+            console.log('[COACH] 📅 Premier trade:', trades[0]);
+            
             let calendarCells = '';
+            let tradesFound = 0;
+            
             for (let i = 0; i < 42; i++) {
                 const date = new Date(startDate.getTime());
                 date.setDate(date.getDate() + i);
@@ -827,6 +832,11 @@
                     const tradeDate = trade.date.split('T')[0];
                     return tradeDate === dateString;
                 });
+                
+                if (dayTrades.length > 0) {
+                    tradesFound++;
+                    console.log('[COACH] 📅 Jour', dateString, ':', dayTrades.length, 'trades');
+                }
                 
                 const dayPnl = dayTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
                 
@@ -850,7 +860,7 @@
                 calendarCells += `<div class="${className}">${cellContent}</div>`;
             }
             calendarGrid.innerHTML = calendarCells;
-            console.log('[COACH] 📅 Calendrier rempli avec', trades.length, 'trades');
+            console.log('[COACH] 📅 Calendrier rempli! Jours avec trades:', tradesFound);
         }
         
         console.log('[COACH] 📊 Modal détails ouvert pour:', student.email);
