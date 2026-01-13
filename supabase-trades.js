@@ -272,19 +272,50 @@ async function loadAccounts() {
     console.log('  - trade_date:', tradeWithUser.trade_date ? '✅' : '❌');
 
     try {
-      const { data, error } = await supabase
-        .from('trades')
-        .insert([tradeWithUser])
-        .select('*')
-        .single();
+      let data, error;
+      
+      // ✅ MODE ÉDITION : Si tradeData.id existe, faire un UPDATE
+      if (tradeData.id) {
+        console.log('[TRADES] 🔄 Mode ÉDITION - UPDATE du trade ID:', tradeData.id);
+        const result = await supabase
+          .from('trades')
+          .update(tradeWithUser)
+          .eq('id', tradeData.id)
+          .eq('user_id', window.currentUser.uuid)
+          .select('*')
+          .single();
+        
+        data = result.data;
+        error = result.error;
+        
+        if (error) {
+          console.error('[TRADES] ❌ Erreur mise à jour trade:', error);
+          alert(`❌ Erreur : ${error.message}`);
+          return { data: null, error };
+        }
+        
+        console.log('[TRADES] ✅ Trade mis à jour:', data);
+      } else {
+        // ✅ MODE AJOUT : Faire un INSERT
+        console.log('[TRADES] ➕ Mode AJOUT - INSERT nouveau trade');
+        const result = await supabase
+          .from('trades')
+          .insert([tradeWithUser])
+          .select('*')
+          .single();
+        
+        data = result.data;
+        error = result.error;
 
-      if (error) {
-        console.error('[TRADES] ❌ Erreur insertion trade:', error);
-        alert(`❌ Erreur : ${error.message}`);
-        return { data: null, error };
+        if (error) {
+          console.error('[TRADES] ❌ Erreur insertion trade:', error);
+          alert(`❌ Erreur : ${error.message}`);
+          return { data: null, error };
+        }
+
+        console.log('[TRADES] ✅ Trade ajouté:', data);
       }
-
-      console.log('[TRADES] ✅ Trade ajouté:', data);
+      
       return { data, error: null };
     } catch (err) {
       console.error('[TRADES] ❌ Exception addTrade:', err);

@@ -3421,6 +3421,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     return;
                 }
                 
+                // ✅ Détecter si on est en mode édition
+                const modal = document.getElementById('addTradeModal');
+                const editingId = modal?.dataset.editingId;
+                
                 // Construction payload
                 const tradeData = {
                     account_id: parseInt(account_id),
@@ -3439,6 +3443,14 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     manual_pnl: manual_pnl ? parseFloat(manual_pnl) : null,
                     protections: protections.length > 0 ? protections : null // ✅ Envoyer un ARRAY
                 };
+                
+                // ✅ Si on est en mode édition, ajouter l'ID
+                if (editingId) {
+                    tradeData.id = parseInt(editingId);
+                    console.log('[UI] 🔄 Mode ÉDITION - Trade ID:', tradeData.id);
+                } else {
+                    console.log('[UI] ➕ Mode AJOUT - Nouveau trade');
+                }
                 
                 console.log('[UI] Payload final avec protections:', tradeData.protections);
                 
@@ -3462,8 +3474,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         return;
                     }
                     
-                    console.log('[UI] ✅ Trade ajouté:', result.data);
-                    alert('✅ Trade ajouté avec succès');
+                    console.log('[UI] ✅ Trade traité:', result.data);
+                    alert(editingId ? '✅ Trade modifié avec succès' : '✅ Trade ajouté avec succès');
+                    
+                    // ✅ Réinitialiser le mode édition
+                    if (modal) {
+                        delete modal.dataset.editingId;
+                        document.querySelector('#addTradeModal h2').textContent = 'Ajouter un Trade';
+                        document.querySelector('#addTradeModal .trader-btn').textContent = 'Ajouter le Trade';
+                    }
                     
                     closeModal('addTradeModal');
                     document.getElementById('tradeForm')?.reset();
@@ -4469,6 +4488,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             document.getElementById('tradeAccount').value = trade.accountId;
             document.getElementById('tradeDate').value = trade.date;
             document.getElementById('entryTime').value = trade.entryTime || '';
+            document.getElementById('exitTime').value = trade.exitTime || '';
             document.getElementById('symbol').value = trade.symbol || 'ES';
             
             // Si c'est un trade DEMO, afficher et remplir le champ P&L manuel
@@ -4504,6 +4524,50 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // Ouvrir le modal
             document.getElementById('addTradeModal').style.display = 'block';
+        }
+        
+        // ========================================
+        // 🗑️ FONCTION: Supprimer un trade (avec confirmation)
+        // ========================================
+        async function deleteTrade(tradeId) {
+            console.log('[UI] deleteTrade() - START', tradeId);
+            
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce trade ?\n\nCette action est irréversible.')) {
+                console.log('[UI] 🚫 Suppression annulée par l\'utilisateur');
+                return;
+            }
+            
+            // Vérifier que window.deleteTrade (Supabase) existe
+            if (typeof window.tradesAPI?.deleteTrade !== 'function') {
+                console.error('[UI] ❌ window.tradesAPI.deleteTrade non disponible');
+                alert('⚠️ Erreur : module trades non chargé');
+                return;
+            }
+            
+            console.log('[UI] 🗑️ Appel window.tradesAPI.deleteTrade()...');
+            
+            try {
+                const result = await window.tradesAPI.deleteTrade(tradeId);
+                
+                if (result.error) {
+                    console.error('[UI] ❌ Erreur suppression:', result.error);
+                    alert(`❌ Erreur : ${result.error.message || 'Échec de la suppression'}`);
+                    return;
+                }
+                
+                console.log('[UI] ✅ Trade supprimé:', tradeId);
+                alert('✅ Trade supprimé avec succès');
+                
+                // Rafraîchir tous les modules
+                if (typeof window.refreshAllModules === 'function') {
+                    window.refreshAllModules();
+                } else {
+                    console.warn('[UI] ⚠️ refreshAllModules() non disponible');
+                }
+            } catch (error) {
+                console.error('[UI] ❌ Exception deleteTrade:', error);
+                alert(`❌ Erreur : ${error.message}`);
+            }
         }
         
         function deleteTrade_DISABLED(tradeId) { return; // DÉSACTIVÉ - Voir supabase-trades.js
