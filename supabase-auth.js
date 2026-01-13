@@ -188,6 +188,11 @@
             if (mainApp) mainApp.style.display = 'none';  // Masquer l'interface élève
             if (coachApp) coachApp.style.display = 'flex';  // Afficher l'interface COACH
 
+            // Afficher le Dashboard Coach par défaut
+            if (typeof showCoachSection === 'function') {
+                showCoachSection('coachDashboard');
+            }
+
             if (typeof loadCoachRegistrationsFromSupabase === 'function') {
                 await loadCoachRegistrationsFromSupabase();
             }
