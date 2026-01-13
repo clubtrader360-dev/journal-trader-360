@@ -80,6 +80,40 @@
             color: var(--trader-blue);
         }
         
+        .trader-btn-gold {
+            background: linear-gradient(135deg, var(--trader-gold) 0%, #d4af37 100%);
+            color: var(--trader-blue);
+            border: 2px solid transparent;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .trader-btn-gold:hover {
+            background: var(--trader-blue);
+            color: var(--trader-gold);
+            border: 2px solid var(--trader-gold);
+        }
+        
+        .trader-btn-blue {
+            background: linear-gradient(135deg, #000B25 0%, #1a2644 100%);
+            color: var(--trader-gold);
+            border: 2px solid transparent;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .trader-btn-blue:hover {
+            background: var(--trader-gold);
+            color: var(--trader-blue);
+            border: 2px solid var(--trader-blue);
+        }
+        
         .sidebar {
             background: var(--trader-blue);
             color: white;
@@ -1025,7 +1059,7 @@ function editAccountCost(costId) {
     
     // Remplir le formulaire
     document.getElementById('accountCostDate').value = cost.date;
-    document.getElementById('accountCostAccountId').value = cost.account_id;
+    document.getElementById('accountCostName').value = cost.account_name;
     document.getElementById('accountCostAmount').value = cost.cost;
     document.getElementById('accountCostNotes').value = cost.notes || '';
     
@@ -1064,7 +1098,7 @@ function editPayout(payoutId) {
     
     // Remplir le formulaire
     document.getElementById('payoutDate').value = payout.date;
-    document.getElementById('payoutAccountId').value = payout.account_id;
+    document.getElementById('payoutAccount').value = payout.account_name;
     document.getElementById('payoutAmount').value = payout.amount;
     document.getElementById('payoutNotes').value = payout.notes || '';
     
@@ -1891,10 +1925,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 <div class="flex justify-between items-center mb-6">
                     <h1 class="text-3xl font-bold text-gray-800">Comptabilité & Payouts</h1>
                     <div class="flex gap-3">
-                        <button id="addAccountCostBtn" style="padding: 12px 24px; background: linear-gradient(135deg, #ac862b 0%, #d4af37 100%); color: #000B25; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <button id="addAccountCostBtn" class="trader-btn-gold">
                             <i class="fas fa-credit-card mr-2"></i>Ajouter un compte acheté
                         </button>
-                        <button id="addPayoutBtn" style="padding: 12px 24px; background: linear-gradient(135deg, #000B25 0%, #1a2644 100%); color: #ac862b; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <button id="addPayoutBtn" class="trader-btn-blue">
                             <i class="fas fa-money-bill-wave mr-2"></i>Ajouter un payout
                         </button>
                     </div>
