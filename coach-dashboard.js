@@ -15,19 +15,36 @@
         console.log('[COACH DASHBOARD] 🎯 Chargement du dashboard global...');
         
         try {
+            // Vérifier que la fonction existe
+            if (!window.getAllStudentsData) {
+                console.error('[COACH DASHBOARD] ❌ getAllStudentsData n\'existe pas encore!');
+                setTimeout(loadCoachDashboard, 500);
+                return;
+            }
+            
             // Récupérer TOUS les trades de TOUS les élèves
+            console.log('[COACH DASHBOARD] 🔄 Appel getAllStudentsData()...');
             const studentsData = await window.getAllStudentsData();
-            console.log('[COACH DASHBOARD] 📊 Données élèves récupérées:', studentsData.length, 'élèves');
+            console.log('[COACH DASHBOARD] 📊 Données élèves récupérées:', studentsData);
+            console.log('[COACH DASHBOARD] 📊 Nombre d\'élèves:', studentsData?.length || 0);
+            
+            if (!studentsData || studentsData.length === 0) {
+                console.warn('[COACH DASHBOARD] ⚠️ Aucun élève trouvé');
+                return;
+            }
             
             // Agréger tous les trades
             allStudentsTrades = [];
-            studentsData.forEach(student => {
+            studentsData.forEach((student, index) => {
+                console.log(`[COACH DASHBOARD] 📝 Élève ${index + 1}:`, student.user?.email);
                 if (student.data && student.data.trades) {
+                    console.log(`[COACH DASHBOARD]   → ${student.data.trades.length} trades`);
                     allStudentsTrades.push(...student.data.trades);
                 }
             });
             
             console.log('[COACH DASHBOARD] 📈 Total trades agrégés:', allStudentsTrades.length);
+            console.log('[COACH DASHBOARD] 📈 Premier trade:', allStudentsTrades[0]);
             
             // Mettre à jour les KPIs
             updateGlobalKPIs(allStudentsTrades, studentsData);
@@ -43,6 +60,7 @@
             
         } catch (error) {
             console.error('[COACH DASHBOARD] ❌ Erreur:', error);
+            console.error('[COACH DASHBOARD] ❌ Stack:', error.stack);
         }
     }
 
@@ -77,6 +95,9 @@
 
     // ===== MISE À JOUR DU CALENDRIER GLOBAL =====
     function updateGlobalCalendar() {
+        console.log('[COACH DASHBOARD] 📅 Mise à jour calendrier...');
+        console.log('[COACH DASHBOARD] 📅 Trades disponibles:', allStudentsTrades.length);
+        
         const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
             "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
         const daysOfWeek = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -92,9 +113,13 @@
         startDate.setDate(startDate.getDate() - firstDay.getDay());
         
         const calendarGrid = document.getElementById('globalCalendarGrid');
-        if (!calendarGrid) return;
+        if (!calendarGrid) {
+            console.error('[COACH DASHBOARD] ❌ globalCalendarGrid introuvable');
+            return;
+        }
         
         let calendarHTML = '';
+        let tradesFoundCount = 0;
         
         for (let i = 0; i < 42; i++) {
             const date = new Date(startDate.getTime());
@@ -110,6 +135,11 @@
                 const tradeDate = (trade.trade_date || trade.date || '').split('T')[0];
                 return tradeDate === dateString;
             });
+            
+            if (dayTrades.length > 0) {
+                tradesFoundCount++;
+                console.log(`[COACH DASHBOARD] 📅 ${dateString}: ${dayTrades.length} trades`);
+            }
             
             const dayPnl = dayTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
             
@@ -135,7 +165,7 @@
         }
         
         calendarGrid.innerHTML = calendarHTML;
-        console.log('[COACH DASHBOARD] 📅 Calendrier mis à jour');
+        console.log('[COACH DASHBOARD] 📅 Calendrier mis à jour -', tradesFoundCount, 'jours avec trades');
     }
 
     // ===== NAVIGATION CALENDRIER =====
@@ -159,6 +189,8 @@
 
     // ===== MISE À JOUR DES GRAPHIQUES =====
     function updateGlobalCharts(trades) {
+        console.log('[COACH DASHBOARD] 📊 Mise à jour graphiques avec', trades.length, 'trades');
+        
         // Performance par Heure
         updateGlobalPerformanceByHour(trades);
         
@@ -176,16 +208,25 @@
 
     // ===== PERFORMANCE PAR HEURE =====
     function updateGlobalPerformanceByHour(trades) {
+        console.log('[COACH DASHBOARD] 📊 Performance par heure - trades:', trades.length);
+        
         const hourlyPnl = {};
         
+        let tradesWithTime = 0;
         trades.forEach(trade => {
             if (trade.entry_time) {
+                tradesWithTime++;
                 const hour = parseInt(trade.entry_time.split(':')[0]);
                 if (!hourlyPnl[hour]) {
                     hourlyPnl[hour] = { pnl: 0, count: 0 };
                 }
                 hourlyPnl[hour].pnl += trade.pnl || 0;
                 hourlyPnl[hour].count++;
+            }
+        });
+        
+        console.log('[COACH DASHBOARD] 📊 Trades avec entry_time:', tradesWithTime);
+        console.log('[COACH DASHBOARD] 📊 Données horaires:', hourlyPnl);
             }
         });
         
