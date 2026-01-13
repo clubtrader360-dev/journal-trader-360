@@ -288,13 +288,27 @@
                 return;
             }
 
+            // ✅ Nettoyage COMPLET avant reload
             window.currentUser = null;
-            console.log('[OK] Déconnexion réussie');
             
-            location.reload();
+            // Masquer toutes les interfaces
+            const mainApp = document.getElementById('mainApp');
+            const coachApp = document.getElementById('coachApp');
+            const authScreen = document.getElementById('authScreen');
+            
+            if (mainApp) mainApp.style.display = 'none';
+            if (coachApp) coachApp.style.display = 'none';
+            if (authScreen) authScreen.style.display = 'flex';
+            
+            console.log('[OK] Déconnexion réussie - Nettoyage effectué');
+            
+            // ✅ Reload avec cache forcé
+            location.reload(true);  // true = forcer le rechargement depuis le serveur
 
         } catch (err) {
             console.error('[ERROR] Erreur logout:', err);
+            // En cas d'erreur, recharger quand même
+            location.reload(true);
         }
     }
 
