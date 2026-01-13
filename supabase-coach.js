@@ -493,29 +493,47 @@
                         </tr>
                     `;
                 } else {
-                    const detailRows = studentsWithAccounting.map(studentData => {
-                        const costs = studentData.data.accountCosts || [];
-                        const payouts = studentData.data.payouts || [];
-                        const totalCosts = costs.reduce((sum, c) => sum + parseFloat(c.amount || c.cost || c.price || 0), 0);
-                        const totalPayoutsStudent = payouts.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
-                        const balance = totalPayoutsStudent - totalCosts;
-                        const roiStudent = totalCosts > 0 ? ((balance / totalCosts) * 100).toFixed(1) : '0.0';
+                    try {
+                        const detailRows = studentsWithAccounting.map(studentData => {
+                            const costs = studentData.data.accountCosts || [];
+                            const payouts = studentData.data.payouts || [];
+                            const totalCosts = costs.reduce((sum, c) => sum + parseFloat(c.amount || c.cost || c.price || 0), 0);
+                            const totalPayoutsStudent = payouts.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+                            const balance = totalPayoutsStudent - totalCosts;
+                            const roiStudent = totalCosts > 0 ? ((balance / totalCosts) * 100).toFixed(1) : '0.0';
+                            
+                            // Protections contre les données manquantes
+                            const email = studentData?.user?.email || 'Email inconnu';
+                            const name = studentData?.user?.name || email.split('@')[0];
+                            
+                            return `
+                                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="px-6 py-4">
+                                        <div class="font-medium">${name}</div>
+                                        <div class="text-sm text-gray-500">${email}</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-red-600">$${totalCosts.toFixed(2)}</td>
+                                    <td class="px-6 py-4 text-green-600">$${totalPayoutsStudent.toFixed(2)}</td>
+                                    <td class="px-6 py-4 ${balance >= 0 ? 'text-green-600' : 'text-red-600'}">$${balance.toFixed(2)}</td>
+                                    <td class="px-6 py-4">${roiStudent}%</td>
+                                </tr>
+                            `;
+                        }).join('');
                         
-                        return `
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                <td class="px-6 py-4">${studentData.user.email}</td>
-                                <td class="px-6 py-4 text-red-600">$${totalCosts.toFixed(2)}</td>
-                                <td class="px-6 py-4 text-green-600">$${totalPayoutsStudent.toFixed(2)}</td>
-                                <td class="px-6 py-4 ${balance >= 0 ? 'text-green-600' : 'text-red-600'}">$${balance.toFixed(2)}</td>
-                                <td class="px-6 py-4">${roiStudent}%</td>
+                        console.log('[COACH] 📋 HTML généré pour', studentsWithAccounting.length, 'élève(s)');
+                        console.log('[COACH] 📋 Premier élève:', studentsWithAccounting[0]?.user?.email);
+                        detailTableBody.innerHTML = detailRows;
+                        console.log('[COACH] ✅ Tableau Détail par Élève mis à jour');
+                    } catch (err) {
+                        console.error('[COACH] ❌ Erreur génération tableau Détail par Élève:', err);
+                        detailTableBody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-red-500">
+                                    Erreur lors de la génération du tableau
+                                </td>
                             </tr>
                         `;
-                    }).join('');
-                    
-                    console.log('[COACH] 📋 HTML généré pour', studentsWithAccounting.length, 'élève(s)');
-                    console.log('[COACH] 📋 Premier élève:', studentsWithAccounting[0]?.user?.email);
-                    detailTableBody.innerHTML = detailRows;
-                    console.log('[COACH] ✅ Tableau Détail par Élève mis à jour');
+                    }
                 }
             } else {
                 console.error('[COACH] ❌ Element coachAccountingBreakdown NOT FOUND in DOM');
