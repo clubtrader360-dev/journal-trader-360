@@ -55,6 +55,30 @@
         
         // Upload de l'image si présente
         let imageUrl = null;
+        
+        // ✅ Si on est en mode édition, charger l'ancienne image
+        if (isEditing) {
+            console.log('[JOURNAL] 🔍 Mode édition - Chargement de l\'ancienne image...');
+            try {
+                const { data: oldEntry, error: loadError } = await supabase
+                    .from('journal_entries')
+                    .select('image_url')
+                    .eq('id', editingId)
+                    .eq('user_id', window.currentUser.uuid)
+                    .single();
+                
+                if (!loadError && oldEntry) {
+                    imageUrl = oldEntry.image_url;
+                    console.log('[JOURNAL] ✅ Ancienne image chargée:', imageUrl);
+                } else {
+                    console.warn('[JOURNAL] ⚠️ Impossible de charger l\'ancienne image:', loadError);
+                }
+            } catch (err) {
+                console.error('[JOURNAL] ❌ Exception chargement ancienne image:', err);
+            }
+        }
+        
+        // ✅ Si une nouvelle image est uploadée, elle remplace l'ancienne
         if (imageFile) {
             console.log('[JOURNAL] 📤 Upload de l\'image:', imageFile.name);
             
@@ -606,6 +630,28 @@ ${data.content}
                     s.style.color = '#ccc';
                 }
             });
+            
+            // ✅ Afficher l'image existante si présente
+            if (data.image_url) {
+                console.log('[JOURNAL] 🖼️ Image existante détectée:', data.image_url);
+                const previewImg = document.getElementById('previewImg');
+                const imagePreview = document.getElementById('imagePreview');
+                
+                if (previewImg && imagePreview) {
+                    previewImg.src = data.image_url;
+                    imagePreview.classList.remove('hidden');
+                    console.log('[JOURNAL] ✅ Image affichée dans le modal');
+                } else {
+                    console.warn('[JOURNAL] ⚠️ Éléments preview introuvables');
+                }
+            } else {
+                console.log('[JOURNAL] ℹ️ Pas d\'image pour cette note');
+                // Masquer la preview si pas d'image
+                const imagePreview = document.getElementById('imagePreview');
+                if (imagePreview) {
+                    imagePreview.classList.add('hidden');
+                }
+            }
             
             // Ouvrir la modale en mode édition
             const modal = document.getElementById('addNoteModal');

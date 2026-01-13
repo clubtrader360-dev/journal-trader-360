@@ -975,6 +975,30 @@ function closeModal(modalId) {
     if (modal) {
         modal.style.display = 'none';
         console.log('[OK] Modale fermée:', modalId);
+        
+        // ✅ Réinitialisation spécifique pour addNoteModal
+        if (modalId === 'addNoteModal') {
+            // Réinitialiser le formulaire
+            const form = document.getElementById('noteForm');
+            if (form) form.reset();
+            
+            // Réinitialiser le champ file
+            const noteImage = document.getElementById('noteImage');
+            if (noteImage) noteImage.value = '';
+            
+            // Masquer la preview
+            const imagePreview = document.getElementById('imagePreview');
+            if (imagePreview) imagePreview.classList.add('hidden');
+            
+            // Réinitialiser le mode édition
+            delete modal.dataset.editingId;
+            
+            // Réinitialiser le texte du bouton
+            const submitBtn = modal.querySelector('.trader-btn');
+            if (submitBtn) submitBtn.textContent = 'Ajouter la Note';
+            
+            console.log('[OK] Formulaire addNoteModal réinitialisé');
+        }
     }
 }
 
