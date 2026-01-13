@@ -622,6 +622,168 @@
         }
     }
 
+    // ===== FONCTION VOIR DÉTAILS ÉLÈVE =====
+    function viewStudentDetails(studentData) {
+        const student = studentData.user;
+        const trades = studentData.data.trades || [];
+        const accounts = studentData.data.accounts || [];
+        const accountCosts = studentData.data.accountCosts || [];
+        const payouts = studentData.data.payouts || [];
+        
+        // Calculer les statistiques
+        const wins = trades.filter(t => t.pnl > 0).length;
+        const losses = trades.filter(t => t.pnl < 0).length;
+        const winRate = trades.length > 0 ? ((wins / trades.length) * 100).toFixed(1) : 0;
+        const totalPnl = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+        const avgPnl = trades.length > 0 ? (totalPnl / trades.length).toFixed(2) : 0;
+        const totalCosts = accountCosts.reduce((sum, c) => sum + parseFloat(c.amount || c.cost || c.price || 0), 0);
+        const totalPayouts = payouts.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        const netProfit = totalPayouts - totalCosts;
+        const roi = totalCosts > 0 ? ((netProfit / totalCosts) * 100).toFixed(1) : 0;
+        
+        // Créer le modal HTML
+        const modalHTML = `
+            <div id="studentDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="closeStudentDetailsModal(event)">
+                <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-4 rounded-t-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h2 class="text-2xl font-bold">${student.name}</h2>
+                                <p class="text-blue-100 mt-1">${student.email}</p>
+                            </div>
+                            <button onclick="closeStudentDetailsModal()" class="text-white hover:text-gray-200 text-2xl font-bold">
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Body -->
+                    <div class="p-6 space-y-6">
+                        <!-- Trading Stats -->
+                        <div class="border-b pb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                <i class="fas fa-chart-line mr-2 text-blue-600"></i>
+                                Statistiques de Trading
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <div class="text-sm text-gray-600">Total Trades</div>
+                                    <div class="text-2xl font-bold text-gray-800">${trades.length}</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <div class="text-sm text-gray-600">Win Rate</div>
+                                    <div class="text-2xl font-bold ${parseFloat(winRate) >= 50 ? 'text-green-600' : 'text-red-600'}">${winRate}%</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <div class="text-sm text-gray-600">Trades Gagnants</div>
+                                    <div class="text-2xl font-bold text-green-600">${wins}</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <div class="text-sm text-gray-600">Trades Perdants</div>
+                                    <div class="text-2xl font-bold text-red-600">${losses}</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <div class="text-sm text-gray-600">P&L Total</div>
+                                    <div class="text-2xl font-bold ${totalPnl >= 0 ? 'text-green-600' : 'text-red-600'}">$${totalPnl.toFixed(2)}</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <div class="text-sm text-gray-600">P&L Moyen</div>
+                                    <div class="text-2xl font-bold ${avgPnl >= 0 ? 'text-green-600' : 'text-red-600'}">$${avgPnl}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Accounting Stats -->
+                        <div class="border-b pb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                <i class="fas fa-dollar-sign mr-2 text-green-600"></i>
+                                Comptabilité
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <div class="text-sm text-gray-600">Comptes Actifs</div>
+                                    <div class="text-2xl font-bold text-gray-800">${accounts.length}</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <div class="text-sm text-gray-600">Total Investi</div>
+                                    <div class="text-2xl font-bold text-red-600">$${totalCosts.toFixed(2)}</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <div class="text-sm text-gray-600">Total Payouts</div>
+                                    <div class="text-2xl font-bold text-green-600">$${totalPayouts.toFixed(2)}</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded">
+                                    <div class="text-sm text-gray-600">Bénéfice Net</div>
+                                    <div class="text-2xl font-bold ${netProfit >= 0 ? 'text-green-600' : 'text-red-600'}">$${netProfit.toFixed(2)}</div>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded col-span-2">
+                                    <div class="text-sm text-gray-600">ROI</div>
+                                    <div class="text-2xl font-bold ${roi >= 0 ? 'text-green-600' : 'text-red-600'}">${roi}%</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Account Details -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                                <i class="fas fa-info-circle mr-2 text-purple-600"></i>
+                                Informations
+                            </h3>
+                            <div class="space-y-2">
+                                <div class="flex justify-between py-2 border-b">
+                                    <span class="text-gray-600">Date d'inscription</span>
+                                    <span class="font-semibold">${new Date(student.created_at).toLocaleDateString('fr-FR')}</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b">
+                                    <span class="text-gray-600">Statut</span>
+                                    <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-800">Actif</span>
+                                </div>
+                                <div class="flex justify-between py-2">
+                                    <span class="text-gray-600">UUID</span>
+                                    <span class="font-mono text-xs text-gray-500">${student.uuid}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
+                        <button onclick="closeStudentDetailsModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                            Fermer
+                        </button>
+                        <button onclick="closeStudentDetailsModal(); revokeAccess('${student.uuid}')" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                            <i class="fas fa-ban mr-2"></i>Révoquer Accès
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Ajouter le modal au DOM
+        const existingModal = document.getElementById('studentDetailsModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        console.log('[COACH] 📊 Modal détails ouvert pour:', student.email);
+    }
+    
+    // Fermer le modal
+    function closeStudentDetailsModal(event) {
+        // Si event existe et que le click est sur le modal lui-même (pas sur le contenu)
+        if (event && event.target.id !== 'studentDetailsModal') {
+            return;
+        }
+        
+        const modal = document.getElementById('studentDetailsModal');
+        if (modal) {
+            modal.remove();
+            console.log('[COACH] 📊 Modal détails fermé');
+        }
+    }
+
     // ===== EXPORT DES FONCTIONS =====
     window.loadCoachRegistrationsFromSupabase = loadCoachRegistrationsFromSupabase;
     window.approveRegistration = approveRegistration;
@@ -631,7 +793,9 @@
     window.loadCoachAccountingFromSupabase = loadCoachAccountingFromSupabase;
     window.reactivateUser = reactivateUser;
     window.loadCoachStats = loadCoachStats;
+    window.viewStudentDetails = viewStudentDetails;
+    window.closeStudentDetailsModal = closeStudentDetailsModal;
 
-    console.log('[OK] Fonctions coach exportées: loadCoachRegistrations, approveRegistration, rejectRegistration, revokeAccess, reactivateUser, loadCoachStats, getAllStudentsData, loadCoachAccountingFromSupabase');
+    console.log('[OK] Fonctions coach exportées: loadCoachRegistrations, approveRegistration, rejectRegistration, revokeAccess, reactivateUser, loadCoachStats, getAllStudentsData, loadCoachAccountingFromSupabase, viewStudentDetails, closeStudentDetailsModal');
 
 })();

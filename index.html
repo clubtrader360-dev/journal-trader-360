@@ -6885,7 +6885,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            const tableHTML = studentsData.map(studentData => {
+            // Stocker les données globalement pour les actions
+            window.coachStudentsDataCache = studentsData;
+            
+            const tableHTML = studentsData.map((studentData, index) => {
                 const student = studentData.user;
                 const trades = studentData.data.trades || [];
                 const accounts = studentData.data.accounts || [];
@@ -6911,8 +6914,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-800">Actif</span>
                         </td>
                         <td class="px-6 py-4">
-                            <!-- Actions désactivées temporairement -->
-                            <span class="text-gray-400 text-sm">Actions bientôt disponibles</span>
+                            <div class="flex space-x-2">
+                                <button onclick="viewStudentDetails(window.coachStudentsDataCache[${index}])" 
+                                        class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition"
+                                        title="Voir les détails">
+                                    <i class="fas fa-eye mr-1"></i>Détails
+                                </button>
+                                <button onclick="if(confirm('Confirmer la révocation de ${student.name} ?')) revokeAccess('${student.uuid}')" 
+                                        class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 transition"
+                                        title="Révoquer l'accès">
+                                    <i class="fas fa-ban mr-1"></i>Révoquer
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
