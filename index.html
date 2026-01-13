@@ -763,6 +763,7 @@
 <script src="supabase-payouts.js"></script>
 <script src="supabase-account-costs.js"></script>
 <script src="supabase-coach.js"></script>
+<script src="coach-dashboard.js"></script>
 
 <script>
 // ========================================
@@ -7554,31 +7555,102 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     </div>
                 </div>
 
-                <!-- Répartition par Élève -->
-                <div class="trader-card mt-6" style="padding: 24px;">
-                    <h2 class="text-xl font-bold mb-4 flex items-center">
-                        <i class="fas fa-chart-bar mr-2" style="color: #ac862b;"></i>
-                        Répartition par Élève
-                    </h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="border-b border-gray-200">
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Élève</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Comptes</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trades</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Win Rate</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">P&L</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Avg P&L/Trade</th>
-                                </tr>
-                            </thead>
-                            <tbody id="coachStudentsBreakdown">
-                                <tr>
-                                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">Aucun élève actif</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Grille 2 colonnes: Calendrier + Trader 360 Score -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    
+                    <!-- Calendrier Global -->
+                    <div class="trader-card" style="padding: 24px;">
+                        <div class="flex justify-between items-center mb-4">
+                            <button onclick="previousGlobalMonth()" class="text-gray-600 hover:text-gray-800 p-2 rounded hover:bg-gray-100 transition">
+                                <i class="fas fa-chevron-left text-xl"></i>
+                            </button>
+                            <h2 class="text-xl font-bold flex items-center">
+                                <i class="fas fa-calendar-alt mr-2 text-indigo-600"></i>
+                                <span id="globalCalendarMonthYear">Janvier 2026</span>
+                            </h2>
+                            <button onclick="nextGlobalMonth()" class="text-gray-600 hover:text-gray-800 p-2 rounded hover:bg-gray-100 transition">
+                                <i class="fas fa-chevron-right text-xl"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Header jours -->
+                        <div class="grid grid-cols-7 gap-2 mb-3">
+                            <div class="text-center font-semibold text-gray-600 text-xs py-1">Dim</div>
+                            <div class="text-center font-semibold text-gray-600 text-xs py-1">Lun</div>
+                            <div class="text-center font-semibold text-gray-600 text-xs py-1">Mar</div>
+                            <div class="text-center font-semibold text-gray-600 text-xs py-1">Mer</div>
+                            <div class="text-center font-semibold text-gray-600 text-xs py-1">Jeu</div>
+                            <div class="text-center font-semibold text-gray-600 text-xs py-1">Ven</div>
+                            <div class="text-center font-semibold text-gray-600 text-xs py-1">Sam</div>
+                        </div>
+                        
+                        <!-- Grille calendrier -->
+                        <div id="globalCalendarGrid" class="grid grid-cols-7 gap-2">
+                            <!-- Sera rempli par JS -->
+                        </div>
                     </div>
+                    
+                    <!-- Trader 360 Score Global -->
+                    <div class="trader-card" style="padding: 24px;">
+                        <h2 class="text-xl font-bold mb-4 flex items-center">
+                            <i class="fas fa-trophy mr-2" style="color: #ac862b;"></i>
+                            Trader 360 Score Global
+                        </h2>
+                        <div class="text-center">
+                            <div class="text-6xl font-bold mb-2" id="globalTrader360Score" style="color: #10b981;">0</div>
+                            <div class="text-sm text-gray-600">Score basé sur les performances de tous les élèves</div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <!-- Graphiques -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    
+                    <!-- Performance par Heure -->
+                    <div class="trader-card" style="padding: 24px;">
+                        <h2 class="text-lg font-bold mb-4 flex items-center">
+                            <i class="fas fa-clock mr-2 text-blue-600"></i>
+                            Performance par Heure
+                        </h2>
+                        <div style="height: 300px;">
+                            <canvas id="globalHourlyChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance par Durée -->
+                    <div class="trader-card" style="padding: 24px;">
+                        <h2 class="text-lg font-bold mb-4 flex items-center">
+                            <i class="fas fa-hourglass-half mr-2 text-purple-600"></i>
+                            Performance par Durée
+                        </h2>
+                        <div style="height: 300px;">
+                            <canvas id="globalDurationChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Drawdown -->
+                    <div class="trader-card" style="padding: 24px;">
+                        <h2 class="text-lg font-bold mb-4 flex items-center">
+                            <i class="fas fa-chart-line mr-2 text-red-600"></i>
+                            Drawdown Global
+                        </h2>
+                        <div style="height: 300px;">
+                            <canvas id="globalDrawdownChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Win Rate par Protection -->
+                    <div class="trader-card" style="padding: 24px;">
+                        <h2 class="text-lg font-bold mb-4 flex items-center">
+                            <i class="fas fa-shield-alt mr-2 text-green-600"></i>
+                            Win Rate par Protection
+                        </h2>
+                        <div style="height: 300px;">
+                            <canvas id="globalProtectionChart"></canvas>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
 
