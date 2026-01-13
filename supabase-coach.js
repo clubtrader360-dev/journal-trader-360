@@ -329,13 +329,13 @@
                 const { data: trades, error: tradesError } = await supabase
                     .from('trades')
                     .select('*')
-                    .eq('user_uuid', uuid);
+                    .eq('user_id', uuid);
 
                 // Récupérer accounts
                 const { data: accounts, error: accountsError } = await supabase
                     .from('accounts')
                     .select('*')
-                    .eq('user_uuid', uuid);
+                    .eq('user_id', uuid);
 
                 // Récupérer account_costs
                 const { data: accountCosts, error: costsError } = await supabase
