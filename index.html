@@ -6782,7 +6782,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
         }
         
-        function loadCoachDashboard() {
+        async function loadCoachDashboard() {
             console.log("[DATA] Chargement dashboard coach...");
             
             // Appeler la fonction Supabase si elle existe
@@ -6790,7 +6790,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 loadCoachStats();
             }
             
-            const studentsData = getAllStudentsData();
+            const studentsData = await getAllStudentsData();
             
             // Calculer les stats globales
             let totalTrades = 0;
@@ -6879,9 +6879,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
         }
         
-        function loadCoachStudents() {
+        async function loadCoachStudents() {
             console.log(" Chargement liste élèves...");
-            const studentsData = getAllStudentsData();
+            const studentsData = await getAllStudentsData();
             
             if (studentsData.length === 0) {
                 document.getElementById('coachStudentsTable').innerHTML = `

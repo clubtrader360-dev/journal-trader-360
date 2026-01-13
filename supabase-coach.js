@@ -371,15 +371,165 @@
         }
     }
 
+    // ===== FONCTION COMPTABILITÉ COACH =====
+    async function loadCoachAccountingFromSupabase() {
+        console.log('[COACH] 💰 Chargement comptabilité globale...');
+
+        try {
+            const studentsData = await getAllStudentsData();
+            
+            if (studentsData.length === 0) {
+                console.log('[COACH] Aucun élève actif pour la comptabilité');
+                // Mettre à jour les KPIs à 0
+                const totalInvestedEl = document.getElementById('coachTotalInvested');
+                const totalPayoutsEl = document.getElementById('coachTotalPayouts');
+                const totalProfitEl = document.getElementById('coachTotalProfit');
+                
+                if (totalInvestedEl) totalInvestedEl.textContent = '0.00';
+                if (totalPayoutsEl) totalPayoutsEl.textContent = '0.00';
+                if (totalProfitEl) totalProfitEl.textContent = '0.00';
+                
+                return;
+            }
+
+            let totalInvested = 0;
+            let totalPayouts = 0;
+            let allCosts = [];
+            let allPayouts = [];
+
+            // Agréger les données
+            studentsData.forEach(studentData => {
+                const costs = studentData.data.accountCosts || [];
+                const payouts = studentData.data.payouts || [];
+
+                costs.forEach(cost => {
+                    const costAmount = parseFloat(cost.cost || 0);
+                    totalInvested += costAmount;
+                    allCosts.push({
+                        ...cost,
+                        studentEmail: studentData.user.email
+                    });
+                });
+
+                payouts.forEach(payout => {
+                    const payoutAmount = parseFloat(payout.amount || 0);
+                    totalPayouts += payoutAmount;
+                    allPayouts.push({
+                        ...payout,
+                        studentEmail: studentData.user.email
+                    });
+                });
+            });
+
+            console.log('[COACH] 💰 Total investi:', totalInvested);
+            console.log('[COACH] 💰 Total payouts:', totalPayouts);
+            console.log('[COACH] 💰 Profit net:', totalPayouts - totalInvested);
+
+            // Afficher les KPIs
+            const totalInvestedEl = document.getElementById('coachTotalInvested');
+            const totalPayoutsEl = document.getElementById('coachTotalPayouts');
+            const totalProfitEl = document.getElementById('coachTotalProfit');
+            const roiEl = document.getElementById('coachROI');
+            
+            if (totalInvestedEl) totalInvestedEl.textContent = totalInvested.toFixed(2);
+            if (totalPayoutsEl) totalPayoutsEl.textContent = totalPayouts.toFixed(2);
+            if (totalProfitEl) totalProfitEl.textContent = (totalPayouts - totalInvested).toFixed(2);
+            if (roiEl && totalInvested > 0) {
+                const roi = ((totalPayouts - totalInvested) / totalInvested * 100).toFixed(1);
+                roiEl.textContent = roi + '%';
+            }
+
+            // Afficher le tableau "Détail par Élève"
+            const detailTableBody = document.getElementById('coachAccountingDetailTable');
+            if (detailTableBody) {
+                if (studentsData.length === 0) {
+                    detailTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">Aucune donnée comptable</td>
+                        </tr>
+                    `;
+                } else {
+                    const detailRows = studentsData.map(studentData => {
+                        const costs = studentData.data.accountCosts || [];
+                        const payouts = studentData.data.payouts || [];
+                        const totalCosts = costs.reduce((sum, c) => sum + parseFloat(c.cost || 0), 0);
+                        const totalPayoutsStudent = payouts.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+                        const balance = totalPayoutsStudent - totalCosts;
+                        const roiStudent = totalCosts > 0 ? ((balance / totalCosts) * 100).toFixed(1) : '0.0';
+                        
+                        return `
+                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                <td class="px-6 py-4">${studentData.user.email}</td>
+                                <td class="px-6 py-4 text-red-600">$${totalCosts.toFixed(2)}</td>
+                                <td class="px-6 py-4 text-green-600">$${totalPayoutsStudent.toFixed(2)}</td>
+                                <td class="px-6 py-4 ${balance >= 0 ? 'text-green-600' : 'text-red-600'}">$${balance.toFixed(2)}</td>
+                                <td class="px-6 py-4">${roiStudent}%</td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    detailTableBody.innerHTML = detailRows;
+                }
+            }
+
+            // Afficher les tableaux "Tous les Comptes Achetés" et "Tous les Payouts"
+            const costsTableBody = document.getElementById('coachAllCostsTable');
+            if (costsTableBody) {
+                if (allCosts.length === 0) {
+                    costsTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">Aucun coût enregistré</td>
+                        </tr>
+                    `;
+                } else {
+                    const costsRows = allCosts.map(cost => `
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="px-6 py-4">${new Date(cost.purchase_date).toLocaleDateString('fr-FR')}</td>
+                            <td class="px-6 py-4">${cost.studentEmail}</td>
+                            <td class="px-6 py-4">${cost.name}</td>
+                            <td class="px-6 py-4 text-red-600">$${parseFloat(cost.cost).toFixed(2)}</td>
+                        </tr>
+                    `).join('');
+                    costsTableBody.innerHTML = costsRows;
+                }
+            }
+
+            const payoutsTableBody = document.getElementById('coachAllPayoutsTable');
+            if (payoutsTableBody) {
+                if (allPayouts.length === 0) {
+                    payoutsTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">Aucun payout enregistré</td>
+                        </tr>
+                    `;
+                } else {
+                    const payoutsRows = allPayouts.map(payout => `
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="px-6 py-4">${new Date(payout.payout_date).toLocaleDateString('fr-FR')}</td>
+                            <td class="px-6 py-4">${payout.studentEmail}</td>
+                            <td class="px-6 py-4">${payout.account}</td>
+                            <td class="px-6 py-4 text-green-600">$${parseFloat(payout.amount).toFixed(2)}</td>
+                        </tr>
+                    `).join('');
+                    payoutsTableBody.innerHTML = payoutsRows;
+                }
+            }
+
+        } catch (err) {
+            console.error('[ERROR] Exception loadCoachAccountingFromSupabase:', err);
+        }
+    }
+
     // ===== EXPORT DES FONCTIONS =====
     window.loadCoachRegistrationsFromSupabase = loadCoachRegistrationsFromSupabase;
     window.approveRegistration = approveRegistration;
     window.rejectRegistration = rejectRegistration;
     window.revokeAccess = revokeAccess;
     window.getAllStudentsData = getAllStudentsData;
+    window.loadCoachAccountingFromSupabase = loadCoachAccountingFromSupabase;
     window.reactivateUser = reactivateUser;
     window.loadCoachStats = loadCoachStats;
 
-    console.log('[OK] Fonctions coach exportées: loadCoachRegistrations, approveRegistration, rejectRegistration, revokeAccess, reactivateUser, loadCoachStats, getAllStudentsData');
+    console.log('[OK] Fonctions coach exportées: loadCoachRegistrations, approveRegistration, rejectRegistration, revokeAccess, reactivateUser, loadCoachStats, getAllStudentsData, loadCoachAccountingFromSupabase');
 
 })();
