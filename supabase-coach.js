@@ -364,13 +364,13 @@
                 const { data: accountCosts, error: costsError } = await supabase
                     .from('account_costs')
                     .select('*')
-                    .eq('user_uuid', uuid);
+                    .eq('user_id', uuid);
 
                 // Récupérer payouts
                 const { data: payouts, error: payoutsError } = await supabase
                     .from('payouts')
                     .select('*')
-                    .eq('user_uuid', uuid);
+                    .eq('user_id', uuid);
 
                 console.log(`[COACH] 📈 ${student.email}: ${trades?.length || 0} trades, ${accounts?.length || 0} comptes`);
 
