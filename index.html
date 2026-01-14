@@ -2138,6 +2138,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <select id="symbol" required onchange="toggleManualPnL()">
                             <option value="ES">ES (E-mini S&P 500 - $50/point)</option>
                             <option value="MES">MES (Micro E-mini S&P 500 - $5/point)</option>
+                            <option value="NQ">NQ (E-mini Nasdaq-100 - $20/point)</option>
+                            <option value="GC">GC (Gold - $100/point)</option>
                             <option value="DEMO">DEMO (Saisie manuelle du P&L)</option>
                         </select>
                     </div>
@@ -5208,7 +5210,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         // Calculer le PnL
                         const pnl = (trade.exit_price - trade.entry_price) * trade.quantity * 
                                     (trade.direction === 'LONG' ? 1 : -1) * 
-                                    (trade.instrument === 'ES' ? 50 : trade.instrument === 'NQ' ? 20 : 1);
+                                    (trade.instrument === 'ES' ? 50 : 
+                                     trade.instrument === 'NQ' ? 20 : 
+                                     trade.instrument === 'MES' ? 5 : 
+                                     trade.instrument === 'GC' ? 100 : 1);
                         
                         // Trouver le nom du compte
                         const account = accounts.find(a => a.id === trade.account_id);

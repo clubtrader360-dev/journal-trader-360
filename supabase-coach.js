@@ -343,7 +343,10 @@
                         
                         // Formule : (exit - entry) * quantity * direction * multiplier
                         const directionMultiplier = direction === 'LONG' ? 1 : -1;
-                        const instrumentMultiplier = instrument === 'ES' ? 50 : instrument === 'NQ' ? 20 : 1;
+                        const instrumentMultiplier = instrument === 'ES' ? 50 : 
+                                                     instrument === 'NQ' ? 20 : 
+                                                     instrument === 'MES' ? 5 : 
+                                                     instrument === 'GC' ? 100 : 1;
                         
                         const calculatedPnl = (exitPrice - entryPrice) * quantity * directionMultiplier * instrumentMultiplier;
                         
