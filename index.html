@@ -2633,6 +2633,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     if (symbol.startsWith('ES') && symbol.length > 2) symbol = 'ES';
                     if (symbol.startsWith('MES') && symbol.length > 3) symbol = 'MES';
                     if (symbol.startsWith('NQ') && symbol.length > 2) symbol = 'NQ';
+                    if (symbol.startsWith('GC') && symbol.length > 2) symbol = 'GC';
                     
                     // Parser les prix et quantité
                     const entryPrice = parseFloat(values[colIndices.entryPrice]);
