@@ -51,7 +51,8 @@
                     pendingContainer.innerHTML = pendingUsers.map(u => `
                         <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200 mb-3">
                             <div>
-                                <p class="font-semibold">${u.email}</p>
+                                <p class="font-semibold">${u.name || 'Nom non renseigné'}</p>
+                                <p class="text-sm text-gray-600">${u.email}</p>
                                 <p class="text-sm text-gray-500">Inscrit le ${new Date(u.created_at).toLocaleDateString('fr-FR')}</p>
                             </div>
                             <div class="space-x-2">
@@ -76,7 +77,8 @@
                     activeContainer.innerHTML = activeUsers.map(u => `
                         <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200 mb-3">
                             <div>
-                                <p class="font-semibold">${u.email}</p>
+                                <p class="font-semibold">${u.name || 'Nom non renseigné'}</p>
+                                <p class="text-sm text-gray-600">${u.email}</p>
                                 <p class="text-sm text-gray-500">Actif depuis ${new Date(u.created_at).toLocaleDateString('fr-FR')}</p>
                             </div>
                             <button onclick="revokeAccess('${u.uuid}')" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
@@ -96,7 +98,8 @@
                     revokedContainer.innerHTML = revokedUsers.map(u => `
                         <div class="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200 mb-3">
                             <div>
-                                <p class="font-semibold">${u.email}</p>
+                                <p class="font-semibold">${u.name || 'Nom non renseigné'}</p>
+                                <p class="text-sm text-gray-600">${u.email}</p>
                                 <p class="text-sm text-gray-500">Révoqué</p>
                             </div>
                             <button onclick="reactivateUser('${u.uuid}')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">

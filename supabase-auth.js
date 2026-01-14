@@ -92,10 +92,11 @@
             if (mainApp) mainApp.style.display = 'flex';
             if (coachApp) coachApp.style.display = 'none';
             
-            // Afficher l'email sous le logo
+            // Afficher le nom (ou email si pas de nom) sous le logo
             if (userInfo) {
-                userInfo.textContent = window.currentUser.email;
-                console.log('[OK] Email affiché:', window.currentUser.email);
+                const displayName = window.currentUser.name || window.currentUser.email;
+                userInfo.textContent = displayName;
+                console.log('[OK] Nom affiché:', displayName);
             }
             
             // ✅ CHARGER ET AFFICHER LES DONNÉES AUTOMATIQUEMENT APRÈS LA CONNEXION
@@ -209,11 +210,12 @@
     // FONCTION : REGISTER
     // ========================================
     async function register() {
+        const registerName = document.getElementById('registerName').value.trim();
         const registerEmail = document.getElementById('registerEmail').value.trim();
         const registerPassword = document.getElementById('registerPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
 
-        if (!registerEmail || !registerPassword || !confirmPassword) {
+        if (!registerName || !registerEmail || !registerPassword || !confirmPassword) {
             alert('Veuillez remplir tous les champs');
             return;
         }
@@ -249,6 +251,7 @@
                 .from('users')
                 .insert({
                     uuid: data.user.id,
+                    name: registerName,
                     email: registerEmail,
                     role: 'student',
                     status: 'pending',
