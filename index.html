@@ -1510,6 +1510,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 <div id="logoutBtn" class="sidebar-item logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
                     <i class="fas fa-sign-out-alt mr-3"></i>Déconnexion
                 </div>
+                <div class="sidebar-item" onclick="exportAllDataToCSV()" style="margin-top: 10px; font-size: 0.9rem; opacity: 0.9;">
+                    <i class="fas fa-file-download mr-3"></i>Exporter CSV
+                </div>
             </nav>
         </div>
 
@@ -4256,6 +4259,211 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             showLoginForm();
         }
+
+        // ===== EXPORT CSV POUR ANALYSE IA =====
+        function exportAllDataToCSV() {
+            console.log('[EXPORT] 📊 Début de l\'export CSV...');
+            
+            try {
+                // Récupérer toutes les données
+                const trades = window.trades || [];
+                const journal = window.journalEntries || [];
+                const accounts = window.accounts || [];
+                const costs = window.accountCosts || [];
+                const payouts = window.payouts || [];
+                const user = window.currentUser || {};
+                
+                console.log('[EXPORT] Données récupérées:', {
+                    trades: trades.length,
+                    journal: journal.length,
+                    accounts: accounts.length,
+                    costs: costs.length,
+                    payouts: payouts.length
+                });
+                
+                // Générer le CSV
+                let csv = '';
+                
+                // ===== METADATA =====
+                csv += '=== METADATA ===\n';
+                csv += 'Export Date,' + new Date().toISOString() + '\n';
+                csv += 'Trader Name,' + (user.name || user.email || 'Unknown') + '\n';
+                csv += 'Total Trades,' + trades.length + '\n';
+                
+                if (trades.length > 0) {
+                    const dates = trades.map(t => new Date(t.date)).sort((a, b) => a - b);
+                    csv += 'Date Range,' + dates[0].toISOString().split('T')[0] + ' to ' + dates[dates.length - 1].toISOString().split('T')[0] + '\n';
+                }
+                csv += '\n';
+                
+                // ===== TRADES (Analyse principale) =====
+                csv += '=== TRADES (Analyse principale) ===\n';
+                csv += 'ID,Date,Entry Time,Exit Time,Duration (min),Instrument,Direction,Quantity,Entry Price,Exit Price,P&L,Win/Loss,Protection Setup,Protection Target,Protection Invalidation,Account,Session (AM/PM),Day of Week,Notes\n';
+                
+                trades.forEach((trade, index) => {
+                    const tradeDate = new Date(trade.date);
+                    const dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][tradeDate.getDay()];
+                    
+                    // Calculer la durée
+                    let duration = 0;
+                    if (trade.entryTime && trade.exitTime) {
+                        const [entryH, entryM] = trade.entryTime.split(':').map(Number);
+                        const [exitH, exitM] = trade.exitTime.split(':').map(Number);
+                        duration = (exitH * 60 + exitM) - (entryH * 60 + entryM);
+                    }
+                    
+                    // Session AM/PM
+                    const session = trade.entryTime && parseInt(trade.entryTime.split(':')[0]) < 12 ? 'AM' : 'PM';
+                    
+                    // Win/Loss
+                    const winLoss = trade.pnl >= 0 ? 'Win' : 'Loss';
+                    
+                    // Protections
+                    const protectionSetup = trade.protection_setup ? 'Yes' : 'No';
+                    const protectionTarget = trade.protection_target ? 'Yes' : 'No';
+                    const protectionInvalidation = trade.protection_invalidation ? 'Yes' : 'No';
+                    
+                    csv += [
+                        index + 1,
+                        trade.date,
+                        trade.entryTime || '',
+                        trade.exitTime || '',
+                        duration,
+                        trade.instrument || '',
+                        trade.direction || '',
+                        trade.quantity || '',
+                        trade.entryPrice || '',
+                        trade.exitPrice || '',
+                        trade.pnl || 0,
+                        winLoss,
+                        protectionSetup,
+                        protectionTarget,
+                        protectionInvalidation,
+                        trade.accountName || '',
+                        session,
+                        dayOfWeek,
+                        (trade.notes || '').replace(/,/g, ';').replace(/\n/g, ' ')
+                    ].join(',') + '\n';
+                });
+                
+                csv += '\n';
+                
+                // ===== JOURNAL QUOTIDIEN =====
+                csv += '=== JOURNAL QUOTIDIEN ===\n';
+                csv += 'Date,Titre,Contenu,Image URL\n';
+                
+                journal.forEach(entry => {
+                    csv += [
+                        entry.date || '',
+                        (entry.title || '').replace(/,/g, ';'),
+                        (entry.content || '').replace(/,/g, ';').replace(/\n/g, ' '),
+                        entry.image_url || ''
+                    ].join(',') + '\n';
+                });
+                
+                csv += '\n';
+                
+                // ===== COMPTES =====
+                csv += '=== COMPTES ===\n';
+                csv += 'Nom Compte,Type,Date Creation,Statut\n';
+                
+                accounts.forEach(account => {
+                    csv += [
+                        account.account_name || '',
+                        account.account_type || '',
+                        account.created_at ? new Date(account.created_at).toISOString().split('T')[0] : '',
+                        'Actif'
+                    ].join(',') + '\n';
+                });
+                
+                csv += '\n';
+                
+                // ===== COMPTABILITÉ =====
+                csv += '=== COMPTABILITE ===\n';
+                csv += 'Type,Description,Montant,Date,Compte\n';
+                
+                costs.forEach(cost => {
+                    csv += [
+                        'Coût',
+                        (cost.description || '').replace(/,/g, ';'),
+                        cost.amount || 0,
+                        cost.date || '',
+                        cost.account_name || ''
+                    ].join(',') + '\n';
+                });
+                
+                payouts.forEach(payout => {
+                    csv += [
+                        'Payout',
+                        (payout.description || '').replace(/,/g, ';'),
+                        payout.amount || 0,
+                        payout.date || '',
+                        payout.account_name || ''
+                    ].join(',') + '\n';
+                });
+                
+                csv += '\n';
+                
+                // ===== STATISTIQUES AGRÉGÉES =====
+                csv += '=== PERFORMANCE SUMMARY ===\n';
+                csv += 'Metric,Value\n';
+                
+                const wins = trades.filter(t => t.pnl >= 0);
+                const losses = trades.filter(t => t.pnl < 0);
+                const totalPnL = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+                const avgWin = wins.length > 0 ? wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length : 0;
+                const avgLoss = losses.length > 0 ? losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length : 0;
+                const winRate = trades.length > 0 ? (wins.length / trades.length * 100).toFixed(2) : 0;
+                const profitFactor = Math.abs(avgLoss) > 0 ? (avgWin / Math.abs(avgLoss)).toFixed(2) : 0;
+                const bestTrade = trades.length > 0 ? Math.max(...trades.map(t => t.pnl || 0)) : 0;
+                const worstTrade = trades.length > 0 ? Math.min(...trades.map(t => t.pnl || 0)) : 0;
+                
+                csv += 'Total Trades,' + trades.length + '\n';
+                csv += 'Winning Trades,' + wins.length + '\n';
+                csv += 'Losing Trades,' + losses.length + '\n';
+                csv += 'Win Rate (%),' + winRate + '\n';
+                csv += 'Total P&L ($),' + totalPnL.toFixed(2) + '\n';
+                csv += 'Average Win ($),' + avgWin.toFixed(2) + '\n';
+                csv += 'Average Loss ($),' + avgLoss.toFixed(2) + '\n';
+                csv += 'Profit Factor,' + profitFactor + '\n';
+                csv += 'Best Trade ($),' + bestTrade.toFixed(2) + '\n';
+                csv += 'Worst Trade ($),' + worstTrade.toFixed(2) + '\n';
+                
+                // Statistiques par instrument
+                const instruments = [...new Set(trades.map(t => t.instrument))];
+                instruments.forEach(instrument => {
+                    const instrumentTrades = trades.filter(t => t.instrument === instrument);
+                    const instrumentWins = instrumentTrades.filter(t => t.pnl >= 0);
+                    const instrumentWinRate = instrumentTrades.length > 0 ? (instrumentWins.length / instrumentTrades.length * 100).toFixed(2) : 0;
+                    csv += instrument + ' Win Rate (%),' + instrumentWinRate + '\n';
+                });
+                
+                console.log('[EXPORT] ✅ CSV généré avec succès');
+                
+                // Télécharger le fichier
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'trader360_full_analysis_' + new Date().toISOString().split('T')[0] + '.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                console.log('[EXPORT] 📥 Fichier téléchargé');
+                
+                // Notification succès
+                alert('✅ Export CSV réussi !\n\nFichier téléchargé : trader360_full_analysis_' + new Date().toISOString().split('T')[0] + '.csv\n\nVous pouvez maintenant l\'envoyer pour analyse IA.');
+                
+            } catch (error) {
+                console.error('[EXPORT] ❌ Erreur:', error);
+                alert('❌ Erreur lors de l\'export CSV. Consultez la console pour plus de détails.');
+            }
+        }
+        
+        // Exposer la fonction globalement
+        window.exportAllDataToCSV = exportAllDataToCSV;
 
         // Navigation
         function showSection(sectionName) {
