@@ -1,0 +1,62 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    📋 RÉCAPITULATIF COMMITS - 14 Janvier 2026                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌────┬─────────┬───────┬──────────────────────────────────┬────────┬──────────┐
+│ #  │  HASH   │ HEURE │          DESCRIPTION             │ RISQUE │ ROLLBACK │
+├────┼─────────┼───────┼──────────────────────────────────┼────────┼──────────┤
+│ 1  │ 1fac37c │ 09:26 │ Logo connexion (hexagone)        │   0%   │    ✅    │
+│ 2  │ 8441eec │ 09:10 │ Nom & Prénom inscription         │   5%   │    ✅    │
+│ 3  │ 2308054 │ 08:58 │ Détection GC dans CSV            │  10%   │    ✅    │
+│ 4  │ 3003728 │ 08:54 │ Instrument GC (Gold) 100$/pt     │  15%   │    ✅    │
+│ 5  │ 87e8724 │ 22:41 │ Force Vercel redeploy            │   0%   │    ✅    │
+│ 6  │ a5aaec2 │ 22:39 │ Fix Dashboard Coach (conflit)    │  30%   │    ⚠️    │
+│ 7  │ 318be8e │ 22:37 │ Debug logs coach-dashboard       │   0%   │    ✅    │
+│ 8  │ 68f10b0 │ 22:28 │ Dashboard Global Coach complet   │  40%   │    🔴    │
+│ 9  │ cc13b5c │ 22:21 │ Navigation calendrier modal ← →  │  10%   │    ✅    │
+└────┴─────────┴───────┴──────────────────────────────────┴────────┴──────────┘
+
+📝 LÉGENDE RISQUES:
+   ✅ 0-10%   = SAFE (rollback facile)
+   ⚠️ 11-30%  = ATTENTION (tester avant rollback)
+   🔴 31-50%  = CRITIQUE (nouveau module, bien tester)
+
+🚨 COMMANDES ROLLBACK RAPIDES:
+
+   Annuler LOGO uniquement:
+   $ git revert 1fac37c --no-edit && git push origin main
+
+   Annuler NOM & PRÉNOM uniquement:
+   $ git revert 8441eec --no-edit && git push origin main
+
+   Annuler INSTRUMENT GC uniquement:
+   $ git revert 3003728 2308054 --no-edit && git push origin main
+
+   Annuler DASHBOARD GLOBAL COACH uniquement:
+   $ git revert 87e8724 a5aaec2 318be8e 68f10b0 --no-edit && git push
+
+   ⚠️ ANNULER TOUT (DANGER):
+   $ git revert 1fac37c..cc13b5c --no-edit && git push origin main
+
+📊 FICHIERS MODIFIÉS:
+   - index.html (formulaire, dashboard, logo)
+   - supabase-auth.js (inscription avec nom)
+   - supabase-coach.js (affichage nom, navigation modal)
+   - coach-dashboard.js (nouveau fichier complet ~500 lignes)
+
+🎯 ORDRE DE TESTS PRIORITAIRES:
+
+   1. Logo connexion (2 min) → Rafraîchir page connexion
+   2. Dashboard Global Coach (15 min) → Connexion Coach + Dashboard
+   3. Nom & Prénom (5 min) → Créer nouveau compte
+   4. Instrument GC (10 min) → Ajouter trade GC + CSV
+   5. Navigation modal (5 min) → Modal Détails élève + flèches
+
+📁 FICHIERS DE RÉFÉRENCE:
+   - COMMITS_RECAP.md (détails complets)
+   - COMMITS_SIMPLE.txt (ce fichier, aperçu rapide)
+   - AUDIT_REPORT.md (analyse performance 250 élèves)
+
+═══════════════════════════════════════════════════════════════════════════════
+Dernière mise à jour: 14 Janvier 2026 - 09:30
+═══════════════════════════════════════════════════════════════════════════════
