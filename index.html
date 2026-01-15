@@ -764,7 +764,7 @@
 <script src="supabase-account-costs.js"></script>
 <script src="supabase-coach.js"></script>
 <script src="coach-dashboard.js"></script>
-<script src="prompt-ia.js"></script>
+<!-- prompt-ia.js chargé UNIQUEMENT pour les élèves (voir supabase-auth.js) -->
 
 <script>
 // ========================================
@@ -6959,7 +6959,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         
         // ===== FONCTIONS INTERFACE COACH =====
         
-        function showCoachSection(sectionName) {
+        async function showCoachSection(sectionName) {
             // Masquer toutes les sections
             document.querySelectorAll('#coachApp .section').forEach(section => {
                 section.classList.add('hidden');
@@ -6984,15 +6984,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (sectionName === 'coachDashboard') {
                 // Utiliser window.loadCoachDashboard pour éviter ReferenceError
                 if (typeof window.loadCoachDashboard === 'function') {
-                    console.log('[COACH] Appel de window.loadCoachDashboard()...');
-                    window.loadCoachDashboard();
+                    console.log('[COACH] ✅ Appel de window.loadCoachDashboard()...');
+                    await window.loadCoachDashboard();
                 } else {
-                    console.error('[ERROR] window.loadCoachDashboard n\'existe pas encore. Attente...');
-                    setTimeout(() => {
-                        if (typeof window.loadCoachDashboard === 'function') {
-                            window.loadCoachDashboard();
-                        }
-                    }, 500);
+                    console.error('[ERROR] ⚠️ window.loadCoachDashboard n\'existe pas encore. Attente 500ms...');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    if (typeof window.loadCoachDashboard === 'function') {
+                        console.log('[COACH] ✅ Retry: Appel de window.loadCoachDashboard()...');
+                        await window.loadCoachDashboard();
+                    } else {
+                        console.error('[ERROR] ❌ window.loadCoachDashboard toujours indisponible après retry');
+                    }
                 }
             } else if (sectionName === 'coachStudents') {
                 loadCoachStudents();
