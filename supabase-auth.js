@@ -143,7 +143,11 @@
         const coachPassword = document.getElementById('coachCode').value;
 
         if (!coachEmail || !coachPassword) {
-            alert('Veuillez remplir tous les champs');
+            const errorElement = document.getElementById('coachError');
+            if (errorElement) {
+                errorElement.textContent = 'Veuillez remplir tous les champs';
+                errorElement.classList.remove('hidden');
+            }
             return;
         }
 
@@ -157,7 +161,11 @@
 
             if (error) {
                 console.error('[ERROR] Erreur auth coach:', error.message);
-                alert('Email ou mot de passe incorrect');
+                const errorElement = document.getElementById('coachError');
+                if (errorElement) {
+                    errorElement.textContent = 'Email ou mot de passe incorrect';
+                    errorElement.classList.remove('hidden');
+                }
                 return;
             }
 
@@ -173,7 +181,11 @@
 
             if (coachError || !coachData) {
                 console.error('[ERROR] Utilisateur non coach ou erreur:', coachError);
-                alert('Cet utilisateur n\'est pas un coach');
+                const errorElement = document.getElementById('coachError');
+                if (errorElement) {
+                    errorElement.textContent = 'Cet utilisateur n\'est pas un coach';
+                    errorElement.classList.remove('hidden');
+                }
                 await supabase.auth.signOut();
                 return;
             }
@@ -185,13 +197,25 @@
             const mainApp = document.getElementById('mainApp');
             const coachApp = document.getElementById('coachApp');
             
+            console.log('[DEBUG] Elements trouvés:', {
+                authScreen: authScreen ? 'OUI' : 'NON',
+                mainApp: mainApp ? 'OUI' : 'NON',
+                coachApp: coachApp ? 'OUI' : 'NON'
+            });
+            
             if (authScreen) authScreen.style.display = 'none';
             if (mainApp) mainApp.style.display = 'none';  // Masquer l'interface élève
             if (coachApp) coachApp.style.display = 'flex';  // Afficher l'interface COACH
 
+            console.log('[DEBUG] showCoachSection existe?', typeof showCoachSection);
+            console.log('[DEBUG] loadCoachDashboard existe?', typeof window.loadCoachDashboard);
+            
             // Afficher le Dashboard Coach par défaut
             if (typeof showCoachSection === 'function') {
+                console.log('[DEBUG] Appel de showCoachSection(coachDashboard)...');
                 showCoachSection('coachDashboard');
+            } else {
+                console.error('[ERROR] showCoachSection n\'existe pas !');
             }
 
             if (typeof loadCoachRegistrationsFromSupabase === 'function') {
@@ -202,7 +226,11 @@
 
         } catch (err) {
             console.error('[ERROR] Erreur inattendue coach login:', err);
-            alert('Erreur lors de la connexion coach');
+            const errorElement = document.getElementById('coachError');
+            if (errorElement) {
+                errorElement.textContent = 'Erreur lors de la connexion coach';
+                errorElement.classList.remove('hidden');
+            }
         }
     }
 

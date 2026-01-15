@@ -8028,6 +8028,44 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.log("[OK] Bouton Coach Login attaché");
             }
             
+            // Navigation buttons
+            const showRegisterBtn = document.getElementById('showRegisterBtn');
+            if (showRegisterBtn) {
+                showRegisterBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showRegisterForm();
+                });
+                console.log("[OK] Bouton Show Register attaché");
+            }
+            
+            const showLoginBtn = document.getElementById('showLoginBtn');
+            if (showLoginBtn) {
+                showLoginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showLoginForm();
+                });
+                console.log("[OK] Bouton Show Login attaché");
+            }
+            
+            const showLoginBtnCoach = document.getElementById('showLoginBtnCoach');
+            if (showLoginBtnCoach) {
+                showLoginBtnCoach.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log("[DEBUG] Bouton Retour cliqué - retour vers login form");
+                    showLoginForm();
+                });
+                console.log("[OK] Bouton Retour Coach attaché");
+            }
+            
+            const showCoachLoginBtn = document.getElementById('showCoachLoginBtn');
+            if (showCoachLoginBtn) {
+                showCoachLoginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showCoachLogin();
+                });
+                console.log("[OK] Bouton Show Coach Login attaché");
+            }
+            
             console.log(" Tous les événements sont attachés !");
             
         } else {
