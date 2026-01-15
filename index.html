@@ -1391,7 +1391,15 @@ window.cancelCSVImport = cancelCSVImport;
 // Coach
 window.showCoachSection = showCoachSection;
 window.viewStudentDetails = viewStudentDetails;
-window.closeStudentDetail = closeStudentDetail;
+window.closeStudentDetail = function() { 
+    // Alias pour closeStudentDetailsModal (définie dans supabase-coach.js)
+    if (typeof window.closeStudentDetailsModal === 'function') {
+        window.closeStudentDetailsModal();
+    } else {
+        console.error('[ERROR] closeStudentDetailsModal non définie');
+        document.getElementById('studentDetailModal').style.display = 'none';
+    }
+};
 window.deleteStudent = deleteStudent;
 window.approveStudent = approveStudent;
 window.refreshAllModules = refreshAllModules;
@@ -6974,7 +6982,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // Charger les données de la section
             if (sectionName === 'coachDashboard') {
-                loadCoachDashboard();
+                // Utiliser window.loadCoachDashboard pour éviter ReferenceError
+                if (typeof window.loadCoachDashboard === 'function') {
+                    console.log('[COACH] Appel de window.loadCoachDashboard()...');
+                    window.loadCoachDashboard();
+                } else {
+                    console.error('[ERROR] window.loadCoachDashboard n\'existe pas encore. Attente...');
+                    setTimeout(() => {
+                        if (typeof window.loadCoachDashboard === 'function') {
+                            window.loadCoachDashboard();
+                        }
+                    }, 500);
+                }
             } else if (sectionName === 'coachStudents') {
                 loadCoachStudents();
             } else if (sectionName === 'coachAccounting') {

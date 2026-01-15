@@ -695,4 +695,4 @@ function copyPromptToClipboard() {
 window.copyPromptToClipboard = copyPromptToClipboard;
 window.PROMPT_ANALYSE_IA = PROMPT_ANALYSE_IA;
 
-console.log('[PROMPT] ✅ Prompt IA chargé (', PROMPT_ANALYSE_IA.length, 'caractères)');
+console.log('[PROMPT] ✅ Prompt IA chargé (' + PROMPT_ANALYSE_IA.length + ' caractères)');
