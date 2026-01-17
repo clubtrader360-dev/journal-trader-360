@@ -6755,12 +6755,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 data: {
                     datasets: [{
                         label: 'Winning Trades',
-                        data: generateDurationData(20, true),
+                        data: [], // ✅ Vide au démarrage
                         backgroundColor: '#10b981',
                         pointRadius: 3
                     }, {
                         label: 'Losing Trades',
-                        data: generateDurationData(15, false),
+                        data: [], // ✅ Vide au démarrage
                         backgroundColor: '#ef4444',
                         pointRadius: 3
                     }]
@@ -6873,9 +6873,50 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // 6. Trade Duration
             if (durationChart) {
-                durationChart.data.datasets[0].data = [];
-                durationChart.data.datasets[1].data = [];
-                durationChart.update('none'); // ✅ Forcer mise à jour sans animation
+                // ✅ DÉTRUIRE complètement le graphique
+                durationChart.destroy();
+                
+                // ✅ RECRÉER le graphique VIDE
+                const ctx = document.getElementById('durationChart').getContext('2d');
+                durationChart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Winning Trades',
+                            data: [], // ✅ Vide au lieu de generateDurationData()
+                            backgroundColor: '#10b981',
+                            pointRadius: 3
+                        }, {
+                            label: 'Losing Trades',
+                            data: [], // ✅ Vide au lieu de generateDurationData()
+                            backgroundColor: '#ef4444',
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Duration (minutes)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'P&L'
+                                }
+                            }
+                        }
+                    }
+                });
             }
             
             console.log('[CHART] ✅ Tous les graphiques réinitialisés');
