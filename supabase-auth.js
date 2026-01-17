@@ -282,13 +282,28 @@
                     name: registerName,
                     email: registerEmail,
                     role: 'student',
-                    status: 'pending',
-                    created_at: new Date().toISOString()
+                    status: 'pending'
                 });
 
             if (insertError) {
                 console.error('[ERROR] Erreur insertion user:', insertError);
-                alert('Erreur lors de la création du profil utilisateur');
+                console.error('[ERROR] Code:', insertError.code);
+                console.error('[ERROR] Message:', insertError.message);
+                console.error('[ERROR] Details:', insertError.details);
+                
+                // Si l'erreur est "duplicate key", c'est que l'utilisateur existe déjà
+                if (insertError.code === '23505' || insertError.message.includes('duplicate')) {
+                    console.log('[INFO] L\'utilisateur existe déjà dans users, connexion automatique...');
+                    alert('Inscription réussie ! Connexion en cours...');
+                    
+                    // Remplir les champs de connexion et appeler login()
+                    document.getElementById('loginEmail').value = registerEmail;
+                    document.getElementById('loginPassword').value = registerPassword;
+                    await login();
+                    return;
+                }
+                
+                alert('Erreur lors de la création du profil utilisateur: ' + insertError.message);
                 return;
             }
 
