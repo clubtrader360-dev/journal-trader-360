@@ -267,9 +267,14 @@
             });
 
             if (error) {
-                console.error('[ERROR] Erreur inscription:', error.message);
-                alert('Erreur lors de l\'inscription: ' + error.message);
-                return;
+                // Ignorer l'erreur "Database error saving new user" car on crée l'utilisateur manuellement après
+                if (error.message.includes('Database error saving new user')) {
+                    console.warn('[WARN] Erreur Supabase Auth ignorée (on crée l\'utilisateur manuellement):', error.message);
+                } else {
+                    console.error('[ERROR] Erreur inscription:', error.message);
+                    alert('Erreur lors de l\'inscription: ' + error.message);
+                    return;
+                }
             }
 
             console.log('[OK] Inscription Supabase réussie');
