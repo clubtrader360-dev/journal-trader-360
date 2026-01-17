@@ -1394,7 +1394,7 @@ window.closeStudentDetail = function() {
         document.getElementById('studentDetailModal').style.display = 'none';
     }
 };
-window.deleteStudent = deleteStudent;
+// window.deleteStudent = deleteStudent; // ❌ Fonction non définie
 window.approveStudent = approveStudent;
 window.refreshAllModules = refreshAllModules;
 console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
@@ -8371,10 +8371,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             const registerBtn = document.getElementById('registerBtn');
             if (registerBtn) {
-                registerBtn.addEventListener('click', function(e) {
+                let isRegistering = false;
+                registerBtn.addEventListener('click', async function(e) {
                     e.preventDefault();
+                    if (isRegistering) {
+                        console.log("[REGISTER] Inscription déjà en cours, ignoré");
+                        return;
+                    }
+                    isRegistering = true;
                     console.log("[REGISTER] Tentative d inscription...");
-                    window.register();
+                    await window.register();
+                    isRegistering = false;
                 });
                 console.log("[OK] Bouton Register attache");
             }
