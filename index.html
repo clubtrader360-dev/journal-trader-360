@@ -4422,8 +4422,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         allTransactions.push({
                             type: 'COST',
                             date: cost.date || '',
-                            description: (cost.description || '').replace(/,/g, ';'),
-                            amount: -(Math.abs(cost.amount || 0)), // Négatif pour les coûts
+                            description: (cost.notes || cost.description || '').replace(/,/g, ';'),
+                            amount: -(Math.abs(cost.cost || cost.amount || 0)), // Négatif pour les coûts
                             account: cost.account_name || '',
                             category: cost.cost_type || 'Achat Compte'
                         });
@@ -4473,7 +4473,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 csv += 'Metric,Value\n';
                 
                 // Calculs
-                const totalCosts = Array.isArray(costs) ? costs.reduce((sum, c) => sum + (c.amount || 0), 0) : 0;
+                const totalCosts = Array.isArray(costs) ? costs.reduce((sum, c) => sum + (c.cost || c.amount || 0), 0) : 0;
                 const totalPayouts = Array.isArray(payouts) ? payouts.reduce((sum, p) => sum + (p.amount || 0), 0) : 0;
                 const netProfit = totalPayouts - totalCosts;
                 const roi = totalCosts > 0 ? ((netProfit / totalCosts) * 100).toFixed(2) : 0;
@@ -4521,7 +4521,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     accounts.forEach(account => {
                         const accountCosts = Array.isArray(costs) 
-                            ? costs.filter(c => c.account_id === account.id).reduce((sum, c) => sum + (c.amount || 0), 0)
+                            ? costs.filter(c => c.account_id === account.id).reduce((sum, c) => sum + (c.cost || c.amount || 0), 0)
                             : 0;
                         const accountPayouts = Array.isArray(payouts)
                             ? payouts.filter(p => p.account_id === account.id).reduce((sum, p) => sum + (p.amount || 0), 0)
