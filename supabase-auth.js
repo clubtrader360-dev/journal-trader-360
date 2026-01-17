@@ -270,11 +270,19 @@
                 // Ignorer l'erreur "Database error saving new user" car on crée l'utilisateur manuellement après
                 if (error.message.includes('Database error saving new user')) {
                     console.warn('[WARN] Erreur Supabase Auth ignorée (on crée l\'utilisateur manuellement):', error.message);
+                    // Ne pas return, continuer le processus
                 } else {
                     console.error('[ERROR] Erreur inscription:', error.message);
                     alert('Erreur lors de l\'inscription: ' + error.message);
                     return;
                 }
+            }
+
+            // Vérifier que data.user existe (peut être null si erreur ignorée)
+            if (!data || !data.user || !data.user.id) {
+                console.error('[ERROR] Données utilisateur manquantes après inscription');
+                alert('Erreur lors de l\'inscription: données utilisateur manquantes');
+                return;
             }
 
             console.log('[OK] Inscription Supabase réussie');
