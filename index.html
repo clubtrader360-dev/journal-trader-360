@@ -6836,7 +6836,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             // 1. Trader 360 Score
             if (traderScoreChart) {
                 traderScoreChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0];
-                traderScoreChart.update();
+                traderScoreChart.update('none');
             }
             if (document.getElementById('traderScore')) {
                 document.getElementById('traderScore').textContent = '0.0';
@@ -6846,7 +6846,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (tradeTimeChart) {
                 tradeTimeChart.data.datasets[0].data = [];
                 tradeTimeChart.data.datasets[1].data = [];
-                tradeTimeChart.update();
+                tradeTimeChart.update('none');
             }
             
             // 3. Daily P&L
@@ -6854,28 +6854,28 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 dailyPnlChart.data.labels = [];
                 dailyPnlChart.data.datasets[0].data = [];
                 dailyPnlChart.data.datasets[1].data = [];
-                dailyPnlChart.update();
+                dailyPnlChart.update('none');
             }
             
             // 4. Cumulative P&L
             if (cumulativePnlChart) {
                 cumulativePnlChart.data.labels = [];
                 cumulativePnlChart.data.datasets[0].data = [];
-                cumulativePnlChart.update();
+                cumulativePnlChart.update('none');
             }
             
             // 5. Drawdown
             if (drawdownChart) {
                 drawdownChart.data.labels = [];
                 drawdownChart.data.datasets[0].data = [];
-                drawdownChart.update();
+                drawdownChart.update('none');
             }
             
             // 6. Trade Duration
             if (durationChart) {
                 durationChart.data.datasets[0].data = [];
                 durationChart.data.datasets[1].data = [];
-                durationChart.update();
+                durationChart.update('none'); // ✅ Forcer mise à jour sans animation
             }
             
             console.log('[CHART] ✅ Tous les graphiques réinitialisés');
