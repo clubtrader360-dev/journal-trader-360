@@ -1172,7 +1172,7 @@ function closeViewJournalModal() {
 
 // Exposer toutes les fonctions globalement
 window.showAddAccountModal = showAddAccountModal;
-window.showAddTradeModal = showAddTradeModal;
+// window.showAddTradeModal exposée plus loin avec réinitialisation complète (ligne ~4676)
 window.showAddNoteModal = showAddNoteModal;
 window.showImportCSVModal = showImportCSVModal;
 window.showAddAccountCostModal = showAddAccountCostModal;
@@ -1343,13 +1343,8 @@ console.log('[OK] Fonctions modales exposées globalement');
                 };
 
                 // Fonction showAddTradeModal
-                window.showAddTradeModal = function() {
-                    console.log('[MODAL] Ouverture modal addTrade');
-                    const modal = document.getElementById('addTradeModal');
-                    if (modal) {
-                        modal.style.display = 'block';
-                    }
-                };
+                // ✅ showAddTradeModal est définie plus loin (ligne ~4676) avec réinitialisation complète
+                // On ne la redéfinit pas ici pour éviter les conflits
 
                 // Fonction showAddNoteModal
                 window.showAddNoteModal = function() {
@@ -4715,6 +4710,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             document.getElementById('addTradeModal').style.display = 'block';
         }
+        
+        // ✅ Exposer showAddTradeModal globalement
+        window.showAddTradeModal = showAddTradeModal;
 
         function showAddNoteModal() {
             const modal = document.getElementById('addNoteModal');
@@ -5127,13 +5125,51 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             document.getElementById('setup').value = trade.setup || '';
             document.getElementById('tradeNotes').value = trade.notes || '';
             
-            // Cocher les protections
-            if (trade.protections && Array.isArray(trade.protections)) {
-                document.getElementById('protectionVWAP').checked = trade.protections.includes('VWAP');
-                document.getElementById('protectionMM20').checked = trade.protections.includes('MM20');
-                document.getElementById('protectionPivot').checked = trade.protections.includes('Pivot');
-                document.getElementById('protectionClotureVeille').checked = trade.protections.includes('Clôture veille');
-                document.getElementById('protectionLiquidite').checked = trade.protections.includes('Liquidité 30m/H1/H4');
+            // ✅ D'ABORD : Décocher TOUTES les protections
+            document.getElementById('protectionVWAP').checked = false;
+            document.getElementById('protectionMM20').checked = false;
+            document.getElementById('protectionPivot').checked = false;
+            document.getElementById('protectionClotureVeille').checked = false;
+            document.getElementById('protectionLiquidite').checked = false;
+            
+            // ✅ ENSUITE : Cocher les protections du trade
+            console.log('[EDIT] Protections du trade:', trade.protections, 'Type:', typeof trade.protections, 'Array?', Array.isArray(trade.protections));
+            
+            if (trade.protections) {
+                // ✅ Gérer le cas où protections est une chaîne (JSON stringifié)
+                let protectionsArray = trade.protections;
+                if (typeof trade.protections === 'string') {
+                    try {
+                        protectionsArray = JSON.parse(trade.protections);
+                        console.log('[EDIT] Protections parsées depuis JSON:', protectionsArray);
+                    } catch (e) {
+                        console.error('[EDIT] ❌ Erreur parsing protections:', e);
+                        protectionsArray = [];
+                    }
+                }
+                
+                // ✅ Vérifier que c'est bien un array
+                if (Array.isArray(protectionsArray)) {
+                    console.log('[EDIT] ✅ Protections à cocher:', protectionsArray);
+                    document.getElementById('protectionVWAP').checked = protectionsArray.includes('VWAP');
+                    document.getElementById('protectionMM20').checked = protectionsArray.includes('MM20');
+                    document.getElementById('protectionPivot').checked = protectionsArray.includes('Pivot');
+                    document.getElementById('protectionClotureVeille').checked = protectionsArray.includes('Clôture veille');
+                    document.getElementById('protectionLiquidite').checked = protectionsArray.includes('Liquidité 30m/H1/H4');
+                    
+                    // Log de vérification
+                    console.log('[EDIT] Protections cochées:', {
+                        VWAP: document.getElementById('protectionVWAP').checked,
+                        MM20: document.getElementById('protectionMM20').checked,
+                        Pivot: document.getElementById('protectionPivot').checked,
+                        ClotureVeille: document.getElementById('protectionClotureVeille').checked,
+                        Liquidite: document.getElementById('protectionLiquidite').checked
+                    });
+                } else {
+                    console.warn('[EDIT] ⚠️ Protections n\'est pas un array:', protectionsArray);
+                }
+            } else {
+                console.log('[EDIT] ℹ️ Aucune protection sur ce trade');
             }
             
             // Stocker l'ID du trade en cours de modification
