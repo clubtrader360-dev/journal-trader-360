@@ -3250,7 +3250,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                     if (label) {
                                         label += ': ';
                                     }
-                                    label += context.parsed.y.toFixed(2) + ' €';
+                                    if (context.parsed && context.parsed.y !== undefined) {
+                                        label += context.parsed.y.toFixed(2) + ' €';
+                                    }
                                     return label;
                                 }
                             }
@@ -6631,6 +6633,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     datasets: [{
                         data: generateDailyPnlData(30),
                         backgroundColor: function(context) {
+                            if (!context.parsed || context.parsed.y === undefined) {
+                                return '#10b981'; // Couleur par défaut
+                            }
                             const value = context.parsed.y;
                             return value >= 0 ? '#10b981' : '#ef4444';
                         },
