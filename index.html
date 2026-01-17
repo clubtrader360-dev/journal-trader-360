@@ -1608,6 +1608,26 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             </div>
                         </div>
                     </div>
+
+                    <!-- RR1/RR2 Atteint -->
+                    <div class="metric-item">
+                        <div class="metric-header">
+                            RR1/RR2 atteint <i class="fas fa-info-circle info-icon" style="color: #ccc;"><span class="tooltip">nombre de trades où vous avez atteint RR1 ou RR2 pendant le trade. cela permet d'identifier les opportunités où vous auriez pu optimiser votre sortie.</span></i>
+                        </div>
+                        <div class="metric-main">
+                            <div class="metric-value-medium" id="rrAtteintsValue">0 trades</div>
+                            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 8px;">
+                                <div style="text-align: center;">
+                                    <div style="font-size: 14px; color: #ac862b;">RR1</div>
+                                    <div style="font-size: 18px; font-weight: 600; color: #ac862b;" id="rr1Count">0</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 14px; color: #10b981;">RR2</div>
+                                    <div style="font-size: 18px; font-weight: 600; color: #10b981;" id="rr2Count">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Monthly Navigation and Calendar -->
@@ -2173,6 +2193,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             <option value="">Sélectionner...</option>
                             <option value="Long">Long</option>
                             <option value="Short">Short</option>
+                            <option value="Long (RR1 atteint)">Long (RR1 atteint)</option>
+                            <option value="Long (RR2 atteint)">Long (RR2 atteint)</option>
+                            <option value="Short (RR1 atteint)">Short (RR1 atteint)</option>
+                            <option value="Short (RR2 atteint)">Short (RR2 atteint)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -4318,7 +4342,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 
                 // ===== TRADES (Analyse principale) =====
                 csv += '=== TRADES (Analyse principale) ===\n';
-                csv += 'ID,Date,Entry Time,Exit Time,Duration (min),Instrument,Direction,Quantity,Entry Price,Exit Price,P&L,Win/Loss,Protection Setup,Protection Target,Protection Invalidation,Account,Session (AM/PM),Day of Week,Notes\n';
+                csv += 'ID,Date,Entry Time,Exit Time,Duration (min),Instrument,Direction,Type,RR Atteint,Quantity,Entry Price,Exit Price,P&L,Win/Loss,Protection Setup,Protection Target,Protection Invalidation,Account,Session (AM/PM),Day of Week,Notes\n';
                 
                 if (Array.isArray(trades)) {
                     trades.forEach((trade, index) => {
@@ -4344,6 +4368,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     const protectionTarget = trade.protection_target ? 'Yes' : 'No';
                     const protectionInvalidation = trade.protection_invalidation ? 'Yes' : 'No';
                     
+                    // RR Atteint (extraire de trade.type)
+                    let rrAtteint = 'Non';
+                    if (trade.type) {
+                        if (trade.type.includes('RR1 atteint')) {
+                            rrAtteint = 'RR1';
+                        } else if (trade.type.includes('RR2 atteint')) {
+                            rrAtteint = 'RR2';
+                        }
+                    }
+                    
                     csv += [
                         index + 1,
                         trade.date,
@@ -4352,6 +4386,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         duration,
                         trade.instrument || '',
                         trade.direction || '',
+                        trade.type || '',
+                        rrAtteint,
                         trade.quantity || '',
                         trade.entryPrice || '',
                         trade.exitPrice || '',
@@ -5850,6 +5886,25 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             const avgRatioEl = document.getElementById('avgWinLossValue');
             if (avgRatioEl) avgRatioEl.textContent = avgRatio.toFixed(2);
+            
+            // Calculer les trades avec RR1/RR2 atteint
+            const rr1Trades = filteredTrades.filter(trade => 
+                trade.type && (trade.type.includes('RR1 atteint'))
+            );
+            const rr2Trades = filteredTrades.filter(trade => 
+                trade.type && (trade.type.includes('RR2 atteint'))
+            );
+            
+            const totalRRTrades = rr1Trades.length + rr2Trades.length;
+            
+            const rrAtteintsEl = document.getElementById('rrAtteintsValue');
+            if (rrAtteintsEl) rrAtteintsEl.textContent = `${totalRRTrades} trade${totalRRTrades > 1 ? 's' : ''}`;
+            
+            const rr1CountEl = document.getElementById('rr1Count');
+            if (rr1CountEl) rr1CountEl.textContent = rr1Trades.length;
+            
+            const rr2CountEl = document.getElementById('rr2Count');
+            if (rr2CountEl) rr2CountEl.textContent = rr2Trades.length;
         }
 
         function resetDashboard() {

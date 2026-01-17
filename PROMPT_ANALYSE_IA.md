@@ -516,7 +516,82 @@ Pour chaque compte :
 - Seuil de sécurité avant scaling : $X de revenus mensuels constants
 
 ═══════════════════════════════════════════════════════════════════════════════
-10. PLAN D'ACTION CONCRET - TOP 3 PRIORITÉS
+10. ANALYSE OPTIMISATION RR (Risk/Reward)
+═══════════════════════════════════════════════════════════════════════════════
+
+💰 Analyse l'optimisation de mes sorties basée sur RR1/RR2 atteints :
+
+**A. ÉTAT DES LIEUX RR**
+- Nombre de trades où RR1 a été atteint : [X]
+- Nombre de trades où RR2 a été atteint : [X]
+- % de trades ayant atteint RR1 : [X%]
+- % de trades ayant atteint RR2 : [X%]
+
+**B. ANALYSE DES SORTIES APRÈS RR ATTEINT**
+
+Pour les trades où RR1 a été atteint :
+- Combien ont été fermés à RR1 (idéal) : [X] trades
+- Combien ont été fermés à BE (Break Even) : [X] trades
+- Combien ont été fermés en perte (SL) : [X] trades
+- Combien ont dépassé RR1 mais fermé avant RR2 : [X] trades
+
+Pour les trades où RR2 a été atteint :
+- Combien ont été fermés à RR2 (excellent) : [X] trades
+- Combien ont été fermés entre RR1 et RR2 : [X] trades
+- Combien ont été fermés à BE ou SL malgré RR2 atteint : [X] trades
+
+**C. CALCUL DU P&L PERDU**
+
+🚨 OPPORTUNITÉS MANQUÉES :
+
+Scénario 1 : Si j'avais TOUJOURS fermé à RR1 quand atteint
+- Trades concernés : [X] trades
+- P&L actuel sur ces trades : $[X]
+- P&L si fermé à RR1 : $[X]
+- DIFFÉRENCE : +$[X] (+[X%])
+
+Scénario 2 : Si j'avais TOUJOURS fermé à RR2 quand atteint
+- Trades concernés : [X] trades
+- P&L actuel sur ces trades : $[X]
+- P&L si fermé à RR2 : $[X]
+- DIFFÉRENCE : +$[X] (+[X%])
+
+**D. ANALYSE COMPORTEMENTALE RR**
+
+🔍 PATTERN DÉTECTÉ :
+
+Identifie mon comportement par rapport aux RR :
+- Est-ce que je ferme trop tôt avant RR1 ?
+- Est-ce que je laisse revenir à BE après avoir atteint RR1 ?
+- Est-ce que je suis trop gourmand et rate RR1 en visant RR2 ?
+- Est-ce que je respecte mes niveaux de sortie ?
+
+**E. RECOMMANDATION STRATÉGIE RR**
+
+🎯 STRATÉGIE OPTIMALE BASÉE SUR MES DONNÉES :
+
+Recommandation principale :
+- [ ] Fermer SYSTÉMATIQUEMENT à RR1 (sécuriser gains)
+- [ ] Fermer 50% à RR1, laisser courir 50% jusqu'à RR2
+- [ ] Fermer 75% à RR1, laisser 25% pour RR2+
+- [ ] Laisser courir jusqu'à RR2 (si win rate élevé)
+
+Justification chiffrée :
+- Avec cette stratégie, P&L mensuel estimé : +$[X]
+- Gain potentiel vs stratégie actuelle : +$[X] (+[X%])
+- Nombre de trades optimisés : [X]
+
+**F. RÈGLES À IMPLÉMENTER**
+
+✅ RÈGLES STRICTES RR :
+1. Si RR1 atteint → [Action précise]
+2. Si RR2 atteint → [Action précise]
+3. JAMAIS laisser revenir à BE après RR1
+4. Utiliser un trailing stop après RR1
+5. [Règle personnalisée basée sur données]
+
+═══════════════════════════════════════════════════════════════════════════════
+11. PLAN D'ACTION CONCRET - TOP 3 PRIORITÉS
 ═══════════════════════════════════════════════════════════════════════════════
 
 🎯 Donne-moi 3 ACTIONS CONCRÈTES ET IMMÉDIATES :
@@ -543,7 +618,7 @@ PRIORITÉ #3 :
 - Délai : [Combien de temps pour voir résultats]
 
 ═══════════════════════════════════════════════════════════════════════════════
-11. RÈGLES DE TRADING PERSONNALISÉES
+12. RÈGLES DE TRADING PERSONNALISÉES
 ═══════════════════════════════════════════════════════════════════════════════
 
 📜 Basé sur MON profil et MES données, crée-moi un set de RÈGLES STRICTES :
@@ -573,7 +648,7 @@ PRIORITÉ #3 :
 10. NE JAMAIS trader sans plan
 
 ═══════════════════════════════════════════════════════════════════════════════
-12. SIMULATION D'AMÉLIORATION
+13. SIMULATION D'AMÉLIORATION
 ═══════════════════════════════════════════════════════════════════════════════
 
 💰 Calcule l'impact financier SI j'applique tes recommandations :
@@ -601,7 +676,7 @@ PRIORITÉ #3 :
 - Progression estimée : [Description]
 
 ═══════════════════════════════════════════════════════════════════════════════
-13. SUIVI ET MÉTRIQUES À MONITORER
+14. SUIVI ET MÉTRIQUES À MONITORER
 ═══════════════════════════════════════════════════════════════════════════════
 
 📊 KPIs que je dois suivre QUOTIDIENNEMENT :
@@ -620,7 +695,7 @@ PRIORITÉ #3 :
 3. [Métrique] : Objectif [X], Seuil alerte [Y]
 
 ═══════════════════════════════════════════════════════════════════════════════
-14. CONCLUSION & PROCHAINES ÉTAPES
+15. CONCLUSION & PROCHAINES ÉTAPES
 ═══════════════════════════════════════════════════════════════════════════════
 
 🎯 Résumé en 5 BULLET POINTS CLÉS :
@@ -658,8 +733,9 @@ PRIORITÉ #3 :
 
 ## 🎯 POURQUOI CE PROMPT EST ULTRA-PERFORMANT
 
-### **1. Structure complète en 13 sections** ✅
+### **1. Structure complète en 15 sections** ✅
 - Vue d'ensemble → Diagnostic → Actions → Suivi
+- Analyse RR (Risk/Reward) pour optimiser les sorties
 - Rien n'est laissé au hasard
 
 ### **2. Demandes chiffrées et précises** 📊
