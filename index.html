@@ -4279,7 +4279,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             try {
                 // Récupérer toutes les données
                 const trades = window.trades || [];
-                const journal = window.journalEntries || [];
+                const journalRaw = window.journalEntries;
+                const journal = Array.isArray(journalRaw) ? journalRaw : [];
                 const accounts = window.accounts || [];
                 const costs = window.accountCosts || [];
                 const payouts = window.payouts || [];
@@ -4288,10 +4289,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.log('[EXPORT] Données récupérées:', {
                     trades: trades.length,
                     journal: journal.length,
+                    journalType: typeof journalRaw,
+                    journalIsArray: Array.isArray(journalRaw),
                     accounts: accounts.length,
                     costs: costs.length,
                     payouts: payouts.length
                 });
+                
+                // Debug: afficher journalRaw
+                if (!Array.isArray(journalRaw)) {
+                    console.warn('[EXPORT] ⚠️ window.journalEntries n\'est pas un tableau:', journalRaw);
+                }
                 
                 // Générer le CSV
                 let csv = '';
@@ -4312,7 +4320,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 csv += '=== TRADES (Analyse principale) ===\n';
                 csv += 'ID,Date,Entry Time,Exit Time,Duration (min),Instrument,Direction,Quantity,Entry Price,Exit Price,P&L,Win/Loss,Protection Setup,Protection Target,Protection Invalidation,Account,Session (AM/PM),Day of Week,Notes\n';
                 
-                trades.forEach((trade, index) => {
+                if (Array.isArray(trades)) {
+                    trades.forEach((trade, index) => {
                     const tradeDate = new Date(trade.date);
                     const dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][tradeDate.getDay()];
                     
@@ -4357,6 +4366,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         (trade.notes || '').replace(/,/g, ';').replace(/\n/g, ' ')
                     ].join(',') + '\n';
                 });
+                } else {
+                    console.warn('[EXPORT] ⚠️ trades n\'est pas un tableau');
+                }
                 
                 csv += '\n';
                 
@@ -4364,14 +4376,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 csv += '=== JOURNAL QUOTIDIEN ===\n';
                 csv += 'Date,Titre,Contenu,Image URL\n';
                 
-                journal.forEach(entry => {
-                    csv += [
-                        entry.date || '',
-                        (entry.title || '').replace(/,/g, ';'),
-                        (entry.content || '').replace(/,/g, ';').replace(/\n/g, ' '),
-                        entry.image_url || ''
-                    ].join(',') + '\n';
-                });
+                if (Array.isArray(journal)) {
+                    journal.forEach(entry => {
+                        csv += [
+                            entry.date || '',
+                            (entry.title || '').replace(/,/g, ';'),
+                            (entry.content || '').replace(/,/g, ';').replace(/\n/g, ' '),
+                            entry.image_url || ''
+                        ].join(',') + '\n';
+                    });
+                } else {
+                    console.warn('[EXPORT] ⚠️ journal n\'est pas un tableau');
+                }
                 
                 csv += '\n';
                 
@@ -4379,14 +4395,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 csv += '=== COMPTES ===\n';
                 csv += 'Nom Compte,Type,Date Creation,Statut\n';
                 
-                accounts.forEach(account => {
-                    csv += [
-                        account.account_name || '',
-                        account.account_type || '',
-                        account.created_at ? new Date(account.created_at).toISOString().split('T')[0] : '',
-                        'Actif'
-                    ].join(',') + '\n';
-                });
+                if (Array.isArray(accounts)) {
+                    accounts.forEach(account => {
+                        csv += [
+                            account.account_name || '',
+                            account.account_type || '',
+                            account.created_at ? new Date(account.created_at).toISOString().split('T')[0] : '',
+                            'Actif'
+                        ].join(',') + '\n';
+                    });
+                } else {
+                    console.warn('[EXPORT] ⚠️ accounts n\'est pas un tableau');
+                }
                 
                 csv += '\n';
                 
@@ -4394,25 +4414,33 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 csv += '=== COMPTABILITE ===\n';
                 csv += 'Type,Description,Montant,Date,Compte\n';
                 
-                costs.forEach(cost => {
-                    csv += [
-                        'Coût',
-                        (cost.description || '').replace(/,/g, ';'),
-                        cost.amount || 0,
-                        cost.date || '',
-                        cost.account_name || ''
-                    ].join(',') + '\n';
-                });
+                if (Array.isArray(costs)) {
+                    costs.forEach(cost => {
+                        csv += [
+                            'Coût',
+                            (cost.description || '').replace(/,/g, ';'),
+                            cost.amount || 0,
+                            cost.date || '',
+                            cost.account_name || ''
+                        ].join(',') + '\n';
+                    });
+                } else {
+                    console.warn('[EXPORT] ⚠️ costs n\'est pas un tableau');
+                }
                 
-                payouts.forEach(payout => {
-                    csv += [
-                        'Payout',
-                        (payout.description || '').replace(/,/g, ';'),
-                        payout.amount || 0,
-                        payout.date || '',
-                        payout.account_name || ''
-                    ].join(',') + '\n';
-                });
+                if (Array.isArray(payouts)) {
+                    payouts.forEach(payout => {
+                        csv += [
+                            'Payout',
+                            (payout.description || '').replace(/,/g, ';'),
+                            payout.amount || 0,
+                            payout.date || '',
+                            payout.account_name || ''
+                        ].join(',') + '\n';
+                    });
+                } else {
+                    console.warn('[EXPORT] ⚠️ payouts n\'est pas un tableau');
+                }
                 
                 csv += '\n';
                 
@@ -4443,12 +4471,14 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 
                 // Statistiques par instrument
                 const instruments = [...new Set(trades.map(t => t.instrument))];
-                instruments.forEach(instrument => {
-                    const instrumentTrades = trades.filter(t => t.instrument === instrument);
-                    const instrumentWins = instrumentTrades.filter(t => t.pnl >= 0);
-                    const instrumentWinRate = instrumentTrades.length > 0 ? (instrumentWins.length / instrumentTrades.length * 100).toFixed(2) : 0;
-                    csv += instrument + ' Win Rate (%),' + instrumentWinRate + '\n';
-                });
+                if (Array.isArray(instruments)) {
+                    instruments.forEach(instrument => {
+                        const instrumentTrades = trades.filter(t => t.instrument === instrument);
+                        const instrumentWins = instrumentTrades.filter(t => t.pnl >= 0);
+                        const instrumentWinRate = instrumentTrades.length > 0 ? (instrumentWins.length / instrumentTrades.length * 100).toFixed(2) : 0;
+                        csv += instrument + ' Win Rate (%),' + instrumentWinRate + '\n';
+                    });
+                }
                 
                 console.log('[EXPORT] ✅ CSV généré avec succès');
                 
