@@ -6834,7 +6834,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log('[CHART] 🔄 Réinitialisation de tous les graphiques...');
             
             // 1. Trader 360 Score
-            if (traderScoreChart) {
+            if (traderScoreChart && traderScoreChart.data && traderScoreChart.data.datasets && traderScoreChart.data.datasets[0]) {
                 traderScoreChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0];
                 traderScoreChart.update('none');
             }
@@ -6843,31 +6843,43 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
             
             // 2. Trade Time Performance
-            if (tradeTimeChart) {
-                tradeTimeChart.data.datasets[0].data = [];
-                tradeTimeChart.data.datasets[1].data = [];
+            if (tradeTimeChart && tradeTimeChart.data && tradeTimeChart.data.datasets) {
+                if (tradeTimeChart.data.datasets[0]) {
+                    tradeTimeChart.data.datasets[0].data = [];
+                }
+                if (tradeTimeChart.data.datasets[1]) {
+                    tradeTimeChart.data.datasets[1].data = [];
+                }
                 tradeTimeChart.update('none');
             }
             
             // 3. Daily P&L
-            if (dailyPnlChart) {
+            if (dailyPnlChart && dailyPnlChart.data) {
                 dailyPnlChart.data.labels = [];
-                dailyPnlChart.data.datasets[0].data = [];
-                dailyPnlChart.data.datasets[1].data = [];
+                if (dailyPnlChart.data.datasets[0]) {
+                    dailyPnlChart.data.datasets[0].data = [];
+                }
+                if (dailyPnlChart.data.datasets[1]) {
+                    dailyPnlChart.data.datasets[1].data = [];
+                }
                 dailyPnlChart.update('none');
             }
             
             // 4. Cumulative P&L
-            if (cumulativePnlChart) {
+            if (cumulativePnlChart && cumulativePnlChart.data) {
                 cumulativePnlChart.data.labels = [];
-                cumulativePnlChart.data.datasets[0].data = [];
+                if (cumulativePnlChart.data.datasets && cumulativePnlChart.data.datasets[0]) {
+                    cumulativePnlChart.data.datasets[0].data = [];
+                }
                 cumulativePnlChart.update('none');
             }
             
             // 5. Drawdown
-            if (drawdownChart) {
+            if (drawdownChart && drawdownChart.data) {
                 drawdownChart.data.labels = [];
-                drawdownChart.data.datasets[0].data = [];
+                if (drawdownChart.data.datasets && drawdownChart.data.datasets[0]) {
+                    drawdownChart.data.datasets[0].data = [];
+                }
                 drawdownChart.update('none');
             }
             
