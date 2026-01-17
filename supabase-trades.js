@@ -244,6 +244,7 @@ async function loadAccounts() {
       account_id: tradeData.account_id,
       instrument: tradeData.symbol || 'ES',
       direction: direction,  // ✅ Direction en MAJUSCULES (LONG/SHORT)
+      type: tradeData.trade_type || 'Long',  // ✅ Ajout du type (Long, Short, Long (RR1 atteint), etc.)
       quantity: tradeData.quantity || 1,
       entry_price: tradeData.entry_price || 0,
       exit_price: tradeData.exit_price || 0,
