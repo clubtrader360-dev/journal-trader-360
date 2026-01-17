@@ -99,20 +99,6 @@
                 console.log('[OK] Nom affiché:', displayName);
             }
             
-            // ✅ CHARGER LE SCRIPT PROMPT IA (UNIQUEMENT POUR LES ÉLÈVES)
-            if (!document.querySelector('script[src="prompt-ia.js"]')) {
-                console.log('[STUDENT] 📋 Chargement du script prompt-ia.js...');
-                const promptScript = document.createElement('script');
-                promptScript.src = 'prompt-ia.js';
-                promptScript.onload = () => {
-                    console.log('[STUDENT] ✅ Script prompt-ia.js chargé');
-                };
-                promptScript.onerror = () => {
-                    console.error('[STUDENT] ❌ Erreur chargement prompt-ia.js');
-                };
-                document.body.appendChild(promptScript);
-            }
-            
             // ✅ CHARGER ET AFFICHER LES DONNÉES AUTOMATIQUEMENT APRÈS LA CONNEXION
             console.log('[AUTH] 🔄 Chargement automatique des données après connexion...');
             
