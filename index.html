@@ -6804,10 +6804,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log('[CHART] updateCharts - Trades filtrés:', filteredTrades.length, 'sur', trades.length, 'total');
             
             if (filteredTrades.length === 0) {
-                // Pas de données, réinitialiser
-                if (document.getElementById('traderScore')) {
-                    document.getElementById('traderScore').textContent = '0.0';
-                }
+                // ✅ Pas de données, réinitialiser TOUS les graphiques
+                console.log('[CHART] ⚠️ Aucun trade filtré → Réinitialisation des graphiques');
+                resetAllCharts();
                 return;
             }
             
@@ -6828,6 +6827,58 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // 6. TRADE DURATION
             updateDurationChart(filteredTrades);
+        }
+        
+        // ✅ NOUVELLE FONCTION : Réinitialiser tous les graphiques
+        function resetAllCharts() {
+            console.log('[CHART] 🔄 Réinitialisation de tous les graphiques...');
+            
+            // 1. Trader 360 Score
+            if (traderScoreChart) {
+                traderScoreChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0];
+                traderScoreChart.update();
+            }
+            if (document.getElementById('traderScore')) {
+                document.getElementById('traderScore').textContent = '0.0';
+            }
+            
+            // 2. Trade Time Performance
+            if (tradeTimeChart) {
+                tradeTimeChart.data.datasets[0].data = [];
+                tradeTimeChart.data.datasets[1].data = [];
+                tradeTimeChart.update();
+            }
+            
+            // 3. Daily P&L
+            if (dailyPnlChart) {
+                dailyPnlChart.data.labels = [];
+                dailyPnlChart.data.datasets[0].data = [];
+                dailyPnlChart.data.datasets[1].data = [];
+                dailyPnlChart.update();
+            }
+            
+            // 4. Cumulative P&L
+            if (cumulativePnlChart) {
+                cumulativePnlChart.data.labels = [];
+                cumulativePnlChart.data.datasets[0].data = [];
+                cumulativePnlChart.update();
+            }
+            
+            // 5. Drawdown
+            if (drawdownChart) {
+                drawdownChart.data.labels = [];
+                drawdownChart.data.datasets[0].data = [];
+                drawdownChart.update();
+            }
+            
+            // 6. Trade Duration
+            if (durationChart) {
+                durationChart.data.datasets[0].data = [];
+                durationChart.data.datasets[1].data = [];
+                durationChart.update();
+            }
+            
+            console.log('[CHART] ✅ Tous les graphiques réinitialisés');
         }
         
         // ==========================================
