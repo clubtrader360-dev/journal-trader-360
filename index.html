@@ -1625,6 +1625,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     </div>
                 </div>
 
+                <!-- Points à Surveiller (Alertes dynamiques) -->
+                <div id="warningsBanner" style="display: none; background: #FEF2F2; border: 2px solid #FCA5A5; border-radius: 12px; padding: 20px; margin-top: 24px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <i class="fas fa-exclamation-triangle" style="color: #DC2626; font-size: 20px; margin-right: 10px;"></i>
+                        <h3 style="font-size: 18px; font-weight: 600; color: #991B1B; margin: 0;">⚠️ POINTS À SURVEILLER</h3>
+                    </div>
+                    <div id="warningsContainer" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Les alertes seront insérées ici dynamiquement -->
+                    </div>
+                </div>
+
                 <!-- Monthly Navigation and Calendar -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Calendar Section -->
@@ -5836,6 +5847,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 window.updateTrendAnalysis();
             }
             
+            console.log('[DATA] Appel updateWarnings()...');
+            if (typeof window.updateWarnings === 'function') {
+                window.updateWarnings();
+            }
+            
             console.log('[DATA] Appel updateComptabilite()...');
             if (typeof window.updateComptabilite === 'function') {
                 window.updateComptabilite();
@@ -6607,6 +6623,194 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             document.getElementById('counterTrendCount').textContent = counterTrendTrades.length + ' trade' + (counterTrendTrades.length > 1 ? 's' : '');
             
             console.log(' Trend Analysis mis à jour: Tendance', trendTrades.length, 'trades -', trendWinRate.toFixed(1) + '% | Contre-tendance', counterTrendTrades.length, 'trades -', counterTrendWinRate.toFixed(1) + '%');
+        }
+        
+        // ========================================
+        // 📊 FONCTION: Analyse des Points à Surveiller (Alertes dynamiques)
+        // ========================================
+        window.updateWarnings = function() {
+            console.log("  → updateWarnings() appelée");
+            
+            const filteredTrades = getFilteredTrades();
+            
+            if (filteredTrades.length === 0) {
+                document.getElementById('warningsBanner').style.display = 'none';
+                return;
+            }
+            
+            const warnings = [];
+            
+            // Helper: Calcul Win Rate
+            function calculateWinRate(trades) {
+                if (trades.length === 0) return 0;
+                const winners = trades.filter(t => t.pnl > 0).length;
+                return (winners / trades.length) * 100;
+            }
+            
+            // Helper: Détection Break-Even par points
+            function isBreakEven(trade) {
+                const BE_THRESHOLDS = {
+                    'ES': 0.25, 'MES': 0.25,
+                    'NQ': 0.20, 'MNQ': 0.20,
+                    'GC': 0.10, 'MGC': 0.10,
+                    'CL': 0.05,
+                    'DEFAULT': 0.25
+                };
+                const threshold = BE_THRESHOLDS[trade.symbol] || BE_THRESHOLDS[trade.instrument] || BE_THRESHOLDS['DEFAULT'];
+                const points = Math.abs((trade.exitPrice || 0) - (trade.entryPrice || 0));
+                return points <= threshold;
+            }
+            
+            // Helper: Calcul durée en minutes
+            function calculateDuration(entryTime, exitTime) {
+                if (!entryTime || !exitTime) return 0;
+                const [entryH, entryM] = entryTime.split(':').map(Number);
+                const [exitH, exitM] = exitTime.split(':').map(Number);
+                return (exitH * 60 + exitM) - (entryH * 60 + entryM);
+            }
+            
+            // ========================================
+            // 1. Win Rate sans protection
+            // ========================================
+            const noProtTrades = filteredTrades.filter(t => !t.protections || t.protections.length === 0);
+            if (noProtTrades.length >= 5) {
+                const wr = calculateWinRate(noProtTrades);
+                if (wr < 30) {
+                    warnings.push({
+                        severity: 'high',
+                        icon: '🛡️',
+                        message: `Trades sans protection : Win Rate ${wr.toFixed(1)}% (${noProtTrades.length} trades)`
+                    });
+                } else if (wr < 45) {
+                    warnings.push({
+                        severity: 'medium',
+                        icon: '🛡️',
+                        message: `Trades sans protection : Win Rate ${wr.toFixed(1)}% (${noProtTrades.length} trades)`
+                    });
+                }
+            }
+            
+            // ========================================
+            // 2. Win Rate contre-tendance
+            // ========================================
+            const ctTrades = filteredTrades.filter(t => t.trade_trend_type && t.trade_trend_type.includes('Contre-tendance'));
+            if (ctTrades.length >= 5) {
+                const wr = calculateWinRate(ctTrades);
+                if (wr < 30) {
+                    warnings.push({
+                        severity: 'high',
+                        icon: '📉',
+                        message: `Trades contre-tendance : Win Rate ${wr.toFixed(1)}% (${ctTrades.length} trades)`
+                    });
+                } else if (wr < 45) {
+                    warnings.push({
+                        severity: 'medium',
+                        icon: '📉',
+                        message: `Trades contre-tendance : Win Rate ${wr.toFixed(1)}% (${ctTrades.length} trades)`
+                    });
+                }
+            }
+            
+            // ========================================
+            // 3. Break-Even (par points)
+            // ========================================
+            const beTrades = filteredTrades.filter(isBreakEven);
+            if (beTrades.length >= 3) {
+                const bePercent = (beTrades.length / filteredTrades.length) * 100;
+                if (bePercent > 30) {
+                    warnings.push({
+                        severity: 'medium',
+                        icon: '🔄',
+                        message: `Trop de Break-Even : ${beTrades.length} trades proches de l'entrée (${bePercent.toFixed(0)}%)`
+                    });
+                }
+            }
+            
+            // ========================================
+            // 4. Trades courts < 30min (si win rate faible)
+            // ========================================
+            const shortTrades = filteredTrades.filter(t => {
+                if (!t.entryTime || !t.exitTime) return false;
+                const duration = calculateDuration(t.entryTime, t.exitTime);
+                return duration > 0 && duration < 30;
+            });
+            
+            if (shortTrades.length >= 10) {
+                const shortWR = calculateWinRate(shortTrades);
+                const longTrades = filteredTrades.filter(t => {
+                    if (!t.entryTime || !t.exitTime) return false;
+                    const duration = calculateDuration(t.entryTime, t.exitTime);
+                    return duration >= 30;
+                });
+                const longWR = calculateWinRate(longTrades);
+                
+                if (shortWR < 40 && longTrades.length > 0 && longWR > shortWR + 10) {
+                    warnings.push({
+                        severity: 'medium',
+                        icon: '⏱️',
+                        message: `Trades courts < 30min : Win Rate ${shortWR.toFixed(1)}% vs ${longWR.toFixed(1)}% pour trades > 30min (${shortTrades.length} trades)`
+                    });
+                }
+            }
+            
+            // ========================================
+            // 5. Win Rate par instrument (si faible)
+            // ========================================
+            const instruments = ['ES', 'MES', 'NQ', 'MNQ', 'GC'];
+            instruments.forEach(inst => {
+                const instTrades = filteredTrades.filter(t => t.symbol === inst || t.instrument === inst);
+                if (instTrades.length >= 10) {
+                    const wr = calculateWinRate(instTrades);
+                    if (wr < 30) {
+                        warnings.push({
+                            severity: 'high',
+                            icon: '📊',
+                            message: `${inst} : Win Rate ${wr.toFixed(1)}% (${instTrades.length} trades)`
+                        });
+                    } else if (wr < 40) {
+                        warnings.push({
+                            severity: 'medium',
+                            icon: '📊',
+                            message: `${inst} : Win Rate ${wr.toFixed(1)}% (${instTrades.length} trades)`
+                        });
+                    }
+                }
+            });
+            
+            // ========================================
+            // Trier par sévérité et limiter à 5 alertes
+            // ========================================
+            const sortedWarnings = warnings
+                .sort((a, b) => a.severity === 'high' ? -1 : (b.severity === 'high' ? 1 : 0))
+                .slice(0, 5);
+            
+            // ========================================
+            // Affichage
+            // ========================================
+            const banner = document.getElementById('warningsBanner');
+            const container = document.getElementById('warningsContainer');
+            
+            if (sortedWarnings.length === 0) {
+                banner.style.display = 'none';
+                console.log(' Aucune alerte à afficher');
+                return;
+            }
+            
+            banner.style.display = 'block';
+            container.innerHTML = sortedWarnings.map(w => {
+                const bgColor = w.severity === 'high' ? '#FEE2E2' : '#FED7AA';
+                const textColor = w.severity === 'high' ? '#991B1B' : '#EA580C';
+                const borderColor = w.severity === 'high' ? '#DC2626' : '#F97316';
+                
+                return `
+                    <div style="background: ${bgColor}; border-left: 4px solid ${borderColor}; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 20px;">${w.icon}</span>
+                        <span style="color: ${textColor}; font-weight: 500; font-size: 14px;">${w.message}</span>
+                    </div>
+                `;
+            }).join('');
+            
+            console.log(` ${sortedWarnings.length} alertes affichées`);
         }
 
         function updateCalendarDisplay() {
