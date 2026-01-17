@@ -228,8 +228,6 @@
         
         console.log('[COACH DASHBOARD] 📊 Trades avec entry_time:', tradesWithTime);
         console.log('[COACH DASHBOARD] 📊 Données horaires:', hourlyPnl);
-            }
-        });
         
         const labels = Object.keys(hourlyPnl).sort((a, b) => a - b).map(h => `${h}h`);
         const data = labels.map(label => {
