@@ -266,11 +266,20 @@
                 password: registerPassword
             });
 
+            // Récupérer l'UUID même si il y a une erreur (l'utilisateur peut être créé quand même)
+            let userUuid = data?.user?.id;
+
             if (error) {
                 // Ignorer l'erreur "Database error saving new user" car on crée l'utilisateur manuellement après
                 if (error.message.includes('Database error saving new user')) {
                     console.warn('[WARN] Erreur Supabase Auth ignorée (on crée l\'utilisateur manuellement):', error.message);
-                    // Ne pas return, continuer le processus
+                    
+                    // L'utilisateur est créé malgré l'erreur, récupérer la session
+                    const { data: sessionData } = await supabase.auth.getSession();
+                    if (sessionData?.session?.user?.id) {
+                        userUuid = sessionData.session.user.id;
+                        console.log('[INFO] UUID récupéré depuis la session:', userUuid);
+                    }
                 } else {
                     console.error('[ERROR] Erreur inscription:', error.message);
                     alert('Erreur lors de l\'inscription: ' + error.message);
@@ -278,20 +287,20 @@
                 }
             }
 
-            // Vérifier que data.user existe (peut être null si erreur ignorée)
-            if (!data || !data.user || !data.user.id) {
-                console.error('[ERROR] Données utilisateur manquantes après inscription');
-                alert('Erreur lors de l\'inscription: données utilisateur manquantes');
+            // Vérifier que l'UUID existe
+            if (!userUuid) {
+                console.error('[ERROR] UUID utilisateur manquant après inscription');
+                alert('Erreur lors de l\'inscription: impossible de récupérer l\'identifiant utilisateur');
                 return;
             }
 
             console.log('[OK] Inscription Supabase réussie');
-            console.log('[USER] UUID:', data.user.id);
+            console.log('[USER] UUID:', userUuid);
 
             const { error: insertError } = await supabase
                 .from('users')
                 .insert({
-                    uuid: data.user.id,
+                    uuid: userUuid,
                     name: registerName,
                     email: registerEmail,
                     role: 'student',
