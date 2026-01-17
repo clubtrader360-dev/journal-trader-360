@@ -591,7 +591,108 @@ Justification chiffrée :
 5. [Règle personnalisée basée sur données]
 
 ═══════════════════════════════════════════════════════════════════════════════
-11. PLAN D'ACTION CONCRET - TOP 3 PRIORITÉS
+11. ANALYSE TENDANCE VS CONTRE-TENDANCE
+═══════════════════════════════════════════════════════════════════════════════
+
+📈 Analyse mes performances selon le type de trade (Tendance vs Contre-tendance) :
+
+**A. STATISTIQUES TENDANCE**
+
+Trades en Tendance :
+- Nombre total de trades Tendance : [X]
+- Win Rate Tendance : [X%]
+- P&L total Tendance : $[X]
+- Avg Win Tendance : $[X]
+- Avg Loss Tendance : $[X]
+- Plus gros gain Tendance : $[X]
+- Plus grosse perte Tendance : $[X]
+
+**B. STATISTIQUES CONTRE-TENDANCE**
+
+Trades en Contre-tendance :
+- Nombre total de trades Contre-tendance : [X]
+- Win Rate Contre-tendance : [X%]
+- P&L total Contre-tendance : $[X]
+- Avg Win Contre-tendance : $[X]
+- Avg Loss Contre-tendance : $[X]
+- Plus gros gain Contre-tendance : $[X]
+- Plus grosse perte Contre-tendance : $[X]
+
+**C. COMPARAISON & ANALYSE**
+
+🔍 COMPARAISON CLÉS :
+- Différence de Win Rate : [X%] (Tendance vs Contre-tendance)
+- Différence de P&L moyen par trade : $[X]
+- Différence de Profit Factor : [X]
+- Type de trade le plus rentable : [Tendance/Contre-tendance]
+- Type de trade le plus risqué : [Tendance/Contre-tendance]
+
+📊 RÉPARTITION :
+- % de trades en Tendance : [X%]
+- % de trades en Contre-tendance : [X%]
+- Répartition optimale suggérée : [X%] Tendance / [X%] Contre-tendance
+
+**D. IDENTIFICATION DES PATTERNS**
+
+🔍 FORCES & FAIBLESSES PAR TYPE :
+
+Tendance - Ce qui fonctionne :
+1. [Pattern/Setup spécifique]
+2. [Instrument favorisé]
+3. [Heure de trading optimal]
+4. [Conditions de marché]
+
+Tendance - Ce qui ne fonctionne PAS :
+1. [Erreur récurrente]
+2. [Setup à éviter]
+3. [Timing problématique]
+
+Contre-tendance - Ce qui fonctionne :
+1. [Pattern/Setup spécifique]
+2. [Instrument favorisé]
+3. [Heure de trading optimal]
+4. [Conditions de marché]
+
+Contre-tendance - Ce qui ne fonctionne PAS :
+1. [Erreur récurrente]
+2. [Setup à éviter]
+3. [Timing problématique]
+
+**E. ANALYSE PSYCHOLOGIQUE**
+
+🧠 COMPORTEMENT SELON LE TYPE :
+- Discipline en Tendance : [Bonne/Moyenne/Faible]
+- Discipline en Contre-tendance : [Bonne/Moyenne/Faible]
+- Gestion des émotions Tendance : [Description]
+- Gestion des émotions Contre-tendance : [Description]
+
+**F. RECOMMANDATIONS STRATÉGIQUES**
+
+🎯 OPTIMISATION TENDANCE/CONTRE-TENDANCE :
+
+Recommandation principale :
+- [ ] Focus UNIQUEMENT sur trades Tendance (meilleur win rate)
+- [ ] Focus UNIQUEMENT sur trades Contre-tendance (meilleur win rate)
+- [ ] Mix optimal : [X%] Tendance / [X%] Contre-tendance
+- [ ] Améliorer spécifiquement [Type] car potentiel sous-exploité
+
+Actions concrètes :
+1. [Action spécifique pour Tendance]
+2. [Action spécifique pour Contre-tendance]
+3. [Setup à privilégier selon type]
+4. [Setup à éviter selon type]
+
+**G. RÈGLES À IMPLÉMENTER**
+
+✅ RÈGLES STRICTES TENDANCE/CONTRE-TENDANCE :
+1. Trade Tendance uniquement si : [Condition précise]
+2. Trade Contre-tendance uniquement si : [Condition précise]
+3. JAMAIS trader Tendance quand : [Condition d'évitement]
+4. JAMAIS trader Contre-tendance quand : [Condition d'évitement]
+5. [Règle personnalisée basée sur données]
+
+═══════════════════════════════════════════════════════════════════════════════
+12. PLAN D'ACTION CONCRET - TOP 3 PRIORITÉS
 ═══════════════════════════════════════════════════════════════════════════════
 
 🎯 Donne-moi 3 ACTIONS CONCRÈTES ET IMMÉDIATES :
@@ -618,7 +719,7 @@ PRIORITÉ #3 :
 - Délai : [Combien de temps pour voir résultats]
 
 ═══════════════════════════════════════════════════════════════════════════════
-12. RÈGLES DE TRADING PERSONNALISÉES
+13. RÈGLES DE TRADING PERSONNALISÉES
 ═══════════════════════════════════════════════════════════════════════════════
 
 📜 Basé sur MON profil et MES données, crée-moi un set de RÈGLES STRICTES :
@@ -648,7 +749,7 @@ PRIORITÉ #3 :
 10. NE JAMAIS trader sans plan
 
 ═══════════════════════════════════════════════════════════════════════════════
-13. SIMULATION D'AMÉLIORATION
+14. SIMULATION D'AMÉLIORATION
 ═══════════════════════════════════════════════════════════════════════════════
 
 💰 Calcule l'impact financier SI j'applique tes recommandations :

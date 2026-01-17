@@ -1756,6 +1756,28 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Tendance/Contre-tendance Analysis Module -->
+                        <div class="trader-card p-4 mt-6">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                                <i class="fas fa-chart-line text-green-600 mr-2"></i>
+                                Analyse Tendance vs Contre-tendance
+                            </h3>
+                            <div id="trendAnalysisContainer" class="grid grid-cols-2 gap-4">
+                                <!-- Win Rate Tendance -->
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <div class="text-sm text-gray-600 mb-1">Trades Tendance</div>
+                                    <div class="text-2xl font-bold text-green-600" id="trendWinRate">0%</div>
+                                    <div class="text-xs text-gray-500 mt-1" id="trendCount">0 trades</div>
+                                </div>
+                                <!-- Win Rate Contre-tendance -->
+                                <div class="bg-red-50 p-4 rounded-lg">
+                                    <div class="text-sm text-gray-600 mb-1">Trades Contre-tendance</div>
+                                    <div class="text-2xl font-bold text-red-600" id="counterTrendWinRate">0%</div>
+                                    <div class="text-xs text-gray-500 mt-1" id="counterTrendCount">0 trades</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -2253,6 +2275,23 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <input type="checkbox" id="protectionLiquidite" value="Liquidité 30m/H1/H4" style="width: 18px; height: 18px; accent-color: #ac862b;">
                             <span>Liquidité 30m/H1/H4</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Type de Trade (Tendance/Contre-tendance) -->
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #1f2937;">
+                        Type de Trade
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="tradeTendance" value="Tendance" style="width: 18px; height: 18px; accent-color: #10b981;">
+                            <span>Tendance</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="tradeContreTendance" value="Contre-tendance" style="width: 18px; height: 18px; accent-color: #ef4444;">
+                            <span>Contre-tendance</span>
                         </label>
                     </div>
                 </div>
@@ -4339,7 +4378,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 
                 // ===== TRADES (Analyse principale) =====
                 csv += '=== TRADES (Analyse principale) ===\n';
-                csv += 'ID,Date,Entry Time,Exit Time,Duration (min),Instrument,Direction,Type,RR Atteint,Quantity,Entry Price,Exit Price,P&L,Win/Loss,Protection Setup,Protection Target,Protection Invalidation,Account,Session (AM/PM),Day of Week,Notes\n';
+                csv += 'ID,Date,Entry Time,Exit Time,Duration (min),Instrument,Direction,Type,RR Atteint,Type Trade (Tendance/Contre-tendance),Quantity,Entry Price,Exit Price,P&L,Win/Loss,Protection Setup,Protection Target,Protection Invalidation,Account,Session (AM/PM),Day of Week,Notes\n';
                 
                 if (Array.isArray(trades)) {
                     trades.forEach((trade, index) => {
@@ -4385,6 +4424,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         trade.direction || '',
                         trade.type || '',
                         rrAtteint,
+                        trade.trade_trend_type || 'Non spécifié',
                         trade.quantity || '',
                         trade.entryPrice || '',
                         trade.exitPrice || '',
@@ -4700,6 +4740,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             document.getElementById('protectionClotureVeille').checked = false;
             document.getElementById('protectionLiquidite').checked = false;
             
+            // ✅ Décocher les types de trade
+            if (document.getElementById('tradeTendance')) document.getElementById('tradeTendance').checked = false;
+            if (document.getElementById('tradeContreTendance')) document.getElementById('tradeContreTendance').checked = false;
+            
             // Masquer le champ P&L manuel
             document.getElementById('manualPnLGroup').style.display = 'none';
             document.getElementById('manualPnL').value = '';
@@ -5008,6 +5052,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (document.getElementById('protectionClotureVeille').checked) protections.push('Clôture veille');
             if (document.getElementById('protectionLiquidite').checked) protections.push('Liquidité 30m/H1/H4');
             
+            // Collecter le type de trade (Tendance/Contre-tendance)
+            const tradeTypes = [];
+            if (document.getElementById('tradeTendance')?.checked) tradeTypes.push('Tendance');
+            if (document.getElementById('tradeContreTendance')?.checked) tradeTypes.push('Contre-tendance');
+            const tradeTypeStr = tradeTypes.join(', ') || 'Non spécifié';
+            
             // DEBUG: Verification collecte exitTime
             const entryTimeValue = document.getElementById('entryTime').value;
             const exitTimeValue = document.getElementById('exitTime').value;
@@ -5033,6 +5083,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 takeProfit: parseFloat(document.getElementById('takeProfit').value) || null,
                 setup: document.getElementById('setup').value,
                 protections: protections,
+                trade_trend_type: tradeTypeStr,
                 notes: document.getElementById('tradeNotes').value,
                 timestamp: new Date().toISOString()
             };
@@ -5780,6 +5831,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 updateProtectionAnalysis();
             }
             
+            console.log('[DATA] Appel updateTrendAnalysis()...');
+            if (typeof window.updateTrendAnalysis === 'function') {
+                window.updateTrendAnalysis();
+            }
+            
             console.log('[DATA] Appel updateComptabilite()...');
             if (typeof window.updateComptabilite === 'function') {
                 window.updateComptabilite();
@@ -6519,6 +6575,38 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }).join('');
             
             console.log(' Protection Analysis mis à jour:', Object.keys(protectionStats).length, 'protections analysées');
+        }
+        
+        // ========================================
+        // 📊 FONCTION: Analyse Tendance vs Contre-tendance
+        // ========================================
+        window.updateTrendAnalysis = function() {
+            console.log("  → updateTrendAnalysis() appelée");
+            
+            const filteredTrades = getFilteredTrades();
+            
+            // Analyser les trades Tendance
+            const trendTrades = filteredTrades.filter(trade => 
+                trade.trade_trend_type && trade.trade_trend_type.includes('Tendance')
+            );
+            const trendWinners = trendTrades.filter(t => t.pnl > 0);
+            const trendWinRate = trendTrades.length > 0 ? (trendWinners.length / trendTrades.length) * 100 : 0;
+            
+            // Analyser les trades Contre-tendance
+            const counterTrendTrades = filteredTrades.filter(trade => 
+                trade.trade_trend_type && trade.trade_trend_type.includes('Contre-tendance')
+            );
+            const counterTrendWinners = counterTrendTrades.filter(t => t.pnl > 0);
+            const counterTrendWinRate = counterTrendTrades.length > 0 ? (counterTrendWinners.length / counterTrendTrades.length) * 100 : 0;
+            
+            // Mettre à jour l'interface
+            document.getElementById('trendWinRate').textContent = trendWinRate.toFixed(1) + '%';
+            document.getElementById('trendCount').textContent = trendTrades.length + ' trade' + (trendTrades.length > 1 ? 's' : '');
+            
+            document.getElementById('counterTrendWinRate').textContent = counterTrendWinRate.toFixed(1) + '%';
+            document.getElementById('counterTrendCount').textContent = counterTrendTrades.length + ' trade' + (counterTrendTrades.length > 1 ? 's' : '');
+            
+            console.log(' Trend Analysis mis à jour: Tendance', trendTrades.length, 'trades -', trendWinRate.toFixed(1) + '% | Contre-tendance', counterTrendTrades.length, 'trades -', counterTrendWinRate.toFixed(1) + '%');
         }
 
         function updateCalendarDisplay() {
