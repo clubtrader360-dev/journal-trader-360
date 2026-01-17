@@ -4410,19 +4410,23 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 
                 csv += '\n';
                 
-                // ===== COMPTABILITÉ =====
-                csv += '=== COMPTABILITE ===\n';
-                csv += 'Type,Description,Montant,Date,Compte\n';
+                // ===== COMPTABILITÉ DÉTAILLÉE =====
+                csv += '=== COMPTABILITE DETAILLEE ===\n';
+                csv += 'Type,Date,Description,Montant ($),Compte Associe,Categorie\n';
+                
+                // Tableau combiné coûts + payouts trié par date
+                const allTransactions = [];
                 
                 if (Array.isArray(costs)) {
                     costs.forEach(cost => {
-                        csv += [
-                            'Coût',
-                            (cost.description || '').replace(/,/g, ';'),
-                            cost.amount || 0,
-                            cost.date || '',
-                            cost.account_name || ''
-                        ].join(',') + '\n';
+                        allTransactions.push({
+                            type: 'COST',
+                            date: cost.date || '',
+                            description: (cost.description || '').replace(/,/g, ';'),
+                            amount: -(Math.abs(cost.amount || 0)), // Négatif pour les coûts
+                            account: cost.account_name || '',
+                            category: cost.cost_type || 'Achat Compte'
+                        });
                     });
                 } else {
                     console.warn('[EXPORT] ⚠️ costs n\'est pas un tableau');
@@ -4430,16 +4434,113 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 
                 if (Array.isArray(payouts)) {
                     payouts.forEach(payout => {
-                        csv += [
-                            'Payout',
-                            (payout.description || '').replace(/,/g, ';'),
-                            payout.amount || 0,
-                            payout.date || '',
-                            payout.account_name || ''
-                        ].join(',') + '\n';
+                        allTransactions.push({
+                            type: 'PAYOUT',
+                            date: payout.date || '',
+                            description: (payout.description || '').replace(/,/g, ';'),
+                            amount: Math.abs(payout.amount || 0), // Positif pour les payouts
+                            account: payout.account_name || '',
+                            category: 'Retrait/Gain'
+                        });
                     });
                 } else {
                     console.warn('[EXPORT] ⚠️ payouts n\'est pas un tableau');
+                }
+                
+                // Trier par date (plus récent en premier)
+                allTransactions.sort((a, b) => {
+                    if (!a.date) return 1;
+                    if (!b.date) return -1;
+                    return new Date(b.date) - new Date(a.date);
+                });
+                
+                // Exporter toutes les transactions
+                allTransactions.forEach(tx => {
+                    csv += [
+                        tx.type,
+                        tx.date,
+                        tx.description,
+                        tx.amount.toFixed(2),
+                        tx.account,
+                        tx.category
+                    ].join(',') + '\n';
+                });
+                
+                csv += '\n';
+                
+                // ===== STATISTIQUES COMPTABLES =====
+                csv += '=== STATISTIQUES COMPTABLES ===\n';
+                csv += 'Metric,Value\n';
+                
+                // Calculs
+                const totalCosts = Array.isArray(costs) ? costs.reduce((sum, c) => sum + (c.amount || 0), 0) : 0;
+                const totalPayouts = Array.isArray(payouts) ? payouts.reduce((sum, p) => sum + (p.amount || 0), 0) : 0;
+                const netProfit = totalPayouts - totalCosts;
+                const roi = totalCosts > 0 ? ((netProfit / totalCosts) * 100).toFixed(2) : 0;
+                const nbPayouts = Array.isArray(payouts) ? payouts.length : 0;
+                const avgPayout = nbPayouts > 0 ? (totalPayouts / nbPayouts).toFixed(2) : 0;
+                
+                // Régularité des payouts (jours entre chaque payout)
+                let payoutRegularity = 'N/A';
+                if (Array.isArray(payouts) && payouts.length >= 2) {
+                    const payoutDates = payouts
+                        .filter(p => p.date)
+                        .map(p => new Date(p.date))
+                        .sort((a, b) => a - b);
+                    
+                    if (payoutDates.length >= 2) {
+                        const intervals = [];
+                        for (let i = 1; i < payoutDates.length; i++) {
+                            const daysDiff = Math.round((payoutDates[i] - payoutDates[i-1]) / (1000 * 60 * 60 * 24));
+                            intervals.push(daysDiff);
+                        }
+                        const avgInterval = (intervals.reduce((sum, i) => sum + i, 0) / intervals.length).toFixed(1);
+                        payoutRegularity = avgInterval + ' jours';
+                    }
+                }
+                
+                // Meilleur et pire payout
+                const bestPayout = Array.isArray(payouts) && payouts.length > 0 ? Math.max(...payouts.map(p => p.amount || 0)) : 0;
+                const worstPayout = Array.isArray(payouts) && payouts.length > 0 ? Math.min(...payouts.map(p => p.amount || 0)) : 0;
+                
+                csv += 'Total Investi (Couts) ($),' + totalCosts.toFixed(2) + '\n';
+                csv += 'Total Recu (Payouts) ($),' + totalPayouts.toFixed(2) + '\n';
+                csv += 'Benefice Net ($),' + netProfit.toFixed(2) + '\n';
+                csv += 'ROI (%),' + roi + '\n';
+                csv += 'Nombre de Payouts,' + nbPayouts + '\n';
+                csv += 'Payout Moyen ($),' + avgPayout + '\n';
+                csv += 'Regularite Payouts (jours),' + payoutRegularity + '\n';
+                csv += 'Meilleur Payout ($),' + bestPayout.toFixed(2) + '\n';
+                csv += 'Pire Payout ($),' + worstPayout.toFixed(2) + '\n';
+                
+                // Analyse par compte
+                if (Array.isArray(accounts) && accounts.length > 0) {
+                    csv += '\n';
+                    csv += '=== ANALYSE PAR COMPTE ===\n';
+                    csv += 'Compte,Cout ($),Payouts ($),Balance ($),ROI (%),Nb Payouts\n';
+                    
+                    accounts.forEach(account => {
+                        const accountCosts = Array.isArray(costs) 
+                            ? costs.filter(c => c.account_id === account.id).reduce((sum, c) => sum + (c.amount || 0), 0)
+                            : 0;
+                        const accountPayouts = Array.isArray(payouts)
+                            ? payouts.filter(p => p.account_id === account.id).reduce((sum, p) => sum + (p.amount || 0), 0)
+                            : 0;
+                        const accountBalance = accountPayouts - accountCosts;
+                        const accountROI = accountCosts > 0 ? ((accountBalance / accountCosts) * 100).toFixed(2) : 0;
+                        const accountNbPayouts = Array.isArray(payouts)
+                            ? payouts.filter(p => p.account_id === account.id).length
+                            : 0;
+                        
+                        csv += [
+                            account.account_name || account.name || '',
+                            accountCosts.toFixed(2),
+                            accountPayouts.toFixed(2),
+                            accountBalance.toFixed(2),
+                            accountROI,
+                            accountNbPayouts
+                        ].join(',') + '\n';
+                    });
                 }
                 
                 csv += '\n';

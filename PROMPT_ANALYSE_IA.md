@@ -469,7 +469,54 @@ Pour CHAQUE instrument tradé (ES, NQ, GC, etc.) :
 - Si non, que me manque-t-il exactement ?
 
 ═══════════════════════════════════════════════════════════════════════════════
-9. PLAN D'ACTION CONCRET - TOP 3 PRIORITÉS
+9. ANALYSE COMPTABILITÉ & ROI
+═══════════════════════════════════════════════════════════════════════════════
+
+💰 Analyse ma gestion financière et mes investissements :
+
+**A. VUE D'ENSEMBLE FINANCIÈRE**
+- Total investi (achats de comptes, frais) : $X
+- Total reçu (payouts) : $Y
+- Bénéfice net : $Z
+- ROI global : X%
+- Nombre de payouts : X
+- Payout moyen : $X
+
+**B. ANALYSE DES INVESTISSEMENTS**
+- Ai-je investi de manière intelligente ?
+- Mes achats de comptes sont-ils cohérents avec ma stratégie ?
+- Y a-t-il des comptes qui ne sont pas rentabilisés ?
+- Recommandations sur les futurs investissements
+
+**C. RÉGULARITÉ DES REVENUS**
+- Fréquence moyenne entre chaque payout : X jours
+- Tendance : [Régulier / Irrégulier / En amélioration]
+- Meilleur payout : $X (contexte)
+- Pire payout : $X (contexte)
+- Analyse : Suis-je capable de générer des revenus constants ?
+
+**D. ANALYSE PAR COMPTE**
+Pour chaque compte :
+- Investissement : $X
+- Revenus (payouts) : $Y
+- Balance : $Z
+- ROI : X%
+- Conclusion : [Rentable / Non rentable / À surveiller]
+
+**E. VIABILITÉ ÉCONOMIQUE**
+- Est-ce que mon trading est viable économiquement ?
+- Combien de temps avant de rentabiliser mes investissements ?
+- Projection : Si je continue à ce rythme, revenus mensuels estimés ?
+- Recommandations pour améliorer le ROI
+
+**F. PLAN DE CROISSANCE FINANCIÈRE**
+- Quand réinvestir (acheter de nouveaux comptes) ?
+- Quelle taille de compte cibler ensuite ?
+- Stratégie de scaling : [Recommandations]
+- Seuil de sécurité avant scaling : $X de revenus mensuels constants
+
+═══════════════════════════════════════════════════════════════════════════════
+10. PLAN D'ACTION CONCRET - TOP 3 PRIORITÉS
 ═══════════════════════════════════════════════════════════════════════════════
 
 🎯 Donne-moi 3 ACTIONS CONCRÈTES ET IMMÉDIATES :
@@ -496,7 +543,7 @@ PRIORITÉ #3 :
 - Délai : [Combien de temps pour voir résultats]
 
 ═══════════════════════════════════════════════════════════════════════════════
-10. RÈGLES DE TRADING PERSONNALISÉES
+11. RÈGLES DE TRADING PERSONNALISÉES
 ═══════════════════════════════════════════════════════════════════════════════
 
 📜 Basé sur MON profil et MES données, crée-moi un set de RÈGLES STRICTES :
@@ -526,7 +573,7 @@ PRIORITÉ #3 :
 10. NE JAMAIS trader sans plan
 
 ═══════════════════════════════════════════════════════════════════════════════
-11. SIMULATION D'AMÉLIORATION
+12. SIMULATION D'AMÉLIORATION
 ═══════════════════════════════════════════════════════════════════════════════
 
 💰 Calcule l'impact financier SI j'applique tes recommandations :
@@ -554,7 +601,7 @@ PRIORITÉ #3 :
 - Progression estimée : [Description]
 
 ═══════════════════════════════════════════════════════════════════════════════
-12. SUIVI ET MÉTRIQUES À MONITORER
+13. SUIVI ET MÉTRIQUES À MONITORER
 ═══════════════════════════════════════════════════════════════════════════════
 
 📊 KPIs que je dois suivre QUOTIDIENNEMENT :
@@ -573,7 +620,7 @@ PRIORITÉ #3 :
 3. [Métrique] : Objectif [X], Seuil alerte [Y]
 
 ═══════════════════════════════════════════════════════════════════════════════
-13. CONCLUSION & PROCHAINES ÉTAPES
+14. CONCLUSION & PROCHAINES ÉTAPES
 ═══════════════════════════════════════════════════════════════════════════════
 
 🎯 Résumé en 5 BULLET POINTS CLÉS :
