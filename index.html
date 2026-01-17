@@ -4676,13 +4676,39 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         function showAddTradeModal() {
             if (typeof window.loadAccounts === "function") window.loadAccounts(); // Refresh account options
             
-            // Réinitialiser le symbole à ES par défaut
-            document.getElementById('symbol').value = 'ES';
+            // ✅ RÉINITIALISER COMPLÈTEMENT LE FORMULAIRE
+            const form = document.getElementById('tradeForm');
+            if (form) form.reset();
+            
+            // Réinitialiser tous les champs manuellement
+            document.getElementById('tradeAccount').value = '';
+            document.getElementById('tradeDate').value = new Date().toISOString().split('T')[0]; // Date du jour
+            document.getElementById('entryTime').value = '';
+            document.getElementById('exitTime').value = '';
+            document.getElementById('symbol').value = 'ES'; // Par défaut ES
+            document.getElementById('tradeType').value = ''; // Vide pour forcer sélection
+            document.getElementById('entryPrice').value = '';
+            document.getElementById('exitPrice').value = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('stopLoss').value = '';
+            document.getElementById('takeProfit').value = '';
+            document.getElementById('setup').value = '';
+            document.getElementById('tradeNotes').value = '';
+            
+            // ✅ Décocher toutes les protections
+            document.getElementById('protectionVWAP').checked = false;
+            document.getElementById('protectionMM20').checked = false;
+            document.getElementById('protectionPivot').checked = false;
+            document.getElementById('protectionClotureVeille').checked = false;
+            document.getElementById('protectionLiquidite').checked = false;
             
             // Masquer le champ P&L manuel
             document.getElementById('manualPnLGroup').style.display = 'none';
             document.getElementById('manualPnL').value = '';
             document.getElementById('manualPnL').required = false;
+            
+            // Supprimer l'ID du trade (mode création)
+            delete document.getElementById('addTradeModal').dataset.tradeId;
             
             // Changer le titre pour "Ajouter un Trade"
             document.querySelector('#addTradeModal h2').textContent = 'Ajouter un Trade';
@@ -5617,7 +5643,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             entryTime: trade.entry_time ? new Date(trade.entry_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '00:00',
                             exitTime: trade.exit_time ? new Date(trade.exit_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '00:00',
                             symbol: trade.instrument,
-                            type: trade.direction === 'LONG' ? 'Long' : 'Short',
+                            direction: trade.direction,  // ✅ Ajouter direction séparément
+                            type: trade.type || (trade.direction === 'LONG' ? 'Long' : 'Short'),  // ✅ Utiliser trade.type si disponible
                             entryPrice: trade.entry_price,
                             exitPrice: trade.exit_price,
                             quantity: trade.quantity,
