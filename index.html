@@ -2578,12 +2578,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 </div>
                 
                 <!-- ✅ Indicateur de chargement CSV -->
-                <div id="csvLoadingIndicator" style="display: none; margin-top: 1rem; padding: 1rem; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px;">
+                <div id="csvLoadingIndicator" style="display: none; margin-top: 1rem; padding: 1rem; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; position: relative; z-index: 10;">
                     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
                         <i class="fas fa-spinner fa-spin" style="color: #0ea5e9; font-size: 1.25rem;"></i>
-                        <span style="color: #0369a1; font-weight: 600;">Importation en cours...</span>
+                        <span style="color: #0369a1; font-weight: 600; font-size: 1rem;">Importation en cours...</span>
                     </div>
-                    <div style="color: #0c4a6e; font-size: 0.875rem;">
+                    <div style="color: #0c4a6e; font-size: 0.875rem; margin-bottom: 0.5rem;">
                         <span id="csvProgressText">0 / 0 trades importés</span>
                     </div>
                     <div style="margin-top: 0.5rem; background: #e0f2fe; border-radius: 4px; height: 8px; overflow: hidden;">
@@ -2912,13 +2912,32 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const importBtn = document.getElementById('csvImportBtn');
             const cancelBtn = document.getElementById('csvCancelBtn');
             
-            loadingIndicator.style.display = 'block';
-            importBtn.disabled = true;
-            importBtn.style.opacity = '0.5';
-            importBtn.style.cursor = 'not-allowed';
-            cancelBtn.disabled = true;
-            cancelBtn.style.opacity = '0.5';
-            cancelBtn.style.cursor = 'not-allowed';
+            console.log('[CSV] 🔍 Éléments trouvés:', {
+                loadingIndicator: !!loadingIndicator,
+                progressText: !!progressText,
+                progressBar: !!progressBar,
+                importBtn: !!importBtn,
+                cancelBtn: !!cancelBtn
+            });
+            
+            if (!loadingIndicator) {
+                console.error('[CSV] ❌ csvLoadingIndicator introuvable !');
+            } else {
+                console.log('[CSV] ✅ Affichage de l\'indicateur de chargement');
+                loadingIndicator.style.display = 'block';
+            }
+            
+            if (importBtn) {
+                importBtn.disabled = true;
+                importBtn.style.opacity = '0.5';
+                importBtn.style.cursor = 'not-allowed';
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.disabled = true;
+                cancelBtn.style.opacity = '0.5';
+                cancelBtn.style.cursor = 'not-allowed';
+            }
             
             try {
                 let successCount = 0;
