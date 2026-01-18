@@ -2814,6 +2814,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         entry_time: entryTime,
                         exit_time: exitTime,
                         pnl: pnl,
+                        manual_pnl: pnl,  // ✅ AJOUT: Forcer l'utilisation du P&L calculé (avec frais déduits)
                         fees: fees,  // ✅ AJOUT: Sauvegarder les frais
                         setup: null,
                         notes: null,
@@ -5786,13 +5787,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 if (result && result.data) {
                     // ✅ Transformer les données Supabase pour correspondre au format attendu
                     window.trades = result.data.map(trade => {
-                        // Calculer le PnL
-                        const pnl = (trade.exit_price - trade.entry_price) * trade.quantity * 
+                        // Calculer le PnL (si manual_pnl n'existe pas)
+                        let pnl = (trade.exit_price - trade.entry_price) * trade.quantity * 
                                     (trade.direction === 'LONG' ? 1 : -1) * 
                                     (trade.instrument === 'ES' ? 50 : 
                                      trade.instrument === 'NQ' ? 20 : 
                                      trade.instrument === 'MES' ? 5 : 
                                      trade.instrument === 'GC' ? 100 : 1);
+                        
+                        // ✅ Soustraire les frais du P&L calculé
+                        const fees = trade.fees || 0;
+                        pnl = pnl - fees;
                         
                         // Trouver le nom du compte
                         const account = accounts.find(a => a.id === trade.account_id);
@@ -5810,7 +5815,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             entryPrice: trade.entry_price,
                             exitPrice: trade.exit_price,
                             quantity: trade.quantity,
-                            pnl: trade.manual_pnl || pnl,  // Utiliser manual_pnl si disponible, sinon calculer
+                            pnl: trade.manual_pnl || pnl,  // ✅ Utiliser manual_pnl si disponible (CSV), sinon P&L calculé avec frais déduits
+                            fees: fees,  // ✅ AJOUT: Conserver les frais
                             stopLoss: trade.stop_loss,
                             takeProfit: trade.take_profit,
                             setup: trade.setup || 'N/A',
