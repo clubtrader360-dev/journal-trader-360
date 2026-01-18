@@ -7507,7 +7507,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
             
             // ✅ CALCULER LE SCORE PAR COMPTE, PUIS MOYENNER
+            console.log('[TRADER 360] 🚀 NOUVELLE VERSION - Calcul par compte');
             const activeAccounts = accounts.filter(a => a.active === true);
+            console.log('[TRADER 360] 📊 Comptes actifs:', activeAccounts.length, activeAccounts.map(a => a.name));
             
             if (activeAccounts.length === 0) {
                 traderScoreChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0];
