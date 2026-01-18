@@ -678,12 +678,36 @@
         const avgRatio = avgLoss > 0 ? avgWin / avgLoss : (avgWin > 0 ? 2 : 0);
         const avgRatioScore = Math.min(100, (avgRatio / 2) * 100);
         
-        // 4. CONSISTENCY (écart-type du P&L normalisé)
-        const avgPnl = validTrades.reduce((sum, t) => sum + parseFloat(t.pnl), 0) / validTrades.length;
-        const variance = validTrades.reduce((sum, t) => sum + Math.pow(parseFloat(t.pnl) - avgPnl, 2), 0) / validTrades.length;
-        const stdDev = Math.sqrt(variance);
-        const cv = Math.abs(avgPnl) > 0 ? (stdDev / Math.abs(avgPnl)) : 0;
-        const consistencyScore = Math.max(0, 100 - (cv * 20));
+        // 4. CONSISTENCY (Meilleur jour / Profits totaux)
+        // Plus le ratio est faible, plus le trader est régulier
+        const dailyPnL = {};
+        validTrades.forEach(trade => {
+            const date = trade.trade_date || trade.date;
+            if (date) {
+                if (!dailyPnL[date]) dailyPnL[date] = 0;
+                dailyPnL[date] += parseFloat(trade.pnl);
+            }
+        });
+        
+        const dailyProfits = Object.values(dailyPnL).filter(p => p > 0);
+        const totalGrossProfit = grossProfit; // Déjà calculé plus haut
+        const bestDay = dailyProfits.length > 0 ? Math.max(...dailyProfits) : 0;
+        
+        // Formule : (Meilleur jour / Profits totaux) × 100
+        const consistencyRatio = totalGrossProfit > 0 ? (bestDay / totalGrossProfit) * 100 : 100;
+        
+        // Score inversé : Plus le ratio est bas, meilleur est le score
+        // Si meilleur jour = 20% des profits → Score = 80
+        // Si meilleur jour = 50% des profits → Score = 50
+        // Si meilleur jour = 100% des profits → Score = 0
+        const consistencyScore = Math.max(0, Math.min(100, 100 - consistencyRatio));
+        
+        console.log('[COACH DASHBOARD] 🎯 Consistency:', {
+            bestDay: bestDay.toFixed(2),
+            totalGrossProfit: totalGrossProfit.toFixed(2),
+            consistencyRatio: consistencyRatio.toFixed(2) + '%',
+            consistencyScore: consistencyScore.toFixed(1)
+        });
         
         // 5. MAX DRAWDOWN (calculé sur cumulative PnL)
         let cumulativePnl = 0;
