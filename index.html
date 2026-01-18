@@ -3749,6 +3749,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 const modal = document.getElementById('addTradeModal');
                 const editingId = modal?.dataset.editingId;
                 
+                // ✅ Si on est en mode édition, récupérer les frais existants
+                let existingFees = 0;
+                if (editingId) {
+                    const existingTrade = trades.find(t => t.id === parseInt(editingId));
+                    if (existingTrade && existingTrade.fees) {
+                        existingFees = existingTrade.fees;
+                        console.log('[UI] 🔄 Mode ÉDITION - Frais existants conservés:', existingFees);
+                    }
+                }
+                
                 // Construction payload
                 const tradeData = {
                     account_id: parseInt(account_id),
@@ -3766,7 +3776,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     notes: notes || null,
                     manual_pnl: manual_pnl ? parseFloat(manual_pnl) : null,
                     protections: protections.length > 0 ? protections : null, // ✅ Envoyer un ARRAY
-                    trade_trend_type: trade_trend_type  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
+                    trade_trend_type: trade_trend_type,  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
+                    fees: existingFees  // ✅ AJOUT: Conserver les frais existants lors de l'édition
                 };
                 
                 // ✅ Si on est en mode édition, ajouter l'ID
