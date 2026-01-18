@@ -7552,6 +7552,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             // Si meilleur jour = 100% des profits bruts → Score = 0
             const consistencyScore = Math.max(0, 100 - consistencyRatio);
             
+            console.log('[TRADER 360] 🎯 Consistency Details:', {
+                bestDay: bestDay.toFixed(2),
+                totalDailyGrossProfit: totalDailyGrossProfit.toFixed(2),
+                consistencyRatio: consistencyRatio.toFixed(2) + '%',
+                consistencyScore: consistencyScore.toFixed(1)
+            });
+            
             // 5. MAX DRAWDOWN (calculé sur cumulative PnL)
             let cumulativePnl = 0;
             let maxPnl = 0;
