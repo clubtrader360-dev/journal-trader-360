@@ -215,25 +215,41 @@
         
         let tradesWithTime = 0;
         trades.forEach(trade => {
-            if (trade.entry_time) {
+            let entryTime = trade.entry_time || trade.entryTime;
+            if (entryTime) {
                 tradesWithTime++;
-                const hour = parseInt(trade.entry_time.split(':')[0]);
-                if (!hourlyPnl[hour]) {
-                    hourlyPnl[hour] = { pnl: 0, count: 0 };
+                
+                // ✅ Parser l'heure correctement (formats: "14:30", "14:30:00", "2026-01-18T14:30:00Z")
+                let hour;
+                if (entryTime.includes('T')) {
+                    // Format ISO: "2026-01-18T14:30:00Z"
+                    const date = new Date(entryTime);
+                    hour = date.getHours();
+                } else {
+                    // Format HH:MM ou HH:MM:SS
+                    hour = parseInt(entryTime.split(':')[0]);
                 }
-                hourlyPnl[hour].pnl += trade.pnl || 0;
-                hourlyPnl[hour].count++;
+                
+                if (!isNaN(hour) && hour >= 0 && hour < 24) {
+                    if (!hourlyPnl[hour]) {
+                        hourlyPnl[hour] = { pnl: 0, count: 0 };
+                    }
+                    hourlyPnl[hour].pnl += parseFloat(trade.pnl) || 0;
+                    hourlyPnl[hour].count++;
+                }
             }
         });
         
         console.log('[COACH DASHBOARD] 📊 Trades avec entry_time:', tradesWithTime);
         console.log('[COACH DASHBOARD] 📊 Données horaires:', hourlyPnl);
         
-        const labels = Object.keys(hourlyPnl).sort((a, b) => a - b).map(h => `${h}h`);
-        const data = labels.map(label => {
-            const hour = parseInt(label);
-            return hourlyPnl[hour].pnl;
-        });
+        // ✅ Générer des labels pour TOUTES les heures (0h-23h), même celles sans trades
+        const labels = [];
+        const data = [];
+        for (let h = 0; h < 24; h++) {
+            labels.push(`${h}h`);
+            data.push(hourlyPnl[h] ? hourlyPnl[h].pnl : 0);
+        }
         
         const ctx = document.getElementById('globalHourlyChart');
         if (ctx && window.Chart) {
@@ -284,8 +300,25 @@
         };
         
         trades.forEach(trade => {
-            if (trade.duration_minutes !== undefined) {
-                const duration = trade.duration_minutes;
+            let duration;
+            
+            // ✅ Calculer la durée depuis entry_time et exit_time
+            let entryTime = trade.entry_time || trade.entryTime;
+            let exitTime = trade.exit_time || trade.exitTime;
+            
+            if (entryTime && exitTime) {
+                try {
+                    const entry = new Date(`1970-01-01T${entryTime}`);
+                    const exit = new Date(`1970-01-01T${exitTime}`);
+                    duration = (exit - entry) / (1000 * 60); // Durée en minutes
+                } catch (e) {
+                    console.warn('[COACH DASHBOARD] ⚠️ Erreur calcul durée:', e);
+                }
+            } else if (trade.duration_minutes !== undefined) {
+                duration = trade.duration_minutes;
+            }
+            
+            if (duration !== undefined && duration >= 0) {
                 let bucket;
                 
                 if (duration < 5) bucket = '0-5min';
@@ -294,7 +327,7 @@
                 else if (duration < 60) bucket = '30-60min';
                 else bucket = '60+min';
                 
-                durationBuckets[bucket].pnl += trade.pnl || 0;
+                durationBuckets[bucket].pnl += parseFloat(trade.pnl) || 0;
                 durationBuckets[bucket].count++;
                 if (trade.pnl > 0) durationBuckets[bucket].wins++;
             }
@@ -302,6 +335,8 @@
         
         const labels = Object.keys(durationBuckets);
         const data = labels.map(label => durationBuckets[label].pnl);
+        
+        console.log('[COACH DASHBOARD] 📊 Performance par durée:', durationBuckets);
         
         const ctx = document.getElementById('globalDurationChart');
         if (ctx && window.Chart) {
@@ -406,16 +441,27 @@
         const protections = {};
         
         trades.forEach(trade => {
-            if (trade.protections && trade.protections.length > 0) {
-                trade.protections.forEach(protection => {
-                    if (!protections[protection]) {
-                        protections[protection] = { wins: 0, total: 0 };
+            let prots = trade.protections;
+            
+            // ✅ Convertir protections string en array si nécessaire
+            if (typeof prots === 'string' && prots.length > 0) {
+                prots = prots.split(',').map(p => p.trim());
+            }
+            
+            if (Array.isArray(prots) && prots.length > 0) {
+                prots.forEach(protection => {
+                    if (protection) {
+                        if (!protections[protection]) {
+                            protections[protection] = { wins: 0, total: 0 };
+                        }
+                        protections[protection].total++;
+                        if (parseFloat(trade.pnl) > 0) protections[protection].wins++;
                     }
-                    protections[protection].total++;
-                    if (trade.pnl > 0) protections[protection].wins++;
                 });
             }
         });
+        
+        console.log('[COACH DASHBOARD] 📊 Protections agrégées:', protections);
         
         const labels = Object.keys(protections);
         const data = labels.map(label => {
@@ -429,6 +475,13 @@
             if (window.globalProtectionChartInstance) {
                 window.globalProtectionChartInstance.destroy();
             }
+            
+            // ✅ Si aucune protection, afficher un message
+            if (labels.length === 0) {
+                ctx.parentElement.innerHTML = '<p style="text-align: center; padding: 2rem; color: #9ca3af;">Aucune protection utilisée</p>';
+                return;
+            }
+            
             window.globalProtectionChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -465,25 +518,28 @@
 
     // ===== TRADER 360 SCORE GLOBAL =====
     function updateGlobalTrader360Score(trades) {
+        console.log('[COACH DASHBOARD] 🎯 Calcul Trader 360 Score avec', trades.length, 'trades');
+        
         if (trades.length === 0) {
             document.getElementById('globalTrader360Score').textContent = '0';
             return;
         }
         
-        // Calcul des métriques
-        const wins = trades.filter(t => t.pnl > 0).length;
-        const losses = trades.filter(t => t.pnl < 0).length;
-        const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
+        // ✅ Filtrer et convertir les pnl en nombres
+        const validTrades = trades.filter(t => t.pnl !== undefined && t.pnl !== null);
+        const wins = validTrades.filter(t => parseFloat(t.pnl) > 0).length;
+        const losses = validTrades.filter(t => parseFloat(t.pnl) < 0).length;
+        const winRate = validTrades.length > 0 ? (wins / validTrades.length) * 100 : 0;
         
-        const totalWins = trades.filter(t => t.pnl > 0).reduce((sum, t) => sum + t.pnl, 0);
-        const totalLosses = Math.abs(trades.filter(t => t.pnl < 0).reduce((sum, t) => sum + t.pnl, 0));
+        const totalWins = validTrades.filter(t => parseFloat(t.pnl) > 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0);
+        const totalLosses = Math.abs(validTrades.filter(t => parseFloat(t.pnl) < 0).reduce((sum, t) => sum + parseFloat(t.pnl), 0));
         const profitFactor = totalLosses > 0 ? totalWins / totalLosses : totalWins > 0 ? 5 : 0;
         
         // Score (sur 100)
         const score = Math.min(100, Math.round(
             (winRate * 0.4) + 
             (Math.min(profitFactor * 20, 50)) + 
-            (trades.length > 50 ? 10 : (trades.length / 50) * 10)
+            (validTrades.length > 50 ? 10 : (validTrades.length / 50) * 10)
         ));
         
         const scoreElement = document.getElementById('globalTrader360Score');
@@ -500,7 +556,7 @@
             }
         }
         
-        console.log('[COACH DASHBOARD] 🎯 Trader 360 Score:', score);
+        console.log('[COACH DASHBOARD] 🎯 Trader 360 Score:', score, '(Win Rate:', winRate.toFixed(1) + '%, PF:', profitFactor.toFixed(2) + ')');
     }
 
     // ===== EXPORT DES FONCTIONS =====
