@@ -786,6 +786,8 @@
     // ===== RÉGULARITÉ GLOBALE (MOYENNE DES ÉLÈVES) =====
     function updateGlobalConsistencyCard(studentsData) {
         console.log('[COACH DASHBOARD] 📊 Calcul Régularité Globale...');
+        console.log('[COACH DASHBOARD] 📊 studentsData reçu:', studentsData);
+        console.log('[COACH DASHBOARD] 📊 Nombre d\'élèves:', studentsData?.length);
         
         const ratioEl = document.getElementById('globalConsistencyRatio');
         const barEl = document.getElementById('globalConsistencyBar');
@@ -799,6 +801,7 @@
         }
         
         if (!studentsData || studentsData.length === 0) {
+            console.warn('[COACH DASHBOARD] ⚠️ Aucun élève dans studentsData');
             ratioEl.textContent = '0%';
             barEl.style.width = '0%';
             labelEl.textContent = 'Aucun élève';
@@ -812,7 +815,11 @@
         
         // Calculer le ratio de consistance pour chaque élève
         studentsData.forEach(student => {
+            console.log('[COACH DASHBOARD] 👤 Élève:', student.user?.full_name);
             const trades = student.trades || [];
+            console.log('[COACH DASHBOARD] 📈 Nombre de trades:', trades.length);
+            
+            if (trades.length === 0) return;
             
             if (trades.length === 0) return;
             
@@ -830,13 +837,18 @@
             const bestDay = Math.max(...allDailyPnLs);
             const netPnL = allDailyPnLs.reduce((sum, p) => sum + p, 0);
             
+            console.log('[COACH DASHBOARD] 💰 Best day:', bestDay.toFixed(2), '| Net P&L:', netPnL.toFixed(2));
+            
             // Si P&L NET > 0, calculer le ratio
             if (netPnL > 0 && bestDay > 0) {
                 const ratio = (bestDay / netPnL) * 100;
+                console.log('[COACH DASHBOARD] ✅ Ratio calculé:', ratio.toFixed(1) + '%');
                 studentRatios.push({
                     studentName: student.user?.full_name || 'Anonyme',
                     ratio: ratio
                 });
+            } else {
+                console.log('[COACH DASHBOARD] ⚠️ P&L NET ou bestDay <= 0, ignoré');
             }
         });
         
