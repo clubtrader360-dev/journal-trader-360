@@ -1837,6 +1837,30 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         </div>
                     </div>
 
+                    <!-- Régularité des Profits (Consistency) -->
+                    <div class="trader-card p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            📊 Régularité des Profits <i class="fas fa-info-circle info-icon text-gray-400 ml-2"><span class="tooltip">Mesure la concentration de vos profits. Plus le pourcentage est faible, plus vos gains sont réguliers. Un pourcentage élevé signifie que vos profits dépendent fortement d'un seul jour.</span></i>
+                        </h3>
+                        
+                        <div class="text-center mt-6">
+                            <!-- Pourcentage de concentration -->
+                            <div class="text-5xl font-bold mb-2" id="consistencyRatio" style="color: #f59e0b;">0%</div>
+                            <div class="text-sm text-gray-600 mb-4">de vos profits sur votre meilleur jour</div>
+                            
+                            <!-- Barre de progression -->
+                            <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+                                <div id="consistencyBar" class="h-4 rounded-full transition-all duration-500" style="width: 0%; background: linear-gradient(to right, #10b981, #f59e0b, #ef4444);"></div>
+                            </div>
+                            
+                            <!-- Interprétation -->
+                            <div class="mt-4 p-4 rounded-lg" id="consistencyInterpretation" style="background-color: #f0fdf4; border-left: 4px solid #10b981;">
+                                <div class="text-sm font-semibold text-gray-800" id="consistencyLabel">Excellent</div>
+                                <div class="text-xs text-gray-600 mt-1" id="consistencyDesc">Vos profits sont bien répartis sur plusieurs jours</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Net Daily P&L -->
                     <div class="trader-card p-6">
                         <h3 class="text-lg font-semibold mb-4 flex items-center">
@@ -7372,6 +7396,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             // 2. TRADE TIME PERFORMANCE
             updateTradeTimeChart(filteredTrades);
             
+            // 2.5 CONSISTENCY CARD (Régularité)
+            updateConsistencyCard(filteredTrades);
+            
             // 3. DAILY PNL
             updateDailyPnlChart(filteredTrades);
             
@@ -7694,6 +7721,108 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             tradeTimeChart.data.datasets[0].data = winData;
             tradeTimeChart.data.datasets[1].data = lossData;
             tradeTimeChart.update();
+        }
+        
+        // ===== CARTE RÉGULARITÉ (CONSISTENCY) =====
+        function updateConsistencyCard(filteredTrades) {
+            const ratioEl = document.getElementById('consistencyRatio');
+            const barEl = document.getElementById('consistencyBar');
+            const labelEl = document.getElementById('consistencyLabel');
+            const descEl = document.getElementById('consistencyDesc');
+            const interpEl = document.getElementById('consistencyInterpretation');
+            
+            if (!ratioEl || !barEl || !labelEl || !descEl || !interpEl) return;
+            
+            if (filteredTrades.length === 0) {
+                ratioEl.textContent = '0%';
+                barEl.style.width = '0%';
+                labelEl.textContent = 'Aucune donnée';
+                descEl.textContent = 'Ajoutez des trades pour voir votre régularité';
+                interpEl.style.backgroundColor = '#f3f4f6';
+                interpEl.style.borderLeftColor = '#9ca3af';
+                return;
+            }
+            
+            // Calculer le P&L par jour
+            const dailyPnL = {};
+            filteredTrades.forEach(trade => {
+                const date = trade.date || trade.trade_date;
+                if (date) {
+                    if (!dailyPnL[date]) dailyPnL[date] = 0;
+                    dailyPnL[date] += trade.pnl;
+                }
+            });
+            
+            // Filtrer uniquement les jours gagnants
+            const dailyProfits = Object.values(dailyPnL).filter(p => p > 0);
+            
+            if (dailyProfits.length === 0) {
+                ratioEl.textContent = '0%';
+                barEl.style.width = '0%';
+                labelEl.textContent = 'Aucun jour profitable';
+                descEl.textContent = 'Vos trades n\'ont généré aucun profit net journalier';
+                interpEl.style.backgroundColor = '#fef2f2';
+                interpEl.style.borderLeftColor = '#ef4444';
+                return;
+            }
+            
+            // Meilleur jour et total des profits bruts
+            const bestDay = Math.max(...dailyProfits);
+            const totalGrossProfit = dailyProfits.reduce((sum, p) => sum + p, 0);
+            
+            // Ratio de concentration (Meilleur jour / Profits bruts)
+            const ratio = (bestDay / totalGrossProfit) * 100;
+            
+            // Afficher le ratio
+            ratioEl.textContent = ratio.toFixed(1) + '%';
+            barEl.style.width = Math.min(100, ratio).toFixed(1) + '%';
+            
+            // Déterminer la couleur et l'interprétation
+            let bgColor, borderColor, label, desc, textColor;
+            
+            if (ratio < 30) {
+                // Excellent (vert)
+                bgColor = '#f0fdf4';
+                borderColor = '#10b981';
+                textColor = '#10b981';
+                label = '🟢 Excellent';
+                desc = 'Vos profits sont bien répartis sur plusieurs jours';
+            } else if (ratio < 50) {
+                // Bon (vert/orange)
+                bgColor = '#fefce8';
+                borderColor = '#84cc16';
+                textColor = '#84cc16';
+                label = '🟡 Bon';
+                desc = 'Bonne répartition avec une légère concentration';
+            } else if (ratio < 70) {
+                // Moyen (orange)
+                bgColor = '#fff7ed';
+                borderColor = '#f59e0b';
+                textColor = '#f59e0b';
+                label = '🟠 Moyen';
+                desc = 'Concentration moyenne, diversifiez vos jours gagnants';
+            } else {
+                // Mauvais (rouge)
+                bgColor = '#fef2f2';
+                borderColor = '#ef4444';
+                textColor = '#ef4444';
+                label = '🔴 Attention';
+                desc = 'Forte concentration sur un seul jour, risque élevé';
+            }
+            
+            // Appliquer les styles
+            ratioEl.style.color = textColor;
+            interpEl.style.backgroundColor = bgColor;
+            interpEl.style.borderLeftColor = borderColor;
+            labelEl.textContent = label;
+            descEl.textContent = desc;
+            
+            console.log('[CONSISTENCY] 📊 Régularité:', {
+                bestDay: bestDay.toFixed(2),
+                totalGrossProfit: totalGrossProfit.toFixed(2),
+                ratio: ratio.toFixed(1) + '%',
+                interpretation: label
+            });
         }
         
         function updateDailyPnlChart(filteredTrades) {
