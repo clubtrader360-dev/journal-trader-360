@@ -4282,6 +4282,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 if (typeof window.updateProtectionAnalysis === 'function') {
                     window.updateProtectionAnalysis();
                 }
+                
+                // ✅ AJOUT: Mettre à jour Tendance vs Contre-tendance
+                if (typeof window.updateTrendAnalysis === 'function') {
+                    window.updateTrendAnalysis();
+                }
+                
+                // ✅ AJOUT: Mettre à jour les alertes du bandeau
+                if (typeof window.updateWarnings === 'function') {
+                    window.updateWarnings();
+                }
             }
         }
         
