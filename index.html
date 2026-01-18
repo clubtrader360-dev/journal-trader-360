@@ -2315,6 +2315,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     </div>
                 </div>
                 
+                <!-- Break-Even -->
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="tradeBreakEven" value="Break-Even" style="width: 18px; height: 18px; accent-color: #f59e0b;">
+                        <span style="font-weight: 600; color: #1f2937;">Trade clôturé en Break-Even (BE)</span>
+                    </label>
+                    <small style="color: #6b7280; font-size: 0.85em; display: block; margin-top: 4px;">
+                        Cocher si le trade a été fermé proche du point d'entrée (même avec 0.25 ou 0.50 de gain)
+                    </small>
+                </div>
+                
                 <div class="flex gap-4 mt-6">
                     <button type="button" id="addTradeBtn" class="trader-btn flex-1">Ajouter le Trade</button>
                     <button type="button" onclick="closeModal('addTradeModal')" class="trader-btn-secondary flex-1">Annuler</button>
@@ -3721,10 +3732,14 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 if (document.getElementById('tradeContreTendance')?.checked) tradeTypes.push('Contre-tendance');
                 const trade_trend_type = tradeTypes.length > 0 ? tradeTypes.join(', ') : 'Non spécifié';
                 
+                // Break-Even - checkbox
+                const is_break_even = document.getElementById('tradeBreakEven')?.checked || false;
+                
                 console.log('[UI] Données extraites:', { 
                     account_id, trade_date, entry_time, exit_time, symbol, trade_type, 
                     entry_price, exit_price, quantity, stop_loss, take_profit, setup, notes, manual_pnl,
-                    trade_trend_type
+                    trade_trend_type,
+                    is_break_even
                 });
                 
                 // Validation détaillée
@@ -3777,7 +3792,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     manual_pnl: manual_pnl ? parseFloat(manual_pnl) : null,
                     protections: protections.length > 0 ? protections : null, // ✅ Envoyer un ARRAY
                     trade_trend_type: trade_trend_type,  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
-                    fees: existingFees  // ✅ AJOUT: Conserver les frais existants lors de l'édition
+                    fees: existingFees,  // ✅ AJOUT: Conserver les frais existants lors de l'édition
+                    is_break_even: is_break_even  // ✅ AJOUT: Indicateur Break-Even manuel
                 };
                 
                 // ✅ Si on est en mode édition, ajouter l'ID
@@ -4795,6 +4811,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             // ✅ Décocher les types de trade
             if (document.getElementById('tradeTendance')) document.getElementById('tradeTendance').checked = false;
             if (document.getElementById('tradeContreTendance')) document.getElementById('tradeContreTendance').checked = false;
+            if (document.getElementById('tradeBreakEven')) document.getElementById('tradeBreakEven').checked = false;
             
             // Masquer le champ P&L manuel
             document.getElementById('manualPnLGroup').style.display = 'none';
@@ -5308,6 +5325,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
             } else {
                 console.log('[EDIT] ℹ️ Aucun type de trade spécifié');
+            }
+            
+            // ✅ RECHARGER LA CASE BREAK-EVEN
+            const breakEvenCheckbox = document.getElementById('tradeBreakEven');
+            if (breakEvenCheckbox) {
+                breakEvenCheckbox.checked = trade.is_break_even || false;
+                console.log('[EDIT] Break-Even:', trade.is_break_even ? '✅ Coché' : 'Non coché');
             }
             
             // Stocker l'ID du trade en cours de modification
@@ -5833,7 +5857,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             setup: trade.setup || 'N/A',
                             protections: trade.protections || [],  // ✅ Ajouter les protections (ARRAY)
                             notes: trade.notes || '',
-                            trade_trend_type: trade.trade_trend_type || 'Non spécifié'  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
+                            trade_trend_type: trade.trade_trend_type || 'Non spécifié',  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
+                            is_break_even: trade.is_break_even || false  // ✅ AJOUT: Indicateur Break-Even manuel
                         };
                     });
                     
@@ -6900,6 +6925,23 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     }
                 }
             });
+            
+            // ========================================
+            // 7. RR1/RR2 atteints mais clôturés en Break-Even
+            // ========================================
+            const rrTrades = filteredTrades.filter(t => 
+                t.type && (t.type.includes('RR1 atteint') || t.type.includes('RR2 atteint'))
+            );
+            const rrBeTrades = rrTrades.filter(t => t.is_break_even === true);
+            
+            if (rrBeTrades.length >= 3) {
+                const bePercent = (rrBeTrades.length / rrTrades.length) * 100;
+                warnings.push({
+                    severity: 'high',
+                    icon: '💰',
+                    message: `${rrBeTrades.length} trades RR1/RR2 atteints mais clôturés en BE (${bePercent.toFixed(0)}% des RR)`
+                });
+            }
             
             // ========================================
             // Trier par sévérité et limiter à 5 alertes
