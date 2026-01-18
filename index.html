@@ -8844,15 +8844,28 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         </div>
                     </div>
                     
-                    <!-- Trader 360 Score Global - MASQUÉ -->
-                    <div class="trader-card" style="padding: 24px; display: none;">
+                    <!-- Régularité des Profits Globale (Coach) -->
+                    <div class="trader-card" style="padding: 24px;">
                         <h2 class="text-xl font-bold mb-4 flex items-center">
-                            <i class="fas fa-trophy mr-2" style="color: #ac862b;"></i>
-                            Trader 360 Score Global
-                            <span id="globalTraderScoreValue" class="ml-auto text-2xl font-bold" style="color: #10b981;">0.0</span>
+                            📊 Régularité des Profits (Moyenne Élèves)
+                            <i class="fas fa-info-circle ml-2 text-gray-400" style="font-size: 0.9rem; cursor: help;" title="Mesure la concentration des profits. Plus le pourcentage est faible, plus les gains sont réguliers. Moyenne calculée sur tous les élèves actifs."></i>
                         </h2>
-                        <div style="height: 300px;">
-                            <canvas id="globalTrader360Chart"></canvas>
+                        
+                        <div class="text-center mt-6">
+                            <!-- Pourcentage de concentration -->
+                            <div class="text-5xl font-bold mb-2" id="globalConsistencyRatio" style="color: #f59e0b;">0%</div>
+                            <div class="text-sm text-gray-600 mb-4">moyenne de régularité des élèves</div>
+                            
+                            <!-- Barre de progression -->
+                            <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+                                <div id="globalConsistencyBar" class="h-4 rounded-full transition-all duration-500" style="width: 0%; background: linear-gradient(to right, #10b981, #f59e0b, #ef4444);"></div>
+                            </div>
+                            
+                            <!-- Interprétation -->
+                            <div class="mt-4 p-4 rounded-lg" id="globalConsistencyInterpretation" style="background-color: #f0fdf4; border-left: 4px solid #10b981;">
+                                <div class="text-sm font-semibold text-gray-800" id="globalConsistencyLabel">Excellent</div>
+                                <div class="text-xs text-gray-600 mt-1" id="globalConsistencyDesc">Les profits des élèves sont bien répartis</div>
+                            </div>
                         </div>
                     </div>
                     

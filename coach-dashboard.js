@@ -56,8 +56,8 @@
             // Mettre à jour les graphiques
             updateGlobalCharts(allStudentsTrades);
             
-            // Mettre à jour le Trader 360 Score Global
-            updateGlobalTrader360Score(allStudentsTrades);
+            // Mettre à jour la Régularité Globale (Moyenne des élèves)
+            updateGlobalConsistencyCard(studentsData);
             
         } catch (error) {
             console.error('[COACH DASHBOARD] ❌ Erreur:', error);
@@ -781,6 +781,126 @@
         console.log('  Consistency:', consistencyScore.toFixed(1) + ' pts');
         console.log('  Drawdown:', drawdownPct.toFixed(1) + '%', '→', drawdownScore.toFixed(1) + ' pts');
         console.log('  Recovery:', recoveryFactor.toFixed(2), '→', recoveryScore.toFixed(1) + ' pts');
+    }
+
+    // ===== RÉGULARITÉ GLOBALE (MOYENNE DES ÉLÈVES) =====
+    function updateGlobalConsistencyCard(studentsData) {
+        console.log('[COACH DASHBOARD] 📊 Calcul Régularité Globale...');
+        
+        const ratioEl = document.getElementById('globalConsistencyRatio');
+        const barEl = document.getElementById('globalConsistencyBar');
+        const labelEl = document.getElementById('globalConsistencyLabel');
+        const descEl = document.getElementById('globalConsistencyDesc');
+        const interpEl = document.getElementById('globalConsistencyInterpretation');
+        
+        if (!ratioEl || !barEl || !labelEl || !descEl || !interpEl) {
+            console.warn('[COACH DASHBOARD] ⚠️ Éléments consistency card introuvables');
+            return;
+        }
+        
+        if (!studentsData || studentsData.length === 0) {
+            ratioEl.textContent = '0%';
+            barEl.style.width = '0%';
+            labelEl.textContent = 'Aucun élève';
+            descEl.textContent = 'Aucun élève actif';
+            interpEl.style.backgroundColor = '#f3f4f6';
+            interpEl.style.borderLeftColor = '#9ca3af';
+            return;
+        }
+        
+        const studentRatios = [];
+        
+        // Calculer le ratio de consistance pour chaque élève
+        studentsData.forEach(student => {
+            const trades = student.trades || [];
+            
+            if (trades.length === 0) return;
+            
+            // Calculer le P&L par jour pour cet élève
+            const dailyPnL = {};
+            trades.forEach(trade => {
+                const date = trade.trade_date || trade.date;
+                if (date) {
+                    if (!dailyPnL[date]) dailyPnL[date] = 0;
+                    dailyPnL[date] += trade.pnl || 0;
+                }
+            });
+            
+            const allDailyPnLs = Object.values(dailyPnL);
+            const bestDay = Math.max(...allDailyPnLs);
+            const netPnL = allDailyPnLs.reduce((sum, p) => sum + p, 0);
+            
+            // Si P&L NET > 0, calculer le ratio
+            if (netPnL > 0 && bestDay > 0) {
+                const ratio = (bestDay / netPnL) * 100;
+                studentRatios.push({
+                    studentName: student.user?.full_name || 'Anonyme',
+                    ratio: ratio
+                });
+            }
+        });
+        
+        if (studentRatios.length === 0) {
+            ratioEl.textContent = '0%';
+            barEl.style.width = '0%';
+            labelEl.textContent = 'Aucune donnée';
+            descEl.textContent = 'Aucun élève avec P&L positif';
+            interpEl.style.backgroundColor = '#f3f4f6';
+            interpEl.style.borderLeftColor = '#9ca3af';
+            return;
+        }
+        
+        // Calculer la MOYENNE des ratios
+        const avgRatio = studentRatios.reduce((sum, s) => sum + s.ratio, 0) / studentRatios.length;
+        
+        // Afficher le ratio moyen
+        ratioEl.textContent = avgRatio.toFixed(1) + '%';
+        barEl.style.width = Math.min(100, avgRatio).toFixed(1) + '%';
+        
+        // Déterminer la couleur et l'interprétation
+        let bgColor, borderColor, label, desc, textColor;
+        
+        if (avgRatio < 30) {
+            bgColor = '#f0fdf4';
+            borderColor = '#10b981';
+            textColor = '#10b981';
+            label = '🟢 Excellent';
+            desc = 'Les élèves ont une excellente répartition des profits';
+        } else if (avgRatio < 50) {
+            bgColor = '#fefce8';
+            borderColor = '#84cc16';
+            textColor = '#84cc16';
+            label = '🟡 Bon';
+            desc = 'Bonne régularité moyenne des élèves';
+        } else if (avgRatio < 80) {
+            bgColor = '#fff7ed';
+            borderColor = '#f59e0b';
+            textColor = '#f59e0b';
+            label = '🟠 Moyen';
+            desc = 'Concentration moyenne, encouragez la diversification';
+        } else if (avgRatio < 100) {
+            bgColor = '#fff7ed';
+            borderColor = '#f97316';
+            textColor = '#f97316';
+            label = '🟠 Attention';
+            desc = 'Forte concentration, risque de dépendance à quelques jours';
+        } else {
+            bgColor = '#fef2f2';
+            borderColor = '#ef4444';
+            textColor = '#ef4444';
+            label = '🔴 Critique';
+            desc = 'Les élèves dépendent fortement de leur meilleur jour';
+        }
+        
+        // Appliquer les styles
+        ratioEl.style.color = textColor;
+        interpEl.style.backgroundColor = bgColor;
+        interpEl.style.borderLeftColor = borderColor;
+        labelEl.textContent = label;
+        descEl.textContent = desc;
+        
+        console.log('[COACH DASHBOARD] 📊 Régularité moyenne:', avgRatio.toFixed(1) + '%');
+        console.log('[COACH DASHBOARD] 📊 Détails par élève:', studentRatios);
     }
 
     // ===== EXPORT DES FONCTIONS =====
