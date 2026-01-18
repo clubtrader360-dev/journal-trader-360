@@ -5237,6 +5237,38 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.log('[EDIT] ℹ️ Aucune protection sur ce trade');
             }
             
+            // ✅ RECHARGER LES CASES TENDANCE / CONTRE-TENDANCE
+            console.log('[EDIT] Rechargement trade_trend_type:', trade.trade_trend_type);
+            
+            // D'ABORD : Décocher les 2 cases
+            const tendanceCheckbox = document.getElementById('tradeTrendTypeTendance');
+            const contreTendanceCheckbox = document.getElementById('tradeTrendTypeContreTendance');
+            
+            if (tendanceCheckbox) tendanceCheckbox.checked = false;
+            if (contreTendanceCheckbox) contreTendanceCheckbox.checked = false;
+            
+            // ENSUITE : Cocher selon la valeur en base
+            if (trade.trade_trend_type) {
+                if (trade.trade_trend_type.includes('Tendance') && !trade.trade_trend_type.includes('Contre-tendance')) {
+                    if (tendanceCheckbox) {
+                        tendanceCheckbox.checked = true;
+                        console.log('[EDIT] ✅ Tendance cochée');
+                    }
+                } else if (trade.trade_trend_type.includes('Contre-tendance') && !trade.trade_trend_type.includes('Tendance')) {
+                    if (contreTendanceCheckbox) {
+                        contreTendanceCheckbox.checked = true;
+                        console.log('[EDIT] ✅ Contre-tendance cochée');
+                    }
+                } else if (trade.trade_trend_type.includes('Tendance') && trade.trade_trend_type.includes('Contre-tendance')) {
+                    // Les deux sont cochées
+                    if (tendanceCheckbox) tendanceCheckbox.checked = true;
+                    if (contreTendanceCheckbox) contreTendanceCheckbox.checked = true;
+                    console.log('[EDIT] ✅ Tendance ET Contre-tendance cochées');
+                }
+            } else {
+                console.log('[EDIT] ℹ️ Aucun type de trade spécifié');
+            }
+            
             // Stocker l'ID du trade en cours de modification
             document.getElementById('addTradeModal').dataset.editingId = tradeId;
             
@@ -5754,7 +5786,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             takeProfit: trade.take_profit,
                             setup: trade.setup || 'N/A',
                             protections: trade.protections || [],  // ✅ Ajouter les protections (ARRAY)
-                            notes: trade.notes || ''
+                            notes: trade.notes || '',
+                            trade_trend_type: trade.trade_trend_type || 'Non spécifié'  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
                         };
                     });
                     
