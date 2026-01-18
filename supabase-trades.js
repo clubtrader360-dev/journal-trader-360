@@ -34,7 +34,7 @@ async function loadAccounts() {
     try {
         const { data, error } = await supabase
             .from('accounts')
-            .select('id, name, type, initial_balance, current_balance')
+            .select('id, name, type, initial_balance, current_balance, active')
             .eq('user_id', window.currentUser.uuid)
             .order('created_at', { ascending: false });
         
@@ -76,8 +76,8 @@ async function loadAccounts() {
                 accountsList.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Aucun compte. Cliquez sur + pour créer.</p>';
             } else {
                 accountsList.innerHTML = data.map(account => {
-                    // Initialiser active à true si non défini
-                    const isActive = account.active !== false;
+                    // ✅ Utiliser la valeur 'active' depuis Supabase, par défaut true si non défini
+                    const isActive = account.active !== undefined ? account.active : true;
                     return `
                         <div class="account-item">
                             <input type="checkbox" class="account-checkbox" ${isActive ? 'checked' : ''} 

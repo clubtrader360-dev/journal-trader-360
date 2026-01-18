@@ -4270,10 +4270,22 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 account.active = !account.active;
                 console.log(`[TOGGLE] Compte ${account.name} (ID: ${accountId}) → active: ${account.active}`);
                 
-                // Sauvegarder la sélection dans localStorage
-                const activeAccountIds = accounts.filter(a => a.active === true).map(a => a.id);
-                localStorage.setItem('activeAccountIds', JSON.stringify(activeAccountIds));
-                console.log('[TOGGLE] Sélection sauvegardée:', activeAccountIds);
+                // ✅ Sauvegarder dans Supabase au lieu de localStorage
+                if (window.supabaseClient) {
+                    window.supabaseClient
+                        .from('accounts')
+                        .update({ active: account.active })
+                        .eq('id', accountId)
+                        .then(({ error }) => {
+                            if (error) {
+                                console.error('[TOGGLE] ❌ Erreur Supabase:', error);
+                            } else {
+                                console.log('[TOGGLE] ✅ État sauvegardé dans Supabase (active:', account.active, ')');
+                            }
+                        });
+                } else {
+                    console.warn('[TOGGLE] ⚠️ Supabase client non disponible !');
+                }
                 
                 // Mettre à jour TOUTES les métriques
                 updateDashboard();
@@ -5802,31 +5814,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (typeof window.loadAccounts === 'function') {
                 const accountsResult = await window.loadAccounts();
                 if (accountsResult && accountsResult.data) {
-                    // ✅ Initialiser active: true pour TOUS les comptes
+                    // ✅ Charger directement depuis Supabase avec le champ 'active'
                     accounts = accountsResult.data.map(account => ({
                         ...account,
-                        active: true // Par défaut tous actifs
+                        // Si 'active' n'est pas défini dans Supabase, utiliser true par défaut
+                        active: account.active !== undefined ? account.active : true
                     }));
                     
-                    // ✅ Restaurer la sélection depuis localStorage
-                    const savedActiveIds = localStorage.getItem('activeAccountIds');
-                    if (savedActiveIds) {
-                        try {
-                            const activeIds = JSON.parse(savedActiveIds);
-                            console.log('[REFRESH] 📂 Restauration de la sélection:', activeIds);
-                            
-                            // Désactiver tous les comptes qui ne sont PAS dans la sélection sauvegardée
-                            accounts.forEach(account => {
-                                account.active = activeIds.includes(account.id);
-                            });
-                            
-                            console.log('[REFRESH] ✅ Sélection restaurée:', accounts.filter(a => a.active).map(a => a.name));
-                        } catch (e) {
-                            console.warn('[REFRESH] ⚠️ Erreur lors de la restauration:', e);
-                        }
-                    }
-                    
                     console.log('[REFRESH] ✅ window.accounts mis à jour:', accounts.length, 'comptes');
+                    console.log('[REFRESH] 📊 Comptes actifs:', accounts.filter(a => a.active).map(a => a.name));
                     
                     // ✅ Mettre à jour la sidebar avec les checkboxes restaurées
                     if (typeof window.updateAccountsList === 'function') {
