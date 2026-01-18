@@ -6867,6 +6867,41 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             });
             
             // ========================================
+            // 6. Win Rate par protection (VWAP, MM20, Pivot, etc.)
+            // ========================================
+            const protectionTypes = ['VWAP', 'MM20', 'Pivot', 'Clôture veille', 'Liquidité 30m/H1/H4'];
+            protectionTypes.forEach(prot => {
+                const protTrades = filteredTrades.filter(t => {
+                    if (!t.protections) return false;
+                    // Gérer le cas où protections est un array ou une string
+                    if (Array.isArray(t.protections)) {
+                        return t.protections.includes(prot);
+                    }
+                    if (typeof t.protections === 'string') {
+                        return t.protections.includes(prot);
+                    }
+                    return false;
+                });
+                
+                if (protTrades.length >= 5) {
+                    const wr = calculateWinRate(protTrades);
+                    if (wr < 30) {
+                        warnings.push({
+                            severity: 'high',
+                            icon: '🛡️',
+                            message: `Protection ${prot} : Win Rate ${wr.toFixed(1)}% (${protTrades.length} trades)`
+                        });
+                    } else if (wr < 40) {
+                        warnings.push({
+                            severity: 'medium',
+                            icon: '⚠️',
+                            message: `Protection ${prot} : Win Rate ${wr.toFixed(1)}% (${protTrades.length} trades)`
+                        });
+                    }
+                }
+            });
+            
+            // ========================================
             // Trier par sévérité et limiter à 5 alertes
             // ========================================
             const sortedWarnings = warnings
