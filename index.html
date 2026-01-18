@@ -2569,12 +2569,26 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 </div>
 
                 <div class="flex gap-4 mt-6">
-                    <button type="button" onclick="cancelCSVImport()" class="trader-btn-secondary flex-1">
+                    <button type="button" onclick="cancelCSVImport()" class="trader-btn-secondary flex-1" id="csvCancelBtn">
                         <i class="fas fa-times mr-2"></i>Annuler
                     </button>
-                    <button type="button" onclick="confirmCSVImport()" class="trader-btn flex-1">
+                    <button type="button" onclick="confirmCSVImport()" class="trader-btn flex-1" id="csvImportBtn">
                         <i class="fas fa-check mr-2"></i>Importer <span id="csvImportCount">0</span> trade(s)
                     </button>
+                </div>
+                
+                <!-- ✅ Indicateur de chargement CSV -->
+                <div id="csvLoadingIndicator" style="display: none; margin-top: 1rem; padding: 1rem; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <i class="fas fa-spinner fa-spin" style="color: #0ea5e9; font-size: 1.25rem;"></i>
+                        <span style="color: #0369a1; font-weight: 600;">Importation en cours...</span>
+                    </div>
+                    <div style="color: #0c4a6e; font-size: 0.875rem;">
+                        <span id="csvProgressText">0 / 0 trades importés</span>
+                    </div>
+                    <div style="margin-top: 0.5rem; background: #e0f2fe; border-radius: 4px; height: 8px; overflow: hidden;">
+                        <div id="csvProgressBar" style="background: #0ea5e9; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2891,14 +2905,36 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
+            // ✅ Afficher l'indicateur de chargement
+            const loadingIndicator = document.getElementById('csvLoadingIndicator');
+            const progressText = document.getElementById('csvProgressText');
+            const progressBar = document.getElementById('csvProgressBar');
+            const importBtn = document.getElementById('csvImportBtn');
+            const cancelBtn = document.getElementById('csvCancelBtn');
+            
+            loadingIndicator.style.display = 'block';
+            importBtn.disabled = true;
+            importBtn.style.opacity = '0.5';
+            importBtn.style.cursor = 'not-allowed';
+            cancelBtn.disabled = true;
+            cancelBtn.style.opacity = '0.5';
+            cancelBtn.style.cursor = 'not-allowed';
+            
             try {
                 let successCount = 0;
                 let errorCount = 0;
+                const total = csvParsedTrades.length;
                 
                 for (let i = 0; i < csvParsedTrades.length; i++) {
                     try {
                         const trade = csvParsedTrades[i];
-                        console.log('[CSV] Import trade', i + 1, '/', csvParsedTrades.length);
+                        console.log('[CSV] Import trade', i + 1, '/', total);
+                        
+                        // ✅ Mettre à jour la progression
+                        const current = i + 1;
+                        const percent = Math.round((current / total) * 100);
+                        progressText.textContent = `${current} / ${total} trades importés`;
+                        progressBar.style.width = percent + '%';
                         
                         const result = await window.addTrade(trade);
                         
@@ -2915,6 +2951,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
                 
                 console.log('[CSV] ✅ Import terminé:', successCount, 'réussis,', errorCount, 'échoués');
+                
+                // ✅ Cacher l'indicateur de chargement
+                loadingIndicator.style.display = 'none';
+                importBtn.disabled = false;
+                importBtn.style.opacity = '1';
+                importBtn.style.cursor = 'pointer';
+                cancelBtn.disabled = false;
+                cancelBtn.style.opacity = '1';
+                cancelBtn.style.cursor = 'pointer';
                 
                 // Fermer la modal
                 document.getElementById('importCSVModal').style.display = 'none';
@@ -2936,6 +2981,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 
             } catch (err) {
                 console.error('[CSV] ❌ Erreur globale:', err);
+                
+                // ✅ Réactiver les boutons en cas d'erreur
+                loadingIndicator.style.display = 'none';
+                importBtn.disabled = false;
+                importBtn.style.opacity = '1';
+                importBtn.style.cursor = 'pointer';
+                cancelBtn.disabled = false;
+                cancelBtn.style.opacity = '1';
+                cancelBtn.style.cursor = 'pointer';
+                
                 alert('❌ Erreur lors de l\'import: ' + err.message);
             }
         }
