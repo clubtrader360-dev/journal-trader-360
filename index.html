@@ -6122,6 +6122,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             document.getElementById('profitFactorValue').textContent = '0.00';
             document.getElementById('dayWinValue').textContent = '0%';
             document.getElementById('avgWinLossValue').textContent = '0.00';
+            
+            // ✅ AJOUT: Réinitialiser RR1/RR2
+            const rrAtteintsEl = document.getElementById('rrAtteintsValue');
+            if (rrAtteintsEl) rrAtteintsEl.textContent = '0 trades';
+            
+            const rr1CountEl = document.getElementById('rr1Count');
+            if (rr1CountEl) rr1CountEl.textContent = '0';
+            
+            const rr2CountEl = document.getElementById('rr2Count');
+            if (rr2CountEl) rr2CountEl.textContent = '0';
         }
 
         // Calendar functions
