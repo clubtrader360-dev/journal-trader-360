@@ -7753,6 +7753,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
             });
             
+            console.log('[CONSISTENCY] 📅 P&L par jour:', dailyPnL);
+            
             // Filtrer uniquement les jours gagnants
             const dailyProfits = Object.values(dailyPnL).filter(p => p > 0);
             
