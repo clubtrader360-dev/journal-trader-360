@@ -871,9 +871,16 @@ async function addTradeUI() {
         if (el?.checked) protections.push(el.value);
     });
     
+    // Type de Trade (Tendance/Contre-tendance) - checkboxes
+    const tradeTypes = [];
+    if (document.getElementById('tradeTendance')?.checked) tradeTypes.push('Tendance');
+    if (document.getElementById('tradeContreTendance')?.checked) tradeTypes.push('Contre-tendance');
+    const trade_trend_type = tradeTypes.length > 0 ? tradeTypes.join(', ') : 'Non spécifié';
+    
     console.log('[UI] Données extraites:', { 
         account_id, trade_date, entry_time, exit_time, symbol, trade_type, 
-        entry_price, exit_price, quantity, stop_loss, take_profit, setup, notes, manual_pnl 
+        entry_price, exit_price, quantity, stop_loss, take_profit, setup, notes, manual_pnl,
+        trade_trend_type
     });
     
     // Validation détaillée
@@ -910,7 +917,8 @@ async function addTradeUI() {
         setup: setup || null,
         notes: notes || null,
         manual_pnl: manual_pnl ? parseFloat(manual_pnl) : null,
-        protections: protections.length > 0 ? protections.join(',') : null
+        protections: protections.length > 0 ? protections.join(',') : null,
+        trade_trend_type: trade_trend_type  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
     };
     
     console.log('[UI] Payload final:', tradeData);
@@ -5241,8 +5249,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log('[EDIT] Rechargement trade_trend_type:', trade.trade_trend_type);
             
             // D'ABORD : Décocher les 2 cases
-            const tendanceCheckbox = document.getElementById('tradeTrendTypeTendance');
-            const contreTendanceCheckbox = document.getElementById('tradeTrendTypeContreTendance');
+            const tendanceCheckbox = document.getElementById('tradeTendance');
+            const contreTendanceCheckbox = document.getElementById('tradeContreTendance');
             
             if (tendanceCheckbox) tendanceCheckbox.checked = false;
             if (contreTendanceCheckbox) contreTendanceCheckbox.checked = false;
