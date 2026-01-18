@@ -7768,12 +7768,27 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            // Meilleur jour et total des profits bruts
-            const bestDay = Math.max(...dailyProfits);
-            const totalGrossProfit = dailyProfits.reduce((sum, p) => sum + p, 0);
+            // Meilleur jour (parmi tous les jours, positifs et négatifs)
+            const allDailyPnLs = Object.values(dailyPnL);
+            const bestDay = Math.max(...allDailyPnLs);
             
-            // Ratio de concentration (Meilleur jour / Profits bruts)
-            const ratio = (bestDay / totalGrossProfit) * 100;
+            // P&L NET total (somme de TOUS les jours)
+            const netPnL = allDailyPnLs.reduce((sum, p) => sum + p, 0);
+            
+            // Si P&L NET est négatif ou proche de zéro
+            if (netPnL <= 0) {
+                ratioEl.textContent = '∞';
+                barEl.style.width = '100%';
+                labelEl.textContent = '🔴 Critique';
+                descEl.textContent = 'P&L net négatif ou nul, régularité non calculable';
+                interpEl.style.backgroundColor = '#fef2f2';
+                interpEl.style.borderLeftColor = '#ef4444';
+                ratioEl.style.color = '#ef4444';
+                return;
+            }
+            
+            // Ratio de concentration (Meilleur jour / P&L NET)
+            const ratio = (bestDay / netPnL) * 100;
             
             // Afficher le ratio
             ratioEl.textContent = ratio.toFixed(1) + '%';
@@ -7796,20 +7811,27 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 textColor = '#84cc16';
                 label = '🟡 Bon';
                 desc = 'Bonne répartition avec une légère concentration';
-            } else if (ratio < 70) {
+            } else if (ratio < 80) {
                 // Moyen (orange)
                 bgColor = '#fff7ed';
                 borderColor = '#f59e0b';
                 textColor = '#f59e0b';
                 label = '🟠 Moyen';
                 desc = 'Concentration moyenne, diversifiez vos jours gagnants';
+            } else if (ratio < 100) {
+                // Attention (orange foncé)
+                bgColor = '#fff7ed';
+                borderColor = '#f97316';
+                textColor = '#f97316';
+                label = '🟠 Attention';
+                desc = 'Forte concentration, vos profits dépendent fortement d\'un seul jour';
             } else {
-                // Mauvais (rouge)
+                // Critique (rouge) - Plus de 100%
                 bgColor = '#fef2f2';
                 borderColor = '#ef4444';
                 textColor = '#ef4444';
-                label = '🔴 Attention';
-                desc = 'Forte concentration sur un seul jour, risque élevé';
+                label = '🔴 Critique';
+                desc = 'Sans votre meilleur jour, vous seriez en perte globale';
             }
             
             // Appliquer les styles
@@ -7821,7 +7843,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             console.log('[CONSISTENCY] 📊 Régularité:', {
                 bestDay: bestDay.toFixed(2),
-                totalGrossProfit: totalGrossProfit.toFixed(2),
+                netPnL: netPnL.toFixed(2),
                 ratio: ratio.toFixed(1) + '%',
                 interpretation: label
             });
