@@ -4285,12 +4285,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 
                 // ✅ AJOUT: Mettre à jour Tendance vs Contre-tendance
                 if (typeof window.updateTrendAnalysis === 'function') {
+                    console.log('[TOGGLE] ✅ Appel de updateTrendAnalysis()...');
                     window.updateTrendAnalysis();
+                } else {
+                    console.warn('[TOGGLE] ⚠️ window.updateTrendAnalysis() non disponible !');
                 }
                 
                 // ✅ AJOUT: Mettre à jour les alertes du bandeau
                 if (typeof window.updateWarnings === 'function') {
+                    console.log('[TOGGLE] ✅ Appel de updateWarnings()...');
                     window.updateWarnings();
+                } else {
+                    console.warn('[TOGGLE] ⚠️ window.updateWarnings() non disponible !');
                 }
             }
         }
