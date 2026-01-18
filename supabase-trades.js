@@ -257,7 +257,8 @@ async function loadAccounts() {
       notes: tradeData.notes || null,
       manual_pnl: tradeData.manual_pnl || null,
       protections: tradeData.protections || null,
-      trade_trend_type: tradeData.trade_trend_type || 'Non spécifié'  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
+      trade_trend_type: tradeData.trade_trend_type || 'Non spécifié',  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
+      fees: tradeData.fees || 0  // ✅ AJOUT: Frais de trading
     };
     
     console.log('[TRADES] 📦 Payload final avec timestamps:', tradeWithUser);

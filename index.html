@@ -2694,7 +2694,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 quantity: header.findIndex(h => h.includes('quantity') || h.includes('qty') || h.includes('contracts') || h.includes('size')),
                 pnl: header.findIndex(h => h.includes('p&l') || h.includes('pnl') || h.includes('profit')),
                 entryTime: header.findIndex(h => (h.includes('entry') || h.includes('entered')) && (h.includes('time') || h.includes('at'))),
-                exitTime: header.findIndex(h => (h.includes('exit') || h.includes('exited')) && (h.includes('time') || h.includes('at')))
+                exitTime: header.findIndex(h => (h.includes('exit') || h.includes('exited')) && (h.includes('time') || h.includes('at'))),
+                fees: header.findIndex(h => h.includes('fee') || h.includes('commission') || h.includes('frais'))  // ✅ AJOUT: Frais
             };
             
             console.log('[CSV] Indices des colonnes:', colIndices);
@@ -2784,12 +2785,23 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     // Calculer le P&L si pas fourni
                     let pnl = colIndices.pnl !== -1 ? parseFloat(values[colIndices.pnl]) : null;
                     
+                    // Collecter les frais (fees/commission)
+                    let fees = 0;
+                    if (colIndices.fees !== -1 && values[colIndices.fees]) {
+                        fees = parseFloat(values[colIndices.fees]) || 0;
+                        console.log('[CSV] Frais détectés:', fees);
+                    }
+                    
                     if (pnl === null) {
                         // Calcul automatique pour ES et MES
                         const multiplier = symbol === 'MES' ? 5 : symbol === 'ES' ? 50 : 1;
                         pnl = (exitPrice - entryPrice) * quantity * multiplier;
                         if (tradeType === 'SHORT') pnl = -pnl;
                     }
+                    
+                    // ✅ SOUSTRAIRE LES FRAIS du P&L (les frais sont toujours positifs dans le CSV)
+                    pnl = pnl - Math.abs(fees);
+                    console.log('[CSV] P&L final (après frais):', pnl, '(brut:', pnl + Math.abs(fees), '- frais:', Math.abs(fees), ')');
                     
                     const trade = {
                         account_id: targetAccountId,
@@ -2802,6 +2814,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         entry_time: entryTime,
                         exit_time: exitTime,
                         pnl: pnl,
+                        fees: fees,  // ✅ AJOUT: Sauvegarder les frais
                         setup: null,
                         notes: null,
                         protections: null
