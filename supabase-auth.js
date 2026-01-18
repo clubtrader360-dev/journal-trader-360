@@ -203,8 +203,27 @@
                 coachApp: coachApp ? 'OUI' : 'NON'
             });
             
+            // ✅ NETTOYAGE COMPLET : Réinitialiser l'état de coachApp
+            if (coachApp) {
+                // Forcer la visibilité et réinitialiser le style
+                coachApp.style.display = 'none';  // D'abord cacher
+                coachApp.style.visibility = 'visible';
+                coachApp.style.opacity = '1';
+                
+                // Réinitialiser toutes les sections
+                const sections = coachApp.querySelectorAll('.section');
+                sections.forEach(section => {
+                    section.classList.add('hidden');
+                });
+                
+                console.log('[COACH] ✅ Nettoyage de coachApp effectué');
+            }
+            
             if (authScreen) authScreen.style.display = 'none';
-            if (mainApp) mainApp.style.display = 'none';  // Masquer l'interface élève
+            if (mainApp) {
+                mainApp.style.display = 'none';  // Masquer l'interface élève
+                mainApp.style.visibility = 'hidden';  // Forcer masquage complet
+            }
             if (coachApp) coachApp.style.display = 'flex';  // Afficher l'interface COACH
 
             console.log('[DEBUG] showCoachSection existe?', typeof showCoachSection);
