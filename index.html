@@ -7506,69 +7506,42 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            // ✅ CALCULER LE SCORE PAR COMPTE, PUIS MOYENNER
-            console.log('[TRADER 360] 🚀 NOUVELLE VERSION - Calcul par compte');
-            const activeAccounts = accounts.filter(a => a.active === true);
-            console.log('[TRADER 360] 📊 Comptes actifs:', activeAccounts.length, activeAccounts.map(a => a.name));
+            // ✅ CALCUL GLOBAL (tous les comptes actifs, même non cochés)
+            const winningTrades = filteredTrades.filter(t => t.pnl > 0);
+            const losingTrades = filteredTrades.filter(t => t.pnl < 0);
             
-            if (activeAccounts.length === 0) {
-                traderScoreChart.data.datasets[0].data = [0, 0, 0, 0, 0, 0];
-                traderScoreChart.update();
-                if (document.getElementById('traderScore')) {
-                    document.getElementById('traderScore').textContent = '0.0';
+            // 1. WIN RATE (0-100)
+            const winRate = filteredTrades.length > 0 
+                ? (winningTrades.length / filteredTrades.length) * 100 
+                : 0;
+            
+            // 2. PROFIT FACTOR (normalisé sur 100)
+            const grossProfit = winningTrades.reduce((sum, t) => sum + t.pnl, 0);
+            const grossLoss = Math.abs(losingTrades.reduce((sum, t) => sum + t.pnl, 0));
+            const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : (grossProfit > 0 ? 3 : 0);
+            const profitFactorScore = Math.min(100, (profitFactor / 3) * 100); // PF de 3+ = 100 points
+            
+            // 3. AVG WIN / AVG LOSS RATIO (normalisé sur 100)
+            const avgWin = winningTrades.length > 0 ? grossProfit / winningTrades.length : 0;
+            const avgLoss = losingTrades.length > 0 ? grossLoss / losingTrades.length : 0;
+            const avgRatio = avgLoss > 0 ? avgWin / avgLoss : (avgWin > 0 ? 2 : 0);
+            const avgRatioScore = Math.min(100, (avgRatio / 2) * 100); // Ratio de 2+ = 100 points
+            
+            // 4. CONSISTENCY (Meilleur jour / Profits bruts journaliers)
+            const dailyPnL = {};
+            filteredTrades.forEach(trade => {
+                const date = trade.date || trade.trade_date;
+                if (date) {
+                    if (!dailyPnL[date]) dailyPnL[date] = 0;
+                    dailyPnL[date] += trade.pnl;
                 }
-                return;
-            }
+            });
             
-            const accountScores = [];
-            
-            activeAccounts.forEach(account => {
-                const accountTrades = filteredTrades.filter(t => t.accountId === account.id);
-                
-                if (accountTrades.length === 0) return;
-                
-                const winningTrades = accountTrades.filter(t => t.pnl > 0);
-                const losingTrades = accountTrades.filter(t => t.pnl < 0);
-            
-                // 1. WIN RATE (0-100)
-                const winRate = accountTrades.length > 0 
-                    ? (winningTrades.length / accountTrades.length) * 100 
-                    : 0;
-            
-                // 2. PROFIT FACTOR (normalisé sur 100)
-                const grossProfit = winningTrades.reduce((sum, t) => sum + t.pnl, 0);
-                const grossLoss = Math.abs(losingTrades.reduce((sum, t) => sum + t.pnl, 0));
-                const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : (grossProfit > 0 ? 3 : 0);
-                const profitFactorScore = Math.min(100, (profitFactor / 3) * 100); // PF de 3+ = 100 points
-            
-                // 3. AVG WIN / AVG LOSS RATIO (normalisé sur 100)
-                const avgWin = winningTrades.length > 0 ? grossProfit / winningTrades.length : 0;
-                const avgLoss = losingTrades.length > 0 ? grossLoss / losingTrades.length : 0;
-                const avgRatio = avgLoss > 0 ? avgWin / avgLoss : (avgWin > 0 ? 2 : 0);
-                const avgRatioScore = Math.min(100, (avgRatio / 2) * 100); // Ratio de 2+ = 100 points
-            
-                // 4. CONSISTENCY (Meilleur jour / Profits totaux)
-                // Plus le ratio est faible, plus le trader est régulier
-                const dailyPnL = {};
-                accountTrades.forEach(trade => {
-                    const date = trade.date || trade.trade_date;
-                    if (date) {
-                        if (!dailyPnL[date]) dailyPnL[date] = 0;
-                        dailyPnL[date] += trade.pnl;
-                    }
-                });
-                
-                const dailyProfits = Object.values(dailyPnL).filter(p => p > 0);
-                const bestDay = dailyProfits.length > 0 ? Math.max(...dailyProfits) : 0;
-                
-                // ✅ Calculer le Gross Profit JOURNALIER (total des jours gagnants uniquement)
-                const totalDailyGrossProfit = dailyProfits.reduce((sum, p) => sum + p, 0);
-                
-                // Formule : (Meilleur jour / Profits bruts journaliers) × 100
-                const consistencyRatio = totalDailyGrossProfit > 0 ? (bestDay / totalDailyGrossProfit) * 100 : 100;
-                
-                // Score inversé : Plus le ratio est bas, meilleur est le score
-                const consistencyScore = Math.max(0, 100 - consistencyRatio);
+            const dailyProfits = Object.values(dailyPnL).filter(p => p > 0);
+            const bestDay = dailyProfits.length > 0 ? Math.max(...dailyProfits) : 0;
+            const totalDailyGrossProfit = dailyProfits.reduce((sum, p) => sum + p, 0);
+            const consistencyRatio = totalDailyGrossProfit > 0 ? (bestDay / totalDailyGrossProfit) * 100 : 100;
+            const consistencyScore = Math.max(0, 100 - consistencyRatio);
             
                 // 5. MAX DRAWDOWN (calculé sur cumulative PnL)
                 let cumulativePnl = 0;
@@ -7579,65 +7552,52 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     maxPnl = Math.max(maxPnl, cumulativePnl);
                     const drawdown = maxPnl - cumulativePnl;
                     maxDrawdown = Math.max(maxDrawdown, drawdown);
-                });
-                const totalProfit = Math.abs(cumulativePnl);
-                const drawdownPct = totalProfit > 0 ? (maxDrawdown / totalProfit) * 100 : 0;
-                const drawdownScore = Math.max(0, 100 - drawdownPct);
             
-                // 6. RECOVERY FACTOR (Total Profit / Max Drawdown)
-                const recoveryFactor = maxDrawdown > 0 ? totalProfit / maxDrawdown : (totalProfit > 0 ? 5 : 0);
-                const recoveryScore = Math.min(100, (recoveryFactor / 5) * 100);
-                
-                // SCORE GLOBAL pour ce compte
-                const weights = {
-                    winRate: 0.20,
-                    profitFactor: 0.25,
-                    avgRatio: 0.20,
-                    consistency: 0.15,
-                    drawdown: 0.10,
-                    recovery: 0.10
-                };
-                
-                const accountScore = (
-                    winRate * weights.winRate +
-                    profitFactorScore * weights.profitFactor +
-                    avgRatioScore * weights.avgRatio +
-                    consistencyScore * weights.consistency +
-                    drawdownScore * weights.drawdown +
-                    recoveryScore * weights.recovery
-                );
-                
-                // Stocker les métriques de ce compte
-                accountScores.push({
-                    accountId: account.id,
-                    accountName: account.name,
-                    winRate,
-                    profitFactorScore,
-                    avgRatioScore,
-                    consistencyScore,
-                    drawdownScore,
-                    recoveryScore,
-                    globalScore: accountScore
-                });
+            // 5. MAX DRAWDOWN (calculé sur cumulative PnL)
+            let cumulativePnl = 0;
+            let maxPnl = 0;
+            let maxDrawdown = 0;
+            filteredTrades.forEach(trade => {
+                cumulativePnl += trade.pnl;
+                maxPnl = Math.max(maxPnl, cumulativePnl);
+                const drawdown = maxPnl - cumulativePnl;
+                maxDrawdown = Math.max(maxDrawdown, drawdown);
             });
+            const totalProfit = Math.abs(cumulativePnl);
+            const drawdownPct = totalProfit > 0 ? (maxDrawdown / totalProfit) * 100 : 0;
+            const drawdownScore = Math.max(0, 100 - drawdownPct);
             
-            // MOYENNER LES SCORES DE TOUS LES COMPTES ACTIFS
-            const avgWinRate = accountScores.reduce((sum, a) => sum + a.winRate, 0) / accountScores.length;
-            const avgProfitFactorScore = accountScores.reduce((sum, a) => sum + a.profitFactorScore, 0) / accountScores.length;
-            const avgAvgRatioScore = accountScores.reduce((sum, a) => sum + a.avgRatioScore, 0) / accountScores.length;
-            const avgConsistencyScore = accountScores.reduce((sum, a) => sum + a.consistencyScore, 0) / accountScores.length;
-            const avgDrawdownScore = accountScores.reduce((sum, a) => sum + a.drawdownScore, 0) / accountScores.length;
-            const avgRecoveryScore = accountScores.reduce((sum, a) => sum + a.recoveryScore, 0) / accountScores.length;
-            const globalScore = accountScores.reduce((sum, a) => sum + a.globalScore, 0) / accountScores.length;
+            // 6. RECOVERY FACTOR (Total Profit / Max Drawdown)
+            const recoveryFactor = maxDrawdown > 0 ? totalProfit / maxDrawdown : (totalProfit > 0 ? 5 : 0);
+            const recoveryScore = Math.min(100, (recoveryFactor / 5) * 100);
             
-            // Mettre à jour le graphique radar avec les MOYENNES
+            // SCORE GLOBAL (moyenne pondérée)
+            const weights = {
+                winRate: 0.20,
+                profitFactor: 0.25,
+                avgRatio: 0.20,
+                consistency: 0.15,
+                drawdown: 0.10,
+                recovery: 0.10
+            };
+            
+            const globalScore = (
+                winRate * weights.winRate +
+                profitFactorScore * weights.profitFactor +
+                avgRatioScore * weights.avgRatio +
+                consistencyScore * weights.consistency +
+                drawdownScore * weights.drawdown +
+                recoveryScore * weights.recovery
+            );
+            
+            // Mettre à jour le graphique radar
             traderScoreChart.data.datasets[0].data = [
-                avgWinRate.toFixed(1),
-                avgConsistencyScore.toFixed(1),
-                avgProfitFactorScore.toFixed(1),
-                avgDrawdownScore.toFixed(1),
-                avgAvgRatioScore.toFixed(1),
-                avgRecoveryScore.toFixed(1)
+                winRate.toFixed(1),
+                consistencyScore.toFixed(1),
+                profitFactorScore.toFixed(1),
+                drawdownScore.toFixed(1),
+                avgRatioScore.toFixed(1),
+                recoveryScore.toFixed(1)
             ];
             traderScoreChart.update();
             
@@ -7646,15 +7606,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 document.getElementById('traderScore').textContent = globalScore.toFixed(1);
             }
             
-            console.log("[DATA] Trader 360 Score - Moyenne de", accountScores.length, "compte(s):");
-            console.log('  Win Rate:', avgWinRate.toFixed(1) + '%');
-            console.log('  Profit Factor:', avgProfitFactorScore.toFixed(1) + ' pts');
-            console.log('  Avg Ratio:', avgAvgRatioScore.toFixed(1) + ' pts');
-            console.log('  Consistency:', avgConsistencyScore.toFixed(1) + ' pts');
-            console.log('  Drawdown:', avgDrawdownScore.toFixed(1) + ' pts');
-            console.log('  Recovery:', avgRecoveryScore.toFixed(1) + ' pts');
+            console.log("[DATA] Trader 360 Score (GLOBAL - tous comptes actifs):");
+            console.log('  Win Rate:', winRate.toFixed(1) + '%');
+            console.log('  Profit Factor:', profitFactor.toFixed(2), '→', profitFactorScore.toFixed(1) + ' pts');
+            console.log('  Avg Ratio:', avgRatio.toFixed(2), '→', avgRatioScore.toFixed(1) + ' pts');
+            console.log('  Consistency:', consistencyScore.toFixed(1) + ' pts (ratio:', consistencyRatio.toFixed(1) + '%)');
+            console.log('  Drawdown:', drawdownPct.toFixed(1) + '%', '→', drawdownScore.toFixed(1) + ' pts');
+            console.log('  Recovery:', recoveryFactor.toFixed(2), '→', recoveryScore.toFixed(1) + ' pts');
             console.log("  ");
-            console.log('  [SUCCESS] SCORE GLOBAL MOYEN:', globalScore.toFixed(1) + '/100');
+            console.log('  [SUCCESS] SCORE GLOBAL:', globalScore.toFixed(1) + '/100');
         }
         
         function updateTradeTimeChart(filteredTrades) {
