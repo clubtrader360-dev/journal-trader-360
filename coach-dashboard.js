@@ -690,17 +690,19 @@
         });
         
         const dailyProfits = Object.values(dailyPnL).filter(p => p > 0);
-        const totalGrossProfit = grossProfit; // Déjà calculé plus haut
         const bestDay = dailyProfits.length > 0 ? Math.max(...dailyProfits) : 0;
         
-        // Formule : (Meilleur jour / Profits totaux) × 100
+        // ✅ Calculer le Gross Profit (total des jours gagnants uniquement)
+        const totalGrossProfit = dailyProfits.reduce((sum, p) => sum + p, 0);
+        
+        // Formule : (Meilleur jour / Profits bruts) × 100
         const consistencyRatio = totalGrossProfit > 0 ? (bestDay / totalGrossProfit) * 100 : 100;
         
         // Score inversé : Plus le ratio est bas, meilleur est le score
-        // Si meilleur jour = 20% des profits → Score = 80
-        // Si meilleur jour = 50% des profits → Score = 50
-        // Si meilleur jour = 100% des profits → Score = 0
-        const consistencyScore = Math.max(0, Math.min(100, 100 - consistencyRatio));
+        // Si meilleur jour = 20% des profits bruts → Score = 80
+        // Si meilleur jour = 50% des profits bruts → Score = 50
+        // Si meilleur jour = 100% des profits bruts → Score = 0
+        const consistencyScore = Math.max(0, 100 - consistencyRatio);
         
         console.log('[COACH DASHBOARD] 🎯 Consistency:', {
             bestDay: bestDay.toFixed(2),
