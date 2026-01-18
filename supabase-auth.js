@@ -88,9 +88,24 @@
             // Masquer l'écran d'authentification
             if (authScreen) authScreen.style.display = 'none';
             
-            // Afficher l'interface élève
-            if (mainApp) mainApp.style.display = 'flex';
-            if (coachApp) coachApp.style.display = 'none';
+            // ✅ NETTOYAGE COMPLET de l'interface Coach
+            if (coachApp) {
+                coachApp.style.display = 'none';
+                coachApp.style.visibility = 'hidden';
+                coachApp.style.opacity = '0';
+            }
+            
+            // ✅ RÉINITIALISATION FORCÉE de l'interface Élève
+            if (mainApp) {
+                mainApp.style.display = 'flex';
+                mainApp.style.visibility = 'visible';
+                mainApp.style.opacity = '1';
+                console.log('[DEBUG] mainApp réinitialisé:', {
+                    display: mainApp.style.display,
+                    visibility: mainApp.style.visibility,
+                    opacity: mainApp.style.opacity
+                });
+            }
             
             // Afficher le nom (ou email si pas de nom) sous le logo
             if (userInfo) {
