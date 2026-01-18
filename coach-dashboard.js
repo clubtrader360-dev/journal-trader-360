@@ -299,6 +299,7 @@
             '60+min': { pnl: 0, count: 0, wins: 0 }
         };
         
+        let tradesWithDuration = 0;
         trades.forEach(trade => {
             let duration;
             
@@ -308,11 +309,25 @@
             
             if (entryTime && exitTime) {
                 try {
-                    const entry = new Date(`1970-01-01T${entryTime}`);
-                    const exit = new Date(`1970-01-01T${exitTime}`);
-                    duration = (exit - entry) / (1000 * 60); // Durée en minutes
+                    // Parser les timestamps (formats: "HH:MM", "HH:MM:SS", "2026-01-18T14:30:00Z")
+                    let entryDate, exitDate;
+                    
+                    if (entryTime.includes('T')) {
+                        entryDate = new Date(entryTime);
+                        exitDate = new Date(exitTime);
+                    } else {
+                        // Format HH:MM ou HH:MM:SS
+                        entryDate = new Date(`1970-01-01T${entryTime}`);
+                        exitDate = new Date(`1970-01-01T${exitTime}`);
+                    }
+                    
+                    duration = (exitDate - entryDate) / (1000 * 60); // Durée en minutes
+                    
+                    if (duration >= 0) {
+                        tradesWithDuration++;
+                    }
                 } catch (e) {
-                    console.warn('[COACH DASHBOARD] ⚠️ Erreur calcul durée:', e);
+                    console.warn('[COACH DASHBOARD] ⚠️ Erreur calcul durée:', e, 'Entry:', entryTime, 'Exit:', exitTime);
                 }
             } else if (trade.duration_minutes !== undefined) {
                 duration = trade.duration_minutes;
@@ -333,10 +348,11 @@
             }
         });
         
+        console.log('[COACH DASHBOARD] 📊 Trades avec durée calculée:', tradesWithDuration, '/', trades.length);
+        console.log('[COACH DASHBOARD] 📊 Performance par durée:', durationBuckets);
+        
         const labels = Object.keys(durationBuckets);
         const data = labels.map(label => durationBuckets[label].pnl);
-        
-        console.log('[COACH DASHBOARD] 📊 Performance par durée:', durationBuckets);
         
         const ctx = document.getElementById('globalDurationChart');
         if (ctx && window.Chart) {
