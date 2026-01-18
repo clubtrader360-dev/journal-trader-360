@@ -816,7 +816,7 @@
         // Calculer le ratio de consistance pour chaque élève
         studentsData.forEach(student => {
             console.log('[COACH DASHBOARD] 👤 Élève:', student.user?.full_name);
-            const trades = student.trades || [];
+            const trades = student.data?.trades || [];
             console.log('[COACH DASHBOARD] 📈 Nombre de trades:', trades.length);
             
             if (trades.length === 0) return;
