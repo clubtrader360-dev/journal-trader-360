@@ -305,7 +305,7 @@
 
             if (error) {
                 // Ignorer l'erreur "Database error saving new user" car on crée l'utilisateur manuellement après
-                if (error.message.includes('Database error saving new user')) {
+                if (error.message.includes('Database error saving new user') || error.message.includes('User already registered')) {
                     console.warn('[WARN] Erreur Supabase Auth ignorée (on crée l\'utilisateur manuellement):', error.message);
                     
                     // L'utilisateur est créé malgré l'erreur, récupérer la session
@@ -314,6 +314,9 @@
                         userUuid = sessionData.session.user.id;
                         console.log('[INFO] UUID récupéré depuis la session:', userUuid);
                     }
+                } else if (!error.message.includes('email') && !error.message.includes('password')) {
+                    // Ne pas afficher l'alerte si l'erreur est liée à l'email ou au mot de passe
+                    console.warn('[WARN] Erreur inscription (ignorée):', error.message);
                 } else {
                     console.error('[ERROR] Erreur inscription:', error.message);
                     alert('Erreur lors de l\'inscription: ' + error.message);

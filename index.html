@@ -1432,7 +1432,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 <h2 class="text-2xl font-bold text-center mb-6" style="color: #000B25;">Connexion</h2>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" id="loginEmail" placeholder="votre@email.com">
+                    <input type="text" id="loginEmail" placeholder="votre@email.com">
                 </div>
                 <div class="form-group">
                     <label>Mot de passe</label>
@@ -2412,11 +2412,20 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 </div>
                 
                 <div class="form-group">
-                    <label> Ajouter une image (plan de trading, screenshot...)</label>
-                    <input type="file" id="noteImage" accept="image/*" onchange="previewImage(this)">
+                    <label>📷 Ajouter une image (plan de trading, screenshot...)</label>
+                    <input type="file" id="noteImage" accept="image/*" onchange="previewImage(this, 'imagePreview', 'previewImg')">
                     <div id="imagePreview" class="mt-4 hidden">
                         <img id="previewImg" src="" alt="Preview" class="max-w-full h-48 object-contain border rounded">
-                        <button type="button" onclick="removeImage()" class="mt-2 text-red-500 text-sm">Supprimer l'image</button>
+                        <button type="button" onclick="removeImage('noteImage', 'imagePreview')" class="mt-2 text-red-500 text-sm">Supprimer l'image</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>📷 Ajouter une 2ème image (optionnelle)</label>
+                    <input type="file" id="noteImage2" accept="image/*" onchange="previewImage(this, 'imagePreview2', 'previewImg2')">
+                    <div id="imagePreview2" class="mt-4 hidden">
+                        <img id="previewImg2" src="" alt="Preview 2" class="max-w-full h-48 object-contain border rounded">
+                        <button type="button" onclick="removeImage('noteImage2', 'imagePreview2')" class="mt-2 text-red-500 text-sm">Supprimer l'image</button>
                     </div>
                 </div>
                 
@@ -3184,7 +3193,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                     ${cost.notes ? '<br><span class="text-xs text-gray-500">' + cost.notes + '</span>' : ''}
                                 </td>
                                 <td class="px-6 py-4 text-sm font-medium text-green-600">
-                                    ${parseFloat(cost.cost).toFixed(2)} €
+                                    $${parseFloat(cost.cost).toFixed(2)}
                                 </td>
                                 <td class="px-6 py-4 text-sm">
                                     <button onclick="viewAccountCost(${cost.id})" 
@@ -3231,7 +3240,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                     ${payout.notes ? '<br><span class="text-xs text-gray-500">' + payout.notes + '</span>' : ''}
                                 </td>
                                 <td class="px-6 py-4 text-sm font-medium text-blue-600">
-                                    ${parseFloat(payout.amount).toFixed(2)} €
+                                    $${parseFloat(payout.amount).toFixed(2)}
                                 </td>
                                 <td class="px-6 py-4 text-sm">
                                     <button onclick="viewPayout(${payout.id})" 
@@ -3265,17 +3274,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             // Mettre à jour les cartes de métriques
             const totalInvestedElement = document.getElementById('totalInvested');
             if (totalInvestedElement) {
-                totalInvestedElement.textContent = totalInvested.toFixed(2) + ' €';
+                totalInvestedElement.textContent = '$' + totalInvested.toFixed(2);
             }
             
             const totalWithdrawnElement = document.getElementById('totalPayouts');
             if (totalWithdrawnElement) {
-                totalWithdrawnElement.textContent = totalWithdrawn.toFixed(2) + ' €';
+                totalWithdrawnElement.textContent = '$' + totalWithdrawn.toFixed(2);
             }
             
             const netProfitElement = document.getElementById('netProfit');
             if (netProfitElement) {
-                netProfitElement.textContent = netProfit.toFixed(2) + ' €';
+                netProfitElement.textContent = '$' + netProfit.toFixed(2);
                 netProfitElement.className = netProfit >= 0 ? 'text-2xl font-bold text-green-600' : 'text-2xl font-bold text-red-600';
             }
             
@@ -3437,7 +3446,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                         label += ': ';
                                     }
                                     if (context.parsed && context.parsed.y !== undefined) {
-                                        label += context.parsed.y.toFixed(2) + ' €';
+                                        label += '$' + context.parsed.y.toFixed(2);
                                     }
                                     return label;
                                 }
@@ -3462,7 +3471,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             },
                             ticks: {
                                 callback: function(value) {
-                                    return value.toFixed(0) + ' €';
+                                    return '$' + value.toFixed(0);
                                 },
                                 font: {
                                     size: 11
@@ -3529,7 +3538,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         </div>
                         <div style="margin-bottom: 16px; padding: 12px; background: #fef2f2; border-radius: 8px; border-left: 4px solid #dc2626;">
                             <p style="font-size: 12px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Coût</p>
-                            <p style="font-size: 24px; font-weight: bold; color: #dc2626;">${parseFloat(cost.cost).toFixed(2)} €</p>
+                            <p style="font-size: 24px; font-weight: bold; color: #dc2626;">$${parseFloat(cost.cost).toFixed(2)}</p>
                         </div>
                         ${cost.notes ? `
                         <div style="margin-bottom: 16px; padding: 12px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #3b82f6;">
@@ -3598,7 +3607,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            const confirmed = confirm(`❓ Êtes-vous sûr de vouloir supprimer le coût de "${cost.account_name}" (${parseFloat(cost.cost).toFixed(2)} €) ?`);
+            const confirmed = confirm(`❓ Êtes-vous sûr de vouloir supprimer le coût de "${cost.account_name}" ($${parseFloat(cost.cost).toFixed(2)}) ?`);
             
             if (!confirmed) return;
             
@@ -3671,7 +3680,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         </div>
                         <div style="margin-bottom: 16px; padding: 12px; background: #f0fdf4; border-radius: 8px; border-left: 4px solid #10b981;">
                             <p style="font-size: 12px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Montant</p>
-                            <p style="font-size: 24px; font-weight: bold; color: #10b981;">${parseFloat(payout.amount).toFixed(2)} €</p>
+                            <p style="font-size: 24px; font-weight: bold; color: #10b981;">$${parseFloat(payout.amount).toFixed(2)}</p>
                         </div>
                         ${payout.notes ? `
                         <div style="margin-bottom: 16px; padding: 12px; background: #f9fafb; border-radius: 8px; border-left: 4px solid #3b82f6;">
@@ -3740,7 +3749,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            const confirmed = confirm(`❓ Êtes-vous sûr de vouloir supprimer le payout de "${payout.account_name}" (${parseFloat(payout.amount).toFixed(2)} €) ?`);
+            const confirmed = confirm(`❓ Êtes-vous sûr de vouloir supprimer le payout de "${payout.account_name}" ($${parseFloat(payout.amount).toFixed(2)}) ?`);
             
             if (!confirmed) return;
             
@@ -4077,7 +4086,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         }
                         result = await window.accountCostsAPI.create(costData);
                         console.log('[COST] ✅ Coût créé:', result.data);
-                        alert(`✅ Coût de ${costAmount}€ pour "${costName}" enregistré avec succès`);
+                        alert(`✅ Coût de $${costAmount} pour "${costName}" enregistré avec succès`);
                     }
                     
                     if (result.error) {
@@ -4188,7 +4197,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         }
                         result = await window.payoutsAPI.create(payoutData);
                         console.log('[PAYOUT] ✅ Payout créé:', result.data);
-                        alert(`✅ Payout de ${payoutAmount}€ ajouté avec succès pour "${payoutAccountName}"`);
+                        alert(`✅ Payout de $${payoutAmount} ajouté avec succès pour "${payoutAccountName}"`);
                     }
                     
                     if (result.error) {
@@ -5049,7 +5058,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
                 
                 console.log('[COST] ✅ Coût ajouté:', result.data);
-                alert(`✅ Coût de ${costAmount}€ ajouté avec succès`);
+                alert(`✅ Coût de $${costAmount} ajouté avec succès`);
                 
                 // Réinitialiser
                 document.getElementById('costAmount').value = '';
@@ -5101,7 +5110,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
                 
                 console.log('[PAYOUT] ✅ Payout ajouté:', result.data);
-                alert(`✅ Payout de ${payoutAmount}€ ajouté avec succès`);
+                alert(`✅ Payout de $${payoutAmount} ajouté avec succès`);
                 
                 // Réinitialiser
                 document.getElementById('payoutAmount').value = '';
@@ -5612,9 +5621,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         */
         // NOUVEAU : addNote() est maintenant dans supabase-journal.js
 
-        function previewImage(input) {
-            const preview = document.getElementById('imagePreview');
-            const img = document.getElementById('previewImg');
+        function previewImage(input, previewId, imgId) {
+            const preview = document.getElementById(previewId);
+            const img = document.getElementById(imgId);
             
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -5626,9 +5635,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
         }
 
-        function removeImage() {
-            document.getElementById('noteImage').value = '';
-            document.getElementById('imagePreview').classList.add('hidden');
+        function removeImage(inputId, previewId) {
+            document.getElementById(inputId).value = '';
+            document.getElementById(previewId).classList.add('hidden');
         }
 
         // Fonction pour filtrer le journal par date
@@ -7185,6 +7194,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             title: {
                                 display: true,
                                 text: 'Time'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + 'h';
+                                }
                             }
                         },
                         y: {

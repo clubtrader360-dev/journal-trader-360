@@ -43,6 +43,7 @@
         const emotionAfter = document.getElementById('emotionAfter')?.value;
         const sessionRating = document.getElementById('sessionRating')?.value;
         const imageFile = document.getElementById('noteImage')?.files[0];
+        const imageFile2 = document.getElementById('noteImage2')?.files[0];
         
         // Validation
         if (!noteDate || !noteText) {
@@ -51,10 +52,11 @@
             return { data: null, error: 'Missing required fields' };
         }
         
-        console.log('[JOURNAL] Données collectées:', { noteDate, noteText, emotionBefore, emotionAfter, sessionRating, hasImage: !!imageFile });
+        console.log('[JOURNAL] Données collectées:', { noteDate, noteText, emotionBefore, emotionAfter, sessionRating, hasImage: !!imageFile, hasImage2: !!imageFile2 });
         
         // Upload de l'image si présente
         let imageUrl = null;
+        let imageUrl2 = null;
         
         // ✅ Si on est en mode édition, charger l'ancienne image
         if (isEditing) {
@@ -62,14 +64,15 @@
             try {
                 const { data: oldEntry, error: loadError } = await supabase
                     .from('journal_entries')
-                    .select('image_url')
+                    .select('image_url, image_url_2')
                     .eq('id', editingId)
                     .eq('user_id', window.currentUser.uuid)
                     .single();
                 
                 if (!loadError && oldEntry) {
                     imageUrl = oldEntry.image_url;
-                    console.log('[JOURNAL] ✅ Ancienne image chargée:', imageUrl);
+                    imageUrl2 = oldEntry.image_url_2;
+                    console.log('[JOURNAL] ✅ Anciennes images chargées:', imageUrl, imageUrl2);
                 } else {
                     console.warn('[JOURNAL] ⚠️ Impossible de charger l\'ancienne image:', loadError);
                 }
@@ -115,6 +118,43 @@
             }
         }
         
+        // ✅ Upload de la 2ème image si présente
+        if (imageFile2) {
+            console.log('[JOURNAL] 📤 Upload de la 2ème image:', imageFile2.name);
+            
+            try {
+                // Créer un nom de fichier unique
+                const fileExt2 = imageFile2.name.split('.').pop();
+                const fileName2 = `${window.currentUser.uuid}/${Date.now()}_${Math.random().toString(36).substring(7)}_2.${fileExt2}`;
+                
+                console.log('[JOURNAL] Nom du fichier 2:', fileName2);
+                
+                // Upload vers Supabase Storage
+                const { data: uploadData2, error: uploadError2 } = await supabase.storage
+                    .from('journal-images') // Nom du bucket (à créer dans Supabase)
+                    .upload(fileName2, imageFile2, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+                
+                if (uploadError2) {
+                    console.error('[JOURNAL] ❌ Erreur upload image 2:', uploadError2);
+                    alert('⚠️ Erreur lors de l\'upload de la 2ème image. La note sera enregistrée sans cette image.');
+                } else {
+                    console.log('[JOURNAL] ✅ Image 2 uploadée:', uploadData2);
+                    
+                    // Construire l'URL publique manuellement à partir de l'URL du client
+                    const supabaseUrl = supabase.supabaseUrl || 'https://zgihbpgoorymomtsbxpz.supabase.co';
+                    imageUrl2 = `${supabaseUrl}/storage/v1/object/public/journal-images/${fileName2}`;
+                    
+                    console.log('[JOURNAL] 🔗 URL publique 2 (manuelle):', imageUrl2);
+                }
+            } catch (uploadErr2) {
+                console.error('[JOURNAL] ❌ Exception upload 2:', uploadErr2);
+                alert('⚠️ Erreur lors de l\'upload de la 2ème image. La note sera enregistrée sans cette image.');
+            }
+        }
+        
         // Construction du payload
         const noteData = {
             user_id: window.currentUser.uuid,
@@ -123,7 +163,8 @@
             emotion_before: emotionBefore || null,
             emotion_after: emotionAfter || null,
             session_rating: sessionRating ? parseInt(sessionRating) : null,
-            image_url: imageUrl
+            image_url: imageUrl,
+            image_url_2: imageUrl2
         };
         
         console.log('[JOURNAL] Payload final:', noteData);
@@ -190,6 +231,11 @@
             const imagePreview = document.getElementById('imagePreview');
             if (imagePreview) {
                 imagePreview.classList.add('hidden');
+            }
+            
+            const imagePreview2 = document.getElementById('imagePreview2');
+            if (imagePreview2) {
+                imagePreview2.classList.add('hidden');
             }
             
             // Réinitialiser les étoiles
@@ -307,6 +353,11 @@
                     ${entry.image_url ? `
                         <div class="mt-3">
                             <img src="${entry.image_url}" alt="Note image" class="max-w-full h-48 object-contain border rounded" title="Image de la note" onerror="console.error('[JOURNAL] ❌ Erreur chargement image:', '${entry.image_url}')">
+                        </div>
+                    ` : ''}
+                    ${entry.image_url_2 ? `
+                        <div class="mt-3">
+                            <img src="${entry.image_url_2}" alt="Note image 2" class="max-w-full h-48 object-contain border rounded" title="Image 2 de la note" onerror="console.error('[JOURNAL] ❌ Erreur chargement image 2:', '${entry.image_url_2}')">
                         </div>
                     ` : ''}
                 </div>
@@ -526,6 +577,17 @@ ${data.content}
                 console.log('[JOURNAL] ℹ️ Aucune image pour cette note');
             }
             
+            let imageHtml2 = '';
+            if (data.image_url_2) {
+                console.log('[JOURNAL] 📸 Image 2 URL:', data.image_url_2);
+                imageHtml2 = `
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-semibold text-gray-800 mb-2">📸 Image 2</h3>
+                        <img src="${data.image_url_2}" alt="Image 2 de la note" class="max-w-full h-auto rounded-lg border shadow-sm cursor-pointer hover:opacity-90 transition" onclick="viewImageZoom('${data.image_url_2}')" title="Cliquer pour agrandir">
+                    </div>
+                `;
+            }
+            
             // Construction du HTML avec section d'évaluation visible même si rating = 0
             let ratingHtml = '';
             if (rating > 0) {
@@ -552,6 +614,7 @@ ${data.content}
                 </div>
                 
                 ${imageHtml}
+                ${imageHtml2}
             `;
             
             // Mettre à jour le titre
