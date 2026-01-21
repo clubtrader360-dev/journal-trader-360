@@ -5513,6 +5513,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             document.getElementById('entryPrice').value = trade.entryPrice;
             document.getElementById('exitPrice').value = trade.exitPrice;
             document.getElementById('quantity').value = trade.quantity;
+            document.getElementById('tradeFees').value = trade.fees || 0;  // ✅ AJOUT: Charger les frais
             document.getElementById('stopLoss').value = trade.stopLoss || '';
             document.getElementById('takeProfit').value = trade.takeProfit || '';
             document.getElementById('setup').value = trade.setup || '';
