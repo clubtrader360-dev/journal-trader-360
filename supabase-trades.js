@@ -239,6 +239,54 @@ async function loadAccounts() {
     
     console.log('[TRADES] 📊 Direction normalisée:', tradeData.trade_type, '→', direction);
     
+    // ✅ CALCUL DU P&L avec déduction des frais (si manual_pnl n'est pas fourni)
+    let calculated_pnl = tradeData.manual_pnl;
+    
+    if (!calculated_pnl && tradeData.entry_price && tradeData.exit_price && tradeData.quantity) {
+      const symbol = (tradeData.symbol || 'ES').toUpperCase().replace(/[0-9]/g, '');  // Enlever les chiffres (ESH6 -> ES)
+      
+      // Multipliers par instrument
+      const multipliers = {
+        'ES': 50,
+        'MES': 5,
+        'NQ': 20,
+        'GC': 100,
+        'DEMO': 1
+      };
+      
+      const multiplier = multipliers[symbol] || 50;  // Par défaut: 50 (ES)
+      
+      console.log('[TRADES] 💰 Calcul P&L automatique:');
+      console.log('  - Instrument:', symbol, '→ Multiplier:', multiplier);
+      console.log('  - Entry:', tradeData.entry_price);
+      console.log('  - Exit:', tradeData.exit_price);
+      console.log('  - Quantity:', tradeData.quantity);
+      console.log('  - Fees:', tradeData.fees || 0);
+      
+      // Calcul du P&L brut
+      let point_diff = tradeData.exit_price - tradeData.entry_price;
+      let pnl_brut = point_diff * tradeData.quantity * multiplier;
+      
+      // Si SHORT, inverser le signe
+      if (direction === 'SHORT') {
+        pnl_brut = -pnl_brut;
+        console.log('[TRADES] 🔄 SHORT détecté → Inversion du P&L');
+      }
+      
+      // Déduire les frais
+      calculated_pnl = pnl_brut - (tradeData.fees || 0);
+      
+      console.log('[TRADES] 📊 P&L calculé:');
+      console.log('  - Point Diff:', point_diff.toFixed(2));
+      console.log('  - P&L Brut:', pnl_brut.toFixed(2));
+      console.log('  - Frais:', (tradeData.fees || 0).toFixed(2));
+      console.log('  - P&L Net:', calculated_pnl.toFixed(2));
+    } else if (calculated_pnl && tradeData.fees) {
+      // Si manual_pnl est fourni, déduire les frais aussi
+      calculated_pnl = calculated_pnl - tradeData.fees;
+      console.log('[TRADES] 📊 P&L manuel avec frais déduits:', calculated_pnl.toFixed(2));
+    }
+    
     const tradeWithUser = {
       user_id: window.currentUser.uuid,
       account_id: tradeData.account_id,
@@ -255,7 +303,7 @@ async function loadAccounts() {
       take_profit: tradeData.take_profit || null,
       setup: tradeData.setup || null,
       notes: tradeData.notes || null,
-      manual_pnl: tradeData.manual_pnl || null,
+      manual_pnl: calculated_pnl || null,  // ✅ P&L calculé avec frais déduits
       protections: tradeData.protections || null,
       trade_trend_type: tradeData.trade_trend_type || 'Non spécifié',  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
       fees: tradeData.fees || 0,  // ✅ AJOUT: Frais de trading

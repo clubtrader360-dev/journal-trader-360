@@ -3960,6 +3960,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 const setup = document.getElementById('setup')?.value;
                 const notes = document.getElementById('tradeNotes')?.value;
                 const manual_pnl = document.getElementById('manualPnL')?.value;
+                const fees = parseFloat(document.getElementById('tradeFees')?.value) || 0;  // ✅ LECTURE DES FRAIS
                 
                 // Protections (checkboxes)
                 const protections = [];
@@ -3980,6 +3981,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.log('[UI] Données extraites:', { 
                     account_id, trade_date, entry_time, exit_time, symbol, trade_type, 
                     entry_price, exit_price, quantity, stop_loss, take_profit, setup, notes, manual_pnl,
+                    fees,  // ✅ AJOUT: Log des frais
                     trade_trend_type,
                     is_break_even
                 });
@@ -4006,15 +4008,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 const modal = document.getElementById('addTradeModal');
                 const editingId = modal?.dataset.editingId;
                 
-                // ✅ Si on est en mode édition, récupérer les frais existants
-                let existingFees = 0;
-                if (editingId) {
-                    const existingTrade = trades.find(t => t.id === parseInt(editingId));
-                    if (existingTrade && existingTrade.fees) {
-                        existingFees = existingTrade.fees;
-                        console.log('[UI] 🔄 Mode ÉDITION - Frais existants conservés:', existingFees);
-                    }
-                }
+                console.log('[UI] 💰 Frais lus depuis le formulaire:', fees);
                 
                 // Construction payload
                 const tradeData = {
@@ -4034,7 +4028,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     manual_pnl: manual_pnl ? parseFloat(manual_pnl) : null,
                     protections: protections.length > 0 ? protections : null, // ✅ Envoyer un ARRAY
                     trade_trend_type: trade_trend_type,  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
-                    fees: existingFees,  // ✅ AJOUT: Conserver les frais existants lors de l'édition
+                    fees: fees,  // ✅ FRAIS lus depuis le formulaire
                     is_break_even: is_break_even  // ✅ AJOUT: Indicateur Break-Even manuel
                 };
                 
