@@ -863,6 +863,7 @@ async function addTradeUI() {
     const setup = document.getElementById('setup')?.value;
     const notes = document.getElementById('tradeNotes')?.value;
     const manual_pnl = document.getElementById('manualPnL')?.value;
+    const fees = parseFloat(document.getElementById('tradeFees')?.value) || 0;  // ✅ AJOUT: Frais
     
     // Protections (checkboxes)
     const protections = [];
@@ -880,7 +881,7 @@ async function addTradeUI() {
     console.log('[UI] Données extraites:', { 
         account_id, trade_date, entry_time, exit_time, symbol, trade_type, 
         entry_price, exit_price, quantity, stop_loss, take_profit, setup, notes, manual_pnl,
-        trade_trend_type
+        trade_trend_type, fees  // ✅ AJOUT: Frais
     });
     
     // Validation détaillée
@@ -918,7 +919,8 @@ async function addTradeUI() {
         notes: notes || null,
         manual_pnl: manual_pnl ? parseFloat(manual_pnl) : null,
         protections: protections.length > 0 ? protections.join(',') : null,
-        trade_trend_type: trade_trend_type  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
+        trade_trend_type: trade_trend_type,  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
+        fees: fees  // ✅ AJOUT: Frais
     };
     
     console.log('[UI] Payload final:', tradeData);
@@ -2270,6 +2272,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     <div class="form-group">
                         <label>Quantité (contrats)</label>
                         <input type="number" min="1" id="quantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label>💰 Frais / Commissions ($)</label>
+                        <input type="number" step="0.01" id="tradeFees" placeholder="Ex: 4.20" value="0">
+                        <small style="color: #666; font-size: 0.85em; display: block; margin-top: 4px;">📌 Les frais seront automatiquement déduits du P&L</small>
                     </div>
                     <div class="form-group">
                         <label>Stop Loss</label>
