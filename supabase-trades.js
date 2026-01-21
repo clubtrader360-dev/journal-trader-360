@@ -223,21 +223,18 @@ async function loadAccounts() {
     }
 
     // ✅ Normaliser la direction selon les valeurs possibles (MAJUSCULES)
-    let direction = (tradeData.trade_type || 'Long').toUpperCase().trim();
+    let trade_type_upper = (tradeData.trade_type || 'Long').toUpperCase().trim();
     
-    // Mapper les valeurs possibles
-    const directionMap = {
-      'LONG': 'LONG',
-      'SHORT': 'SHORT',
-      'BUY': 'LONG',
-      'SELL': 'SHORT',
-      'ACHAT': 'LONG',
-      'VENTE': 'SHORT'
-    };
+    // ✅ Détecter si le type contient "SHORT" ou "LONG" (pour gérer "Short (RR1 atteint)", etc.)
+    let direction = 'LONG';  // Par défaut
     
-    direction = directionMap[direction] || 'LONG';  // Par défaut: LONG
+    if (trade_type_upper.includes('SHORT') || trade_type_upper.includes('SELL') || trade_type_upper.includes('VENTE')) {
+      direction = 'SHORT';
+    } else if (trade_type_upper.includes('LONG') || trade_type_upper.includes('BUY') || trade_type_upper.includes('ACHAT')) {
+      direction = 'LONG';
+    }
     
-    console.log('[TRADES] 📊 Direction normalisée:', tradeData.trade_type, '→', direction);
+    console.log('[TRADES] 📊 Direction détectée:', tradeData.trade_type, '→', direction);
     
     // ✅ CALCUL DU P&L avec déduction des frais (si manual_pnl n'est pas fourni)
     let calculated_pnl = tradeData.manual_pnl;
