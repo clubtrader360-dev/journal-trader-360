@@ -71,10 +71,28 @@
                 
                 if (!loadError && oldEntry) {
                     imageUrl = oldEntry.image_url;
-                    imageUrl2 = oldEntry.image_url_2;
+                    // ✅ image_url_2 peut ne pas exister si la colonne n'est pas encore créée
+                    imageUrl2 = oldEntry.image_url_2 || null;
                     console.log('[JOURNAL] ✅ Anciennes images chargées:', imageUrl, imageUrl2);
                 } else {
-                    console.warn('[JOURNAL] ⚠️ Impossible de charger l\'ancienne image:', loadError);
+                    // ⚠️ Si l'erreur est liée à image_url_2 manquante, on l'ignore
+                    if (loadError && loadError.message && loadError.message.includes('image_url_2')) {
+                        console.warn('[JOURNAL] ⚠️ Colonne image_url_2 non disponible (ignorée)');
+                        // Réessayer sans image_url_2
+                        const { data: oldEntry2, error: loadError2 } = await supabase
+                            .from('journal_entries')
+                            .select('image_url')
+                            .eq('id', editingId)
+                            .eq('user_id', window.currentUser.uuid)
+                            .single();
+                        
+                        if (!loadError2 && oldEntry2) {
+                            imageUrl = oldEntry2.image_url;
+                            console.log('[JOURNAL] ✅ Ancienne image chargée (sans image_url_2):', imageUrl);
+                        }
+                    } else {
+                        console.warn('[JOURNAL] ⚠️ Impossible de charger l\'ancienne image:', loadError);
+                    }
                 }
             } catch (err) {
                 console.error('[JOURNAL] ❌ Exception chargement ancienne image:', err);
@@ -163,9 +181,13 @@
             emotion_before: emotionBefore || null,
             emotion_after: emotionAfter || null,
             session_rating: sessionRating ? parseInt(sessionRating) : null,
-            image_url: imageUrl,
-            image_url_2: imageUrl2
+            image_url: imageUrl
         };
+        
+        // ✅ Ajouter image_url_2 UNIQUEMENT si elle existe (pour compatibilité)
+        if (imageUrl2) {
+            noteData.image_url_2 = imageUrl2;
+        }
         
         console.log('[JOURNAL] Payload final:', noteData);
         
