@@ -278,10 +278,10 @@ async function loadAccounts() {
       console.log('  - P&L Brut:', pnl_brut.toFixed(2));
       console.log('  - Frais:', (tradeData.fees || 0).toFixed(2));
       console.log('  - P&L Net:', calculated_pnl.toFixed(2));
-    } else if (calculated_pnl && tradeData.fees) {
-      // Si manual_pnl est fourni, déduire les frais aussi
-      calculated_pnl = calculated_pnl - tradeData.fees;
-      console.log('[TRADES] 📊 P&L manuel avec frais déduits:', calculated_pnl.toFixed(2));
+    } else if (calculated_pnl) {
+      // Si manual_pnl est fourni (ex: depuis CSV), l'utiliser tel quel
+      // Les frais sont déjà déduits dans le CSV
+      console.log('[TRADES] 📊 P&L manuel utilisé (frais déjà inclus):', calculated_pnl.toFixed(2));
     }
     
     const tradeWithUser = {
