@@ -2793,23 +2793,25 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const header = lines[0].split(',').map(h => h.trim().toLowerCase());
             console.log('[CSV] En-tête détecté:', header);
             
-            // ✅ DÉTECTION DU FORMAT : Trade Defy ou TopStepX
-            const isTradeDefy = header.includes('boughttimestamp') || header.includes('soldtimestamp') || header.includes('buyprice');
-            console.log('[CSV] Format détecté:', isTradeDefy ? 'Trade Defy' : 'TopStepX');
+            // ✅ DÉTECTION DU FORMAT : Tradeify, Trade Defy ou TopStepX
+            const isTradeDefy = header.includes('boughttimestamp') || header.includes('soldtimestamp') || header.includes('buyprice') || header.includes('buyfillid');
+            const isTradeify = header.includes('boughttimestamp') && header.includes('buyfillid');  // Tradeify a les deux
+            const isTimestampFormat = isTradeDefy || isTradeify;  // Format avec timestamps
+            console.log('[CSV] Format détecté:', isTradeify ? 'Tradeify' : (isTradeDefy ? 'Trade Defy' : 'TopStepX'));
             
             // Trouver les indices des colonnes (détection améliorée)
-            const colIndices = isTradeDefy ? {
-                // Format Trade Defy
+            const colIndices = (isTradeDefy || isTradeify) ? {
+                // Format Trade Defy / Tradeify
                 date: header.findIndex(h => h === 'boughttimestamp' || h === 'soldtimestamp'),
                 symbol: header.findIndex(h => h === 'symbol'),
-                type: -1, // Pas de colonne Type dans Trade Defy (détection automatique)
+                type: -1, // Pas de colonne Type (détection automatique)
                 entryPrice: header.findIndex(h => h === 'buyprice'),
                 exitPrice: header.findIndex(h => h === 'sellprice'),
                 quantity: header.findIndex(h => h === 'qty'),
                 pnl: header.findIndex(h => h === 'pnl'),
                 entryTime: header.findIndex(h => h === 'boughttimestamp'),
                 exitTime: header.findIndex(h => h === 'soldtimestamp'),
-                fees: -1,  // Pas de frais dans Trade Defy
+                fees: -1,  // Pas de frais dans Trade Defy/Tradeify
                 duration: header.findIndex(h => h === 'duration')
             } : {
                 // Format TopStepX
@@ -2832,7 +2834,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const missingCols = [];
             if (colIndices.date === -1) missingCols.push('Date/Timestamp');
             if (colIndices.symbol === -1) missingCols.push('Symbol');
-            if (!isTradeDefy && colIndices.type === -1) missingCols.push('Type'); // Type obligatoire seulement pour TopStepX
+            if (!isTimestampFormat && colIndices.type === -1) missingCols.push('Type'); // Type obligatoire seulement pour TopStepX
             if (colIndices.entryPrice === -1) missingCols.push('Entry Price');
             if (colIndices.exitPrice === -1) missingCols.push('Exit Price');
             if (colIndices.quantity === -1) missingCols.push('Quantity');
@@ -2849,7 +2851,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     // ===== TRADE DEFY : Détection automatique du type =====
                     let tradeType = 'LONG'; // Par défaut
-                    if (isTradeDefy) {
+                    if (isTimestampFormat) {
                         const entryPriceRaw = parseFloat(values[colIndices.entryPrice]);
                         const exitPriceRaw = parseFloat(values[colIndices.exitPrice]);
                         // Si buyPrice > sellPrice, c'est un SHORT
@@ -2884,7 +2886,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     let entryTime = '09:30';
                     let exitTime = '16:00';
                     
-                    if (isTradeDefy) {
+                    if (isTimestampFormat) {
                         // Format: "01/14/2026 09:34:18"
                         const entryTimestamp = values[colIndices.entryTime];
                         const exitTimestamp = values[colIndices.exitTime];
@@ -2925,7 +2927,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     }
                     
                     // Extraire les heures (gérer les timestamps complets)
-                    if (colIndices.entryTime !== -1 && !isTradeDefy) {
+                    if (colIndices.entryTime !== -1 && !isTimestampFormat) {
                         const entryTimeValue = values[colIndices.entryTime];
                         if (entryTimeValue.includes(' ')) {
                             // Format: "07/22/2025 14:02:09 +08:00" → "14:02:09"
@@ -2939,7 +2941,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         }
                     }
                     
-                    if (colIndices.exitTime !== -1 && !isTradeDefy) {
+                    if (colIndices.exitTime !== -1 && !isTimestampFormat) {
                         const exitTimeValue = values[colIndices.exitTime];
                         if (exitTimeValue.includes(' ')) {
                             const timePart = exitTimeValue.split(' ')[1];
@@ -2956,39 +2958,43 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     // ===== CALCULER LE P&L =====
                     let pnl = null;
                     
-                    if (isTradeDefy && colIndices.pnl !== -1) {
-                        // Trade Defy : P&L avec $ et parenthèses pour négatif
+                    if (isTimestampFormat && colIndices.pnl !== -1) {
+                        // Trade Defy / Tradeify : P&L avec $, virgules et parenthèses pour négatif
                         let pnlString = values[colIndices.pnl];
-                        // Enlever le $
-                        pnlString = pnlString.replace('$', '');
-                        // Si entre parenthèses, c'est négatif : $(200.00) → -200.00
+                        // Enlever le $ et les virgules
+                        pnlString = pnlString.replace(/\$/g, '').replace(/,/g, '');
+                        // Si entre parenthèses ou guillemets, c'est négatif : $(200.00) → -200.00 ou "$(1,000.00)" → -1000.00
+                        pnlString = pnlString.replace(/"/g, '');  // Enlever les guillemets
                         if (pnlString.startsWith('(') && pnlString.endsWith(')')) {
                             pnlString = '-' + pnlString.replace('(', '').replace(')', '');
                         }
                         pnl = parseFloat(pnlString);
-                        console.log('[CSV-TradeDefy] P&L parsé:', pnl, 'depuis:', values[colIndices.pnl]);
-                    } else if (!isTradeDefy && colIndices.pnl !== -1) {
+                        console.log('[CSV-Timestamp] P&L parsé:', pnl, 'depuis:', values[colIndices.pnl]);
+                    } else if (!isTimestampFormat && colIndices.pnl !== -1) {
                         // TopStepX : P&L classique
                         pnl = parseFloat(values[colIndices.pnl]);
                     }
                     
                     // Collecter les frais (fees/commission) - uniquement TopStepX
                     let fees = 0;
-                    if (!isTradeDefy && colIndices.fees !== -1 && values[colIndices.fees]) {
+                    if (!isTimestampFormat && colIndices.fees !== -1 && values[colIndices.fees]) {
                         fees = parseFloat(values[colIndices.fees]) || 0;
                         console.log('[CSV-TopStepX] Frais détectés:', fees);
                     }
                     
                     if (pnl === null) {
-                        // Calcul automatique pour ES et MES
-                        const multiplier = symbol === 'MES' ? 5 : symbol === 'ES' ? 50 : 1;
+                        // Calcul automatique si le P&L n'est pas fourni
+                        const multiplier = symbol === 'MES' ? 5 : 
+                                          symbol === 'ES' ? 50 : 
+                                          symbol === 'NQ' ? 20 : 
+                                          symbol === 'GC' ? 100 : 1;
                         pnl = (exitPrice - entryPrice) * quantity * multiplier;
                         if (tradeType === 'SHORT') pnl = -pnl;
-                        console.log('[CSV] P&L calculé automatiquement:', pnl);
+                        console.log('[CSV] P&L calculé automatiquement:', pnl, '(multiplier:', multiplier, ')');
                     }
                     
                     // ✅ SOUSTRAIRE LES FRAIS du P&L (uniquement TopStepX)
-                    if (!isTradeDefy && fees !== 0) {
+                    if (!isTimestampFormat && fees !== 0) {
                         pnl = pnl - Math.abs(fees);
                         console.log('[CSV-TopStepX] P&L final (après frais):', pnl, '(brut:', pnl + Math.abs(fees), '- frais:', Math.abs(fees), ')');
                     }
