@@ -872,24 +872,6 @@
             color: #ffffff !important;
         }
         
-        /* ✅ CORRECTION Mode Sombre: Sections "Trades récents" et "Analyse Protections" 
-           → Garder texte NOIR pour lisibilité sur fond clair de la card */
-        body.dark-mode #recentTradesContainer,
-        body.dark-mode #recentTradesContainer *,
-        body.dark-mode #protectionAnalysisContainer,
-        body.dark-mode #protectionAnalysisContainer * {
-            color: #1f2937 !important;  /* Gris très foncé / Noir */
-        }
-        
-        /* Exception: Les badges verts/rouges gardent leurs couleurs */
-        body.dark-mode .text-green-600,
-        body.dark-mode .text-red-600,
-        body.dark-mode .bg-green-50,
-        body.dark-mode .bg-red-50 {
-            color: inherit !important;
-            background-color: inherit !important;
-        }
-        
         /* ✅ Mode Clair (défaut): Garder noir pour les métriques */
         body:not(.dark-mode) .metric-value-medium {
             color: #000B25 !important;
