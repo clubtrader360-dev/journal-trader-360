@@ -855,6 +855,29 @@
             color: #ffffff !important;
         }
         
+        /* ✅ CORRECTION Mode Sombre: Texte NOIR dans Trades récents et Analyse Protections 
+           (annule le gris clair défini plus haut) */
+        body.dark-mode #recentTradesContainer .text-gray-600,
+        body.dark-mode #recentTradesContainer .text-gray-700,
+        body.dark-mode #recentTradesContainer .text-gray-800,
+        body.dark-mode #recentTradesContainer .text-gray-500,
+        body.dark-mode #recentTradesContainer span,
+        body.dark-mode #recentTradesContainer p,
+        body.dark-mode #protectionAnalysisContainer .text-gray-600,
+        body.dark-mode #protectionAnalysisContainer .text-gray-700,
+        body.dark-mode #protectionAnalysisContainer .text-gray-800,
+        body.dark-mode #protectionAnalysisContainer .text-gray-500,
+        body.dark-mode #protectionAnalysisContainer span,
+        body.dark-mode #protectionAnalysisContainer p {
+            color: #1f2937 !important; /* Noir/Gris très foncé */
+        }
+        
+        /* ✅ CORRECTION Mode Sombre: Titres "Trades récents" et "Positions ouvertes" en BLANC */
+        body.dark-mode #recentTradesContainer + div button,
+        body.dark-mode .trader-card button {
+            color: #ffffff !important;
+        }
+        
         /* ✅ Mode Clair (défaut): Garder noir pour les métriques */
         body:not(.dark-mode) .metric-value-medium {
             color: #000B25 !important;
@@ -1911,8 +1934,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <!-- Recent Trades Module -->
                         <div class="trader-card p-4">
                             <div class="flex border-b border-gray-200 mb-4">
-                                <button class="px-4 py-2 text-sm font-semibold text-purple-600 border-b-2 border-purple-600">Trades récents</button>
-                                <button class="px-4 py-2 text-sm text-gray-600 cursor-not-allowed opacity-50" disabled title="Non disponible">Positions ouvertes</button>
+                                <button class="px-4 py-2 text-base font-semibold text-purple-600 border-b-2 border-purple-600">Trades récents</button>
+                                <button class="px-4 py-2 text-base text-gray-600 cursor-not-allowed opacity-50" disabled title="Non disponible">Positions ouvertes</button>
                             </div>
                             <div id="recentTradesContainer" class="space-y-3">
                                 <!-- Les trades récents seront insérés ici dynamiquement -->
