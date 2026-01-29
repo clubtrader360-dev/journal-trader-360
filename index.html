@@ -911,6 +911,14 @@
             color: #d1d5db !important;
         }
         
+        /* ✅ CORRECTION Mode Sombre: Menu paramètres calendrier - Texte en NOIR */
+        body.dark-mode #calendarSettings,
+        body.dark-mode #calendarSettings h4,
+        body.dark-mode #calendarSettings label,
+        body.dark-mode #calendarSettings span {
+            color: #1f2937 !important; /* Noir */
+        }
+        
         /* ✅ Mode Clair (défaut): Garder noir pour les métriques */
         body:not(.dark-mode) .metric-value-medium {
             color: #000B25 !important;
