@@ -872,12 +872,22 @@
             color: #ffffff !important;
         }
         
-        /* ✅ CORRECTION Mode Sombre: Analyse des Protections - Textes en BLANC */
+        /* ✅ CORRECTION Mode Sombre: Sections "Trades récents" et "Analyse Protections" 
+           → Garder texte NOIR pour lisibilité sur fond clair de la card */
+        body.dark-mode #recentTradesContainer,
+        body.dark-mode #recentTradesContainer *,
         body.dark-mode #protectionAnalysisContainer,
-        body.dark-mode #protectionAnalysisContainer p,
-        body.dark-mode #protectionAnalysisContainer .text-sm,
-        body.dark-mode #protectionAnalysisContainer .text-gray-500 {
-            color: #ffffff !important;
+        body.dark-mode #protectionAnalysisContainer * {
+            color: #1f2937 !important;  /* Gris très foncé / Noir */
+        }
+        
+        /* Exception: Les badges verts/rouges gardent leurs couleurs */
+        body.dark-mode .text-green-600,
+        body.dark-mode .text-red-600,
+        body.dark-mode .bg-green-50,
+        body.dark-mode .bg-red-50 {
+            color: inherit !important;
+            background-color: inherit !important;
         }
         
         /* ✅ Mode Clair (défaut): Garder noir pour les métriques */
