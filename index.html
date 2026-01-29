@@ -419,7 +419,8 @@
         .metric-item {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center; /* ✅ Centrer horizontalement */
+            text-align: center; /* ✅ Centrer le texte */
             min-width: 150px;
         }
 
@@ -431,15 +432,21 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #666;
-            font-weight: 500;
+            margin-bottom: 12px;
+            font-size: 16px; /* ✅ Plus gros (était 14px) */
+            font-weight: 600; /* ✅ Plus épais (était 500) */
+            color: #1f2937; /* ✅ Noir en mode clair */
+        }
+        
+        /* ✅ Mode sombre: titres en BLANC */
+        body.dark-mode .metric-header {
+            color: #ffffff !important;
         }
 
         .metric-main {
             display: flex;
-            align-items: center;
+            flex-direction: column; /* ✅ Colonne pour centrer verticalement */
+            align-items: center; /* ✅ Centrer horizontalement */
             gap: 12px;
             width: 100%;
         }
@@ -1700,7 +1707,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         </div>
                         <div class="metric-main">
                             <div class="metric-value-large" id="netPnlValue">$0.00</div>
-                            <i class="fas fa-chart-line" style="color: #10b981; font-size: 20px;"></i>
                         </div>
                     </div>
 
