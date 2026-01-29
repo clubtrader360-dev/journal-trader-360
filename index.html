@@ -865,6 +865,25 @@
         body.dark-mode .theme-toggle-label {
             color: #e5e7eb !important;
         }
+        
+        /* ✅ CORRECTION Mode Sombre: Chiffres des métriques en BLANC */
+        body.dark-mode .metric-value-medium,
+        body.dark-mode .metric-value-large {
+            color: #ffffff !important;
+        }
+        
+        /* ✅ CORRECTION Mode Sombre: Analyse des Protections - Textes en BLANC */
+        body.dark-mode #protectionAnalysisContainer,
+        body.dark-mode #protectionAnalysisContainer p,
+        body.dark-mode #protectionAnalysisContainer .text-sm,
+        body.dark-mode #protectionAnalysisContainer .text-gray-500 {
+            color: #ffffff !important;
+        }
+        
+        /* ✅ Mode Clair (défaut): Garder noir pour les métriques */
+        body:not(.dark-mode) .metric-value-medium {
+            color: #000B25 !important;
+        }
     </style>
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
