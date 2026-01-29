@@ -828,9 +828,12 @@
             color: #e5e7eb !important;
         }
         
-        /* ✅ Exception: Labels des formulaires de connexion/inscription en NOIR */
+        /* ✅ Exception: Titres et labels des formulaires de connexion/inscription en NOIR */
+        body.dark-mode #loginForm h2,
         body.dark-mode #loginForm label,
+        body.dark-mode #registerForm h2,
         body.dark-mode #registerForm label,
+        body.dark-mode #coachLoginForm h2,
         body.dark-mode #coachLoginForm label {
             color: #000B25 !important; /* Noir */
         }
