@@ -6494,10 +6494,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const profitFactorPercent = Math.min(profitFactor * 50, 100); // Max 100%
             document.getElementById('profitFactorBar').style.width = profitFactorPercent + '%';
 
-            // Calculer Day Win %
+            // Calculer Day Win % - ✅ FIX: Utiliser t.date au lieu de t.entryTime
             const tradesByDay = {};
             filteredTrades.forEach(t => {
-                const day = t.entryTime.split('T')[0];
+                const day = t.date; // ✅ Utiliser directement t.date (YYYY-MM-DD)
                 if (!tradesByDay[day]) tradesByDay[day] = 0;
                 tradesByDay[day] += parseFloat(t.pnl) || 0;
             });
@@ -6506,6 +6506,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const dayWinPercent = days.length > 0 ? (winningDays / days.length * 100) : 0;
             document.getElementById('dayWinValue').textContent = dayWinPercent.toFixed(1) + '%';
             document.getElementById('dayWinBar').style.width = dayWinPercent + '%';
+            
+            console.log("[DAY WIN %] Jours tradés:", days.length, "| Jours gagnants:", winningDays, "| Day win %:", dayWinPercent.toFixed(1));
 
             // Calculer Avg Win/Loss
             const avgWin = winningTrades > 0 ? totalProfit / winningTrades : 0;
