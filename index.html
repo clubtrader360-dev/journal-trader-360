@@ -1839,6 +1839,37 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     </div>
                 </div>
 
+                <!-- Citation/Mantra personnalisable -->
+                <div class="trader-card p-6 mt-6" style="background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold flex items-center">
+                            <i class="fas fa-quote-left text-purple-600 mr-2"></i>
+                            Ma citation motivante
+                        </h3>
+                        <button onclick="editMantra()" class="text-purple-600 hover:text-purple-800" title="Modifier">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                    <div id="mantraDisplay" class="text-center">
+                        <p class="text-xl font-medium italic text-gray-700" id="mantraText">
+                            "Le succès est la somme de petits efforts répétés jour après jour."
+                        </p>
+                        <p class="text-sm text-gray-500 mt-2" id="mantraAuthor">- Robert Collier</p>
+                    </div>
+                    <div id="mantraEdit" style="display: none;">
+                        <textarea id="mantraInput" class="w-full p-3 border-2 border-gray-300 rounded-lg resize-none" rows="3" placeholder="Entrez votre citation ou mantra..."></textarea>
+                        <input type="text" id="authorInput" class="w-full p-2 border-2 border-gray-300 rounded-lg mt-2" placeholder="Auteur (optionnel)">
+                        <div class="flex gap-2 mt-3">
+                            <button onclick="saveMantra()" class="trader-btn flex-1">
+                                <i class="fas fa-save mr-2"></i>Enregistrer
+                            </button>
+                            <button onclick="cancelMantra()" class="trader-btn-secondary flex-1">
+                                <i class="fas fa-times mr-2"></i>Annuler
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Monthly Navigation and Calendar -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Calendar Section -->
@@ -6941,6 +6972,69 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 settingsMenu.style.display = 'none';
             }
         }
+        
+        // ========================================
+        // GESTION DU MANTRA/CITATION
+        // ========================================
+        
+        function editMantra() {
+            document.getElementById('mantraDisplay').style.display = 'none';
+            document.getElementById('mantraEdit').style.display = 'block';
+            
+            // Pré-remplir avec les valeurs actuelles
+            const currentText = document.getElementById('mantraText').textContent.replace(/"/g, '');
+            const currentAuthor = document.getElementById('mantraAuthor').textContent.replace('- ', '');
+            
+            document.getElementById('mantraInput').value = currentText;
+            document.getElementById('authorInput').value = currentAuthor;
+        }
+        
+        function saveMantra() {
+            const mantraText = document.getElementById('mantraInput').value.trim();
+            const authorText = document.getElementById('authorInput').value.trim();
+            
+            if (!mantraText) {
+                alert('Veuillez entrer une citation ou un mantra.');
+                return;
+            }
+            
+            // Mettre à jour l'affichage
+            document.getElementById('mantraText').textContent = `"${mantraText}"`;
+            document.getElementById('mantraAuthor').textContent = authorText ? `- ${authorText}` : '';
+            
+            // Sauvegarder dans localStorage
+            localStorage.setItem('userMantra', mantraText);
+            localStorage.setItem('userMantraAuthor', authorText);
+            
+            // Fermer l'édition
+            document.getElementById('mantraDisplay').style.display = 'block';
+            document.getElementById('mantraEdit').style.display = 'none';
+            
+            console.log('[MANTRA] Sauvegardé:', mantraText, '|', authorText);
+        }
+        
+        function cancelMantra() {
+            document.getElementById('mantraDisplay').style.display = 'block';
+            document.getElementById('mantraEdit').style.display = 'none';
+        }
+        
+        function loadMantra() {
+            const savedMantra = localStorage.getItem('userMantra');
+            const savedAuthor = localStorage.getItem('userMantraAuthor');
+            
+            if (savedMantra) {
+                document.getElementById('mantraText').textContent = `"${savedMantra}"`;
+                document.getElementById('mantraAuthor').textContent = savedAuthor ? `- ${savedAuthor}` : '';
+                console.log('[MANTRA] Chargé depuis localStorage');
+            }
+        }
+        
+        // Charger le mantra au démarrage
+        loadMantra();
+        
+        // ========================================
+        // FIN GESTION DU MANTRA
+        // ========================================
         
         // Fermer le menu si on clique ailleurs
         document.addEventListener('click', function(event) {
