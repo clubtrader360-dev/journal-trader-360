@@ -931,6 +931,26 @@
             color: #e5e7eb !important;
         }
         
+        /* ✅ Mode Sombre: Trades d'une journée spécifique (clic sur calendrier) */
+        body.dark-mode #dailyTradesDisplay .trader-card {
+            background-color: #0a1629 !important;
+            border-color: #1a2942 !important;
+        }
+        
+        body.dark-mode #dailyTradesDisplay .daily-trades-title {
+            color: #ffffff !important;
+        }
+        
+        body.dark-mode #dailyTradesDisplay .daily-trade-item {
+            background-color: #0f1f3a !important;
+            border-color: #1a2942 !important;
+        }
+        
+        body.dark-mode #dailyTradesDisplay .daily-trade-item span,
+        body.dark-mode #dailyTradesDisplay .daily-trade-item .text-gray-500 {
+            color: #e5e7eb !important;
+        }
+        
         /* ✅ Mode Clair (défaut): Garder noir pour les métriques */
         body:not(.dark-mode) .metric-value-medium {
             color: #000B25 !important;
@@ -6207,22 +6227,22 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const pnlClass = dayPnl >= 0 ? 'text-green-600' : 'text-red-600';
             
             let html = `
-                <div class="trader-card p-4 bg-gradient-to-r ${dayPnl >= 0 ? 'from-green-50 to-white' : 'from-red-50 to-white'}">
+                <div class="trader-card p-4">
                     <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-lg font-bold text-gray-800">
-                            [CHART] Trades du ${formatDateFR(dateString)}
+                        <h3 class="text-lg font-bold text-gray-800 daily-trades-title">
+                            Trades du ${formatDateFR(dateString)}
                         </h3>
                         <div class="${pnlClass} font-bold text-xl">
                             ${dayPnl >= 0 ? '+' : ''}$${dayPnl.toFixed(2)}
                         </div>
                     </div>
-                    <div class="space-y-2">
+                    <div class="space-y-2" id="dailyTradesItems">
             `;
             
             dayTrades.forEach(trade => {
                 const tradePnlClass = trade.pnl >= 0 ? 'text-green-600' : 'text-red-600';
                 html += `
-                    <div class="flex justify-between items-center p-3 bg-white rounded border hover:shadow-md transition">
+                    <div class="flex justify-between items-center p-3 daily-trade-item rounded border hover:shadow-md transition">
                         <div class="flex-1">
                             <div class="flex items-center gap-3">
                                 <span class="font-semibold">${trade.symbol}</span>
