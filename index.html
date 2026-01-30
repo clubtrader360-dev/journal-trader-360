@@ -919,6 +919,18 @@
             color: #1f2937 !important; /* Noir */
         }
         
+        /* ✅ CORRECTION Mode Sombre: Titres et textes du Journal Quotidien en BLANC */
+        body.dark-mode #dailyjournal h1,
+        body.dark-mode #dailyjournal h3,
+        body.dark-mode #dailyjournal p {
+            color: #ffffff !important;
+        }
+        
+        body.dark-mode #dailyjournal .text-gray-600,
+        body.dark-mode #dailyjournal .text-gray-800 {
+            color: #e5e7eb !important;
+        }
+        
         /* ✅ Mode Clair (défaut): Garder noir pour les métriques */
         body:not(.dark-mode) .metric-value-medium {
             color: #000B25 !important;
