@@ -10434,7 +10434,7 @@ async function sharePerformance() {
         console.log('[SHARE] Capture du calendrier...');
         const calendarCanvas = await html2canvas(calendarElement, {
             scale: 2,
-            backgroundColor: '#ffffff',
+            backgroundColor: '#1a202c',
             logging: false
         });
         
@@ -10487,8 +10487,8 @@ async function sharePerformance() {
         const calendarWidth = 880;
         const calendarHeight = (calendarCanvas.height / calendarCanvas.width) * calendarWidth;
         
-        // Fond blanc pour le calendrier
-        ctx.fillStyle = '#ffffff';
+        // Fond sombre pour le calendrier (mode dark)
+        ctx.fillStyle = '#1a202c';
         ctx.fillRect(100, calendarY, calendarWidth, calendarHeight);
         
         // Dessiner le calendrier capturé
