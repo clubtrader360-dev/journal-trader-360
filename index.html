@@ -1252,10 +1252,17 @@ async function addTradeUI() {
     if (document.getElementById('tradeContreTendance')?.checked) tradeTypes.push('Contre-tendance');
     const trade_trend_type = tradeTypes.length > 0 ? tradeTypes.join(', ') : 'Non spécifié';
     
+    // Break-Even - checkbox
+    const is_break_even = document.getElementById('tradeBreakEven')?.checked || false;
+    
+    // Méthode / Hors Méthode - checkboxes
+    const is_methode = document.getElementById('tradeMethode')?.checked || false;
+    const is_hors_methode = document.getElementById('tradeHorsMethode')?.checked || false;
+    
     console.log('[UI] Données extraites:', { 
         account_id, trade_date, entry_time, exit_time, symbol, trade_type, 
         entry_price, exit_price, quantity, stop_loss, take_profit, setup, notes, manual_pnl,
-        trade_trend_type, fees  // ✅ AJOUT: Frais
+        trade_trend_type, fees, is_break_even, is_methode, is_hors_methode  // ✅ AJOUT: Méthode
     });
     
     // Validation détaillée
@@ -1337,7 +1344,10 @@ async function addTradeUI() {
         manual_pnl: calculated_pnl,  // ✅ P&L calculé avec frais déduits
         protections: protections.length > 0 ? protections.join(',') : null,
         trade_trend_type: trade_trend_type,  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
-        fees: fees  // ✅ AJOUT: Frais
+        fees: fees,  // ✅ AJOUT: Frais
+        is_break_even: is_break_even,  // ✅ AJOUT: Break-Even
+        is_methode: is_methode,  // ✅ AJOUT: Méthode
+        is_hors_methode: is_hors_methode  // ✅ AJOUT: Hors Méthode
     };
     
     // ✅ SI MODE ÉDITION : Ajouter l'ID du trade à modifier
@@ -2283,6 +2293,28 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             </div>
                         </div>
                     </div>
+
+                    <!-- Trades Méthode -->
+                    <div class="metric-item">
+                        <div class="metric-header">
+                            Trades Méthode <i class="fas fa-info-circle info-icon" style="color: #ccc;"><span class="tooltip">nombre de trades réalisés en respectant votre méthode de trading.</span></i>
+                        </div>
+                        <div class="metric-main">
+                            <div class="metric-value-medium" style="color: #10b981;" id="tradesMethodeValue">0</div>
+                            <div style="font-size: 13px; color: #6b7280; margin-top: 4px;" id="tradesMethodePercent">0%</div>
+                        </div>
+                    </div>
+
+                    <!-- Trades Hors Méthode -->
+                    <div class="metric-item">
+                        <div class="metric-header">
+                            Trades Hors Méthode <i class="fas fa-info-circle info-icon" style="color: #ccc;"><span class="tooltip">nombre de trades réalisés en dehors de votre méthode de trading.</span></i>
+                        </div>
+                        <div class="metric-main">
+                            <div class="metric-value-medium" style="color: #ef4444;" id="tradesHorsMethodeValue">0</div>
+                            <div style="font-size: 13px; color: #6b7280; margin-top: 4px;" id="tradesHorsMethodePercent">0%</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Monthly Navigation and Calendar -->
@@ -3013,6 +3045,26 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     </label>
                     <small style="color: #6b7280; font-size: 0.85em; display: block; margin-top: 4px;">
                         Cocher si le trade a été fermé proche du point d'entrée (même avec 0.25 ou 0.50 de gain)
+                    </small>
+                </div>
+                
+                <!-- Méthode / Hors Méthode -->
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #1f2937;">
+                        📋 Classification du trade
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="tradeMethode" value="Methode" style="width: 18px; height: 18px; accent-color: #10b981;">
+                            <span>✅ Méthode</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="tradeHorsMethode" value="HorsMethode" style="width: 18px; height: 18px; accent-color: #ef4444;">
+                            <span>❌ Hors Méthode</span>
+                        </label>
+                    </div>
+                    <small style="color: #6b7280; font-size: 0.85em; display: block; margin-top: 4px;">
+                        Cocher si le trade respecte votre méthode de trading ou non
                     </small>
                 </div>
                 
@@ -7018,6 +7070,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 document.getElementById('avgWinLossValue').textContent = '0.00';
                 document.getElementById('avgWinLabel').textContent = '$0';
                 document.getElementById('avgLossLabel').textContent = '$0';
+                document.getElementById('tradesMethodeValue').textContent = '0';
+                document.getElementById('tradesMethodePercent').textContent = '0%';
+                document.getElementById('tradesHorsMethodeValue').textContent = '0';
+                document.getElementById('tradesHorsMethodePercent').textContent = '0%';
                 return;
             }
 
@@ -7066,7 +7122,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             document.getElementById('avgWinLabel').textContent = '$' + avgWin.toFixed(0);
             document.getElementById('avgLossLabel').textContent = '$' + avgLoss.toFixed(0);
             
-            console.log("[BANNER] Mis à jour - Net P&L:", netPnl.toFixed(2), "| Win%:", tradeWinPercent.toFixed(1));
+            // ✅ AJOUT: Calculer les trades Méthode et Hors Méthode
+            const methodeTradesCount = filteredTrades.filter(t => t.is_methode === true).length;
+            const horsMethodeTradesCount = filteredTrades.filter(t => t.is_hors_methode === true).length;
+            const methodePercent = filteredTrades.length > 0 ? (methodeTradesCount / filteredTrades.length * 100).toFixed(1) : 0;
+            const horsMethodePercent = filteredTrades.length > 0 ? (horsMethodeTradesCount / filteredTrades.length * 100).toFixed(1) : 0;
+            
+            document.getElementById('tradesMethodeValue').textContent = `${methodeTradesCount}`;
+            document.getElementById('tradesMethodePercent').textContent = `${methodePercent}%`;
+            document.getElementById('tradesHorsMethodeValue').textContent = `${horsMethodeTradesCount}`;
+            document.getElementById('tradesHorsMethodePercent').textContent = `${horsMethodePercent}%`;
+            
+            console.log("[BANNER] Mis à jour - Net P&L:", netPnl.toFixed(2), "| Win%:", tradeWinPercent.toFixed(1), "| Méthode:", methodeTradesCount, `(${methodePercent}%)`, "| Hors Méthode:", horsMethodeTradesCount, `(${horsMethodePercent}%)`);
         }
 
         window.updateDashboard = function() {
@@ -7153,6 +7220,28 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             const rr2CountEl = document.getElementById('rr2Count');
             if (rr2CountEl) rr2CountEl.textContent = rr2Trades.length;
+            
+            // ✅ AJOUT: Calculer les trades Méthode et Hors Méthode
+            const methodeTradesCount = filteredTrades.filter(trade => trade.is_methode === true).length;
+            const horsMethodeTradesCount = filteredTrades.filter(trade => trade.is_hors_methode === true).length;
+            const totalTrades = filteredTrades.length;
+            
+            const methodePercent = totalTrades > 0 ? (methodeTradesCount / totalTrades * 100).toFixed(1) : 0;
+            const horsMethodePercent = totalTrades > 0 ? (horsMethodeTradesCount / totalTrades * 100).toFixed(1) : 0;
+            
+            const tradesMethodeEl = document.getElementById('tradesMethodeValue');
+            if (tradesMethodeEl) tradesMethodeEl.textContent = `${methodeTradesCount}`;
+            
+            const tradesMethodePercentEl = document.getElementById('tradesMethodePercent');
+            if (tradesMethodePercentEl) tradesMethodePercentEl.textContent = `${methodePercent}%`;
+            
+            const tradesHorsMethodeEl = document.getElementById('tradesHorsMethodeValue');
+            if (tradesHorsMethodeEl) tradesHorsMethodeEl.textContent = `${horsMethodeTradesCount}`;
+            
+            const tradesHorsMethodePercentEl = document.getElementById('tradesHorsMethodePercent');
+            if (tradesHorsMethodePercentEl) tradesHorsMethodePercentEl.textContent = `${horsMethodePercent}%`;
+            
+            console.log('[BANNER] Trades Méthode:', methodeTradesCount, `(${methodePercent}%)`, '| Hors Méthode:', horsMethodeTradesCount, `(${horsMethodePercent}%)`);
         }
 
         function resetDashboard() {
@@ -7175,6 +7264,19 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             const rr2CountEl = document.getElementById('rr2Count');
             if (rr2CountEl) rr2CountEl.textContent = '0';
+            
+            // ✅ AJOUT: Réinitialiser Méthode / Hors Méthode
+            const tradesMethodeEl = document.getElementById('tradesMethodeValue');
+            if (tradesMethodeEl) tradesMethodeEl.textContent = '0';
+            
+            const tradesMethodePercentEl = document.getElementById('tradesMethodePercent');
+            if (tradesMethodePercentEl) tradesMethodePercentEl.textContent = '0%';
+            
+            const tradesHorsMethodeEl = document.getElementById('tradesHorsMethodeValue');
+            if (tradesHorsMethodeEl) tradesHorsMethodeEl.textContent = '0';
+            
+            const tradesHorsMethodePercentEl = document.getElementById('tradesHorsMethodePercent');
+            if (tradesHorsMethodePercentEl) tradesHorsMethodePercentEl.textContent = '0%';
         }
 
         // Calendar functions
