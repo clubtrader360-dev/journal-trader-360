@@ -7227,7 +7227,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     // Afficher selon les préférences
                     if (calendarDisplay.showPnl) {
-                        statsHtml += `<div class="font-bold text-xl">$${dayPnl > 0 ? '+' : ''}${dayPnl.toFixed(0)}</div>`;
+                        statsHtml += `<div class="font-bold text-xl">${dayPnl > 0 ? '+' : ''}${dayPnl.toFixed(0)}$</div>`;
                     }
                     if (calendarDisplay.showTradeCount) {
                         statsHtml += `<div class="opacity-75">${tradeCount} trade${tradeCount > 1 ? 's' : ''}</div>`;
