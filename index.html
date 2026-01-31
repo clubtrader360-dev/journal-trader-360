@@ -7206,7 +7206,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 if (!isCurrentMonth) {
                     className += ' text-gray-300';
                 } else if (dayTrades.length > 0) {
-                    className += dayPnl > 0 ? ' bg-green-100 text-green-800 hover:bg-green-200' : ' bg-red-100 text-red-800 hover:bg-red-200';
+                    className += dayPnl > 0 ? ' bg-green-100 text-green-800 hover:bg-green-200' : ' bg-red-200 text-red-900 hover:bg-red-300';
                 } else {
                     className += ' text-gray-700 hover:bg-gray-100';
                 }
@@ -7227,7 +7227,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     // Afficher selon les préférences
                     if (calendarDisplay.showPnl) {
-                        statsHtml += `<div class="font-semibold">${dayPnl > 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>`;
+                        statsHtml += `<div class="font-bold text-sm">${dayPnl > 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>`;
                     }
                     if (calendarDisplay.showTradeCount) {
                         statsHtml += `<div class="opacity-75">${tradeCount} trade${tradeCount > 1 ? 's' : ''}</div>`;
