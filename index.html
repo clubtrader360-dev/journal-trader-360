@@ -10400,24 +10400,34 @@ async function sharePerformance() {
     console.log('[SHARE] sharePerformance() - START');
     
     try {
-        // 1. Afficher un loader
+        // 1. Vérifier si on est sur le Dashboard, sinon y aller
+        const currentSection = document.querySelector('.section:not(.hidden)');
+        if (!currentSection || currentSection.id !== 'dashboard') {
+            console.log('[SHARE] Basculement vers le Dashboard...');
+            showSection('dashboard');
+            // Attendre que le calendrier soit chargé
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        // 2. Afficher un loader
         const loadingMsg = document.createElement('div');
         loadingMsg.id = 'shareLoading';
         loadingMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,11,37,0.95); color: white; padding: 30px 50px; border-radius: 12px; z-index: 10000; text-align: center; font-size: 16px;';
         loadingMsg.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i><br>Génération de l\'image en cours...';
         document.body.appendChild(loadingMsg);
         
-        // 2. Récupérer les métriques du dashboard
+        // 3. Récupérer les métriques du dashboard
         const netPnl = document.getElementById('netPnlValue')?.textContent || '$0.00';
         const tradeWin = document.getElementById('tradeWinValue')?.textContent || '0%';
         const profitFactor = document.getElementById('profitFactorValue')?.textContent || '0.00';
         const dayWin = document.getElementById('dayWinValue')?.textContent || '0%';
         
-        // 3. Capturer le calendrier
-        const calendarElement = document.querySelector('.calendar-grid');
+        // 4. Capturer le calendrier avec le bon sélecteur
+        const calendarElement = document.getElementById('calendarGrid');
         if (!calendarElement) {
-            alert('⚠️ Calendrier introuvable. Veuillez aller sur le Dashboard.');
+            alert('⚠️ Calendrier introuvable. Veuillez patienter et réessayer.');
             document.body.removeChild(loadingMsg);
+            console.error('[SHARE] ❌ Élément #calendarGrid introuvable');
             return;
         }
         
