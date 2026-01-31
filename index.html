@@ -1775,14 +1775,14 @@ function displayDailyFeesTable() {
     const fees = window.dailyFees || [];
     
     if (fees.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Aucun frais enregistré</p>';
+        container.innerHTML = '<div style="background: white; border-radius: 12px; padding: 24px;"><p class="text-gray-500 text-center text-sm">Aucun frais enregistré</p></div>';
         return;
     }
     
     // Trier par date décroissante
     const sortedFees = [...fees].sort((a, b) => new Date(b.date) - new Date(a.date));
     
-    let html = '<div class="space-y-2">';
+    let html = '<div class="space-y-2" style="background: white; border-radius: 12px; padding: 16px;">';
     
     sortedFees.forEach(fee => {
         const feeDate = new Date(fee.date);
