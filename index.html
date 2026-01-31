@@ -1054,6 +1054,13 @@ async function addTradeUI() {
     console.log('[UI] addTradeUI() - START');
     console.log('[UI] window.addTrade exists?', typeof window.addTrade);
     
+    // ✅ VÉRIFIER SI ON EST EN MODE ÉDITION
+    const modal = document.getElementById('addTradeModal');
+    const editingId = modal?.dataset.editingId;
+    const isEditing = !!editingId;
+    
+    console.log('[UI] Mode:', isEditing ? `ÉDITION (ID: ${editingId})` : 'CRÉATION');
+    
     // Lecture IDs DOM réels (extraits de l'audit)
     const account_id = document.getElementById('tradeAccount')?.value;
     const trade_date = document.getElementById('tradeDate')?.value;
@@ -1172,6 +1179,12 @@ async function addTradeUI() {
         fees: fees  // ✅ AJOUT: Frais
     };
     
+    // ✅ SI MODE ÉDITION : Ajouter l'ID du trade à modifier
+    if (isEditing) {
+        tradeData.id = parseInt(editingId);
+        console.log('[UI] ✏️ Mode ÉDITION - Trade ID:', tradeData.id);
+    }
+    
     console.log('[UI] Payload final:', tradeData);
     
     // Appel module
@@ -1195,7 +1208,7 @@ async function addTradeUI() {
         }
         
         console.log('[UI] ✅ Trade ajouté:', result.data);
-        alert('✅ Trade ajouté avec succès');
+        alert(isEditing ? '✅ Trade modifié avec succès' : '✅ Trade ajouté avec succès');
         
         closeModal('addTradeModal');
         document.getElementById('tradeForm')?.reset();
