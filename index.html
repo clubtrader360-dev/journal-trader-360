@@ -80,6 +80,22 @@
             color: var(--trader-blue);
         }
         
+        .share-btn {
+            background: var(--trader-blue);
+            color: var(--trader-gold);
+            border: 2px solid var(--trader-gold);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 11, 37, 0.3);
+        }
+        
         .trader-btn-gold {
             background: linear-gradient(135deg, var(--trader-gold) 0%, #d4af37 100%);
             color: var(--trader-blue);
@@ -2192,7 +2208,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 <!-- Bouton Partager Performances -->
                 <div style="margin-top: 15px; padding: 10px 20px;">
                     <button onclick="sharePerformance()" 
-                            class="trader-btn" 
+                            class="share-btn" 
                             style="width: 100%; font-size: 13px; padding: 10px 16px; display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <i class="fas fa-share-alt"></i>
                         <span>Partager mes performances</span>
@@ -10444,11 +10460,8 @@ async function sharePerformance() {
         finalCanvas.height = 1350;
         const ctx = finalCanvas.getContext('2d');
         
-        // 5. Fond dégradé Trader360
-        const gradient = ctx.createLinearGradient(0, 0, 0, 1350);
-        gradient.addColorStop(0, '#000B25');
-        gradient.addColorStop(1, '#1a2942');
-        ctx.fillStyle = gradient;
+        // 5. Fond mode sombre (même couleur que le dashboard)
+        ctx.fillStyle = '#111827';
         ctx.fillRect(0, 0, 1080, 1350);
         
         // 6. Titre + Logo
@@ -10494,8 +10507,16 @@ async function sharePerformance() {
         // Dessiner le calendrier capturé
         ctx.drawImage(calendarCanvas, 100, calendarY, calendarWidth, calendarHeight);
         
-        // 9. Watermark
-        const watermarkY = 1350 - 60;
+        // 9. Logo Trader360 sous le calendrier
+        const logoImg = new Image();
+        logoImg.src = 'data:image/png;base64,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';
+        const logoY = calendarY + calendarHeight + 30;
+        const logoWidth = 200;
+        const logoHeight = 50;
+        ctx.drawImage(logoImg, 440, logoY, logoWidth, logoHeight);
+        
+        // 10. Watermark
+        const watermarkY = 1350 - 80;
         ctx.fillStyle = '#9ca3af';
         ctx.font = '20px Arial';
         ctx.textAlign = 'center';
