@@ -2256,17 +2256,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     </div>
                 </div>
 
-                <!-- Points à Surveiller (Alertes dynamiques) -->
-                <div id="warningsBanner" style="display: none; background: #FEF2F2; border: 2px solid #FCA5A5; border-radius: 12px; padding: 20px; margin-top: 24px;">
-                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
-                        <i class="fas fa-exclamation-triangle" style="color: #DC2626; font-size: 20px; margin-right: 10px;"></i>
-                        <h3 style="font-size: 18px; font-weight: 600; color: #991B1B; margin: 0;">⚠️ POINTS À SURVEILLER</h3>
-                    </div>
-                    <div id="warningsContainer" style="display: flex; flex-direction: column; gap: 12px;">
-                        <!-- Les alertes seront insérées ici dynamiquement -->
-                    </div>
-                </div>
-
                 <!-- Monthly Navigation and Calendar -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Calendar Section -->
@@ -2369,6 +2358,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
                     <!-- Right Sidebar -->
                     <div class="space-y-6">
+                        <!-- Points à Surveiller (Alertes dynamiques) -->
+                        <div id="warningsBanner" style="display: none; background: #FEF2F2; border: 2px solid #FCA5A5; border-radius: 12px; padding: 20px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                                <i class="fas fa-exclamation-triangle" style="color: #DC2626; font-size: 20px; margin-right: 10px;"></i>
+                                <h3 style="font-size: 18px; font-weight: 600; color: #991B1B; margin: 0;">⚠️ POINTS À SURVEILLER</h3>
+                            </div>
+                            <div id="warningsContainer" style="display: flex; flex-direction: column; gap: 12px;">
+                                <!-- Les alertes seront insérées ici dynamiquement -->
+                            </div>
+                        </div>
+
                         <!-- Recent Trades Module -->
                         <div class="trader-card p-4">
                             <div class="flex border-b border-gray-200 mb-4">
