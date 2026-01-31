@@ -859,6 +859,38 @@
             background-color: #0f1f3a !important;
         }
         
+        /* ✅ EXCEPTION: Modal CSV Import - Garder fond BLANC et texte NOIR en mode sombre */
+        body.dark-mode #importCSVModal table,
+        body.dark-mode #csvPreviewTable {
+            background-color: #ffffff !important;
+            color: #1f2937 !important;
+        }
+        
+        body.dark-mode #importCSVModal thead,
+        body.dark-mode #csvPreviewTable thead {
+            background-color: #f9fafb !important;
+            color: #1f2937 !important;
+        }
+        
+        body.dark-mode #importCSVModal tbody tr,
+        body.dark-mode #csvPreviewTable tbody tr {
+            background-color: #ffffff !important;
+            color: #1f2937 !important;
+            border-color: #e5e7eb !important;
+        }
+        
+        body.dark-mode #importCSVModal tbody tr:hover,
+        body.dark-mode #csvPreviewTable tbody tr:hover {
+            background-color: #f9fafb !important;
+        }
+        
+        body.dark-mode #importCSVModal th,
+        body.dark-mode #importCSVModal td,
+        body.dark-mode #csvPreviewTable th,
+        body.dark-mode #csvPreviewTable td {
+            color: #1f2937 !important;
+        }
+        
         /* ✅ CORRECTION Mode Sombre: Chiffres des métriques en BLANC */
         body.dark-mode .metric-value-medium,
         body.dark-mode .metric-value-large {
