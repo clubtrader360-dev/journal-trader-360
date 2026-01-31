@@ -3349,12 +3349,28 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         let dailyPnlChart = null;
         let cumulativePnlChart = null;
         
+        // Charger les préférences d'affichage du calendrier depuis localStorage
+        function loadCalendarPreferences() {
+            const saved = localStorage.getItem('calendarDisplayPreferences');
+            if (saved) {
+                try {
+                    const preferences = JSON.parse(saved);
+                    console.log('[CALENDAR] Préférences restaurées:', preferences);
+                    return preferences;
+                } catch (e) {
+                    console.error('[CALENDAR] Erreur lors du chargement des préférences:', e);
+                }
+            }
+            // Préférences par défaut si rien n'est sauvegardé
+            return {
+                showPnl: true,
+                showTradeCount: false,
+                showWinRate: false
+            };
+        }
+        
         // Paramètres d'affichage du calendrier
-        let calendarDisplay = {
-            showPnl: true,
-            showTradeCount: false,
-            showWinRate: false
-        };
+        let calendarDisplay = loadCalendarPreferences();
         let drawdownChart = null;
         let durationChart = null;
         let accountingChart = null;
@@ -4628,6 +4644,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // Load saved theme
             loadSavedTheme();
+            
+            // Synchroniser les checkboxes du calendrier avec les préférences sauvegardées
+            syncCalendarCheckboxes();
             
             // Données chargées depuis Supabase
             setCurrentDate();
@@ -8041,7 +8060,25 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             calendarDisplay.showTradeCount = document.getElementById('showTradeCount').checked;
             calendarDisplay.showWinRate = document.getElementById('showWinRate').checked;
             
-            // Sauvegarder les préférences
+            // Sauvegarder les préférences dans localStorage
+            localStorage.setItem('calendarDisplayPreferences', JSON.stringify(calendarDisplay));
+            console.log('[CALENDAR] Préférences sauvegardées:', calendarDisplay);
+            
+            // Rafraîchir le calendrier
+            updateCalendar();
+        }
+        
+        // Fonction pour synchroniser les checkboxes avec les préférences
+        function syncCalendarCheckboxes() {
+            const showPnlCheckbox = document.getElementById('showPnl');
+            const showTradeCountCheckbox = document.getElementById('showTradeCount');
+            const showWinRateCheckbox = document.getElementById('showWinRate');
+            
+            if (showPnlCheckbox) showPnlCheckbox.checked = calendarDisplay.showPnl;
+            if (showTradeCountCheckbox) showTradeCountCheckbox.checked = calendarDisplay.showTradeCount;
+            if (showWinRateCheckbox) showWinRateCheckbox.checked = calendarDisplay.showWinRate;
+            
+            console.log('[CALENDAR] Checkboxes synchronisées avec préférences:', calendarDisplay);
         }
         
         // Fonction loadCalendarPreferences supprimée
