@@ -980,6 +980,8 @@
         /* ✅ Exception: Tableau des frais garde le fond CLAIR en mode sombre */
         body.dark-mode #dailyFeesTable {
             background-color: #ffffff !important;
+            border-radius: 12px !important;
+            overflow: hidden;
         }
         
         /* ✅ FORCER tout le texte en NOIR dans le tableau des frais */
@@ -1775,14 +1777,14 @@ function displayDailyFeesTable() {
     const fees = window.dailyFees || [];
     
     if (fees.length === 0) {
-        container.innerHTML = '<div style="background: white; border-radius: 12px; padding: 24px;"><p class="text-gray-500 text-center text-sm">Aucun frais enregistré</p></div>';
+        container.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Aucun frais enregistré</p>';
         return;
     }
     
     // Trier par date décroissante
     const sortedFees = [...fees].sort((a, b) => new Date(b.date) - new Date(a.date));
     
-    let html = '<div class="space-y-2" style="background: white; border-radius: 12px; padding: 16px;">';
+    let html = '<div class="space-y-2">';
     
     sortedFees.forEach(fee => {
         const feeDate = new Date(fee.date);
