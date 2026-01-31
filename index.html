@@ -2188,6 +2188,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     </a>
                     <p style="color: #9ca3af; font-size: 11px; margin-top: 4px;">@trader360_officiel</p>
                 </div>
+                
+                <!-- Bouton Partager Performances -->
+                <div style="margin-top: 15px; padding: 10px 20px;">
+                    <button onclick="sharePerformance()" 
+                            class="trader-btn" 
+                            style="width: 100%; font-size: 13px; padding: 10px 16px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <i class="fas fa-share-alt"></i>
+                        <span>Partager mes performances</span>
+                    </button>
+                </div>
             </nav>
         </div>
 
@@ -10379,6 +10389,141 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
 <!-- Script d'attachement des événements -->
 
+<!-- Bibliothèque html2canvas pour capture d'écran -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+// ================================================================
+// FONCTION : Partager mes performances (génération d'image)
+// ================================================================
+async function sharePerformance() {
+    console.log('[SHARE] sharePerformance() - START');
+    
+    try {
+        // 1. Afficher un loader
+        const loadingMsg = document.createElement('div');
+        loadingMsg.id = 'shareLoading';
+        loadingMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,11,37,0.95); color: white; padding: 30px 50px; border-radius: 12px; z-index: 10000; text-align: center; font-size: 16px;';
+        loadingMsg.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i><br>Génération de l\'image en cours...';
+        document.body.appendChild(loadingMsg);
+        
+        // 2. Récupérer les métriques du dashboard
+        const netPnl = document.getElementById('netPnlValue')?.textContent || '$0.00';
+        const tradeWin = document.getElementById('tradeWinValue')?.textContent || '0%';
+        const profitFactor = document.getElementById('profitFactorValue')?.textContent || '0.00';
+        const dayWin = document.getElementById('dayWinValue')?.textContent || '0%';
+        
+        // 3. Capturer le calendrier
+        const calendarElement = document.querySelector('.calendar-grid');
+        if (!calendarElement) {
+            alert('⚠️ Calendrier introuvable. Veuillez aller sur le Dashboard.');
+            document.body.removeChild(loadingMsg);
+            return;
+        }
+        
+        console.log('[SHARE] Capture du calendrier...');
+        const calendarCanvas = await html2canvas(calendarElement, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            logging: false
+        });
+        
+        // 4. Créer un canvas final 1080x1350 (format Instagram portrait)
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = 1080;
+        finalCanvas.height = 1350;
+        const ctx = finalCanvas.getContext('2d');
+        
+        // 5. Fond dégradé Trader360
+        const gradient = ctx.createLinearGradient(0, 0, 0, 1350);
+        gradient.addColorStop(0, '#000B25');
+        gradient.addColorStop(1, '#1a2942');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 1080, 1350);
+        
+        // 6. Titre + Logo
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 48px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('📊 MES PERFORMANCES', 540, 80);
+        
+        // 7. Métriques clés
+        const metricsY = 150;
+        const metricsData = [
+            { label: 'Net P&L', value: netPnl, color: netPnl.includes('-') ? '#ef4444' : '#10b981' },
+            { label: 'Win Rate', value: tradeWin, color: '#ac862b' },
+            { label: 'Profit Factor', value: profitFactor, color: '#ac862b' },
+            { label: 'Day Win %', value: dayWin, color: '#ac862b' }
+        ];
+        
+        metricsData.forEach((metric, index) => {
+            const y = metricsY + index * 70;
+            
+            // Label
+            ctx.fillStyle = '#9ca3af';
+            ctx.font = '22px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(metric.label, 100, y);
+            
+            // Valeur
+            ctx.fillStyle = metric.color;
+            ctx.font = 'bold 36px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText(metric.value, 980, y);
+        });
+        
+        // 8. Calendrier
+        const calendarY = metricsY + metricsData.length * 70 + 50;
+        const calendarWidth = 880;
+        const calendarHeight = (calendarCanvas.height / calendarCanvas.width) * calendarWidth;
+        
+        // Fond blanc pour le calendrier
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(100, calendarY, calendarWidth, calendarHeight);
+        
+        // Dessiner le calendrier capturé
+        ctx.drawImage(calendarCanvas, 100, calendarY, calendarWidth, calendarHeight);
+        
+        // 9. Watermark
+        const watermarkY = 1350 - 60;
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('📷 @trader360_officiel', 540, watermarkY);
+        
+        // Date
+        const currentDate = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+        ctx.fillText(currentDate, 540, watermarkY + 30);
+        
+        // 10. Convertir en blob et télécharger
+        finalCanvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `trader360-performances-${new Date().toISOString().split('T')[0]}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            // Supprimer le loader
+            document.body.removeChild(loadingMsg);
+            
+            // Notification de succès
+            alert('✅ Image téléchargée avec succès ! Vous pouvez maintenant la partager sur Instagram.');
+            console.log('[SHARE] ✅ Image générée et téléchargée');
+        }, 'image/png');
+        
+    } catch (error) {
+        console.error('[SHARE] ❌ Erreur:', error);
+        alert('❌ Erreur lors de la génération de l\'image. Veuillez réessayer.');
+        const loader = document.getElementById('shareLoading');
+        if (loader) document.body.removeChild(loader);
+    }
+}
+
+// Exposer la fonction globalement
+window.sharePerformance = sharePerformance;
+console.log('[SHARE] ✅ Fonction sharePerformance() exposée');
+</script>
 
     
 
