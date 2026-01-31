@@ -422,6 +422,14 @@
             align-items: center; /* ✅ Centrer horizontalement */
             text-align: center; /* ✅ Centrer le texte */
             min-width: 150px;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.02);
+            transition: background 0.2s ease;
+        }
+        
+        .metric-item:hover {
+            background: rgba(0, 0, 0, 0.04);
         }
 
         .metric-item.net-pnl {
@@ -821,6 +829,12 @@
         body.dark-mode .metric-item {
             background-color: #0f1f3a !important;
             border-color: #1a2942 !important;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        
+        body.dark-mode .metric-item:hover {
+            background-color: #152843 !important;
         }
         
         body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, 
