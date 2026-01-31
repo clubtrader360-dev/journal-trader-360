@@ -967,6 +967,7 @@
 <script src="supabase-journal.js"></script>
 <script src="supabase-payouts.js"></script>
 <script src="supabase-account-costs.js"></script>
+<script src="supabase-daily-fees.js"></script>
 <script src="supabase-coach.js"></script>
 <script src="coach-dashboard.js"></script>
 <!-- prompt-ia.js chargé UNIQUEMENT pour les élèves (voir supabase-auth.js) -->
@@ -1455,6 +1456,146 @@ window.editPayout = editPayout;
 window.closeModal = closeModal;
 window.closeViewTradeModal = closeViewTradeModal;
 window.closeViewJournalModal = closeViewJournalModal;
+
+// ========================================
+// 💰 FONCTIONS: GESTION DES FRAIS QUOTIDIENS
+// ========================================
+
+// Afficher le modal d'ajout de frais quotidiens
+function showAddDailyFeeModal() {
+    console.log('[DAILY-FEE-UI] showAddDailyFeeModal() - START');
+    const modal = document.getElementById('addDailyFeeModal');
+    if (!modal) {
+        console.error('[DAILY-FEE-UI] ❌ Modal addDailyFeeModal introuvable');
+        return;
+    }
+    
+    // Réinitialiser le formulaire
+    const form = document.getElementById('dailyFeeForm');
+    if (form) form.reset();
+    
+    // Définir la date à aujourd'hui par défaut
+    document.getElementById('feeDate').value = new Date().toISOString().split('T')[0];
+    
+    // Supprimer le mode édition
+    delete modal.dataset.editingId;
+    
+    // Ouvrir le modal
+    modal.style.display = 'block';
+    console.log('[DAILY-FEE-UI] ✅ Modal affiché');
+}
+
+// Sauvegarder les frais quotidiens
+async function saveDailyFee() {
+    console.log('[DAILY-FEE-UI] saveDailyFee() - START');
+    
+    // Vérifier que l'API est chargée
+    if (!window.dailyFeesAPI || !window.dailyFeesAPI.create) {
+        console.error('[DAILY-FEE-UI] ❌ Module dailyFeesAPI non chargé');
+        alert('⚠️ Erreur : module non chargé. Veuillez rafraîchir la page.');
+        return;
+    }
+    
+    // Récupérer les valeurs du formulaire
+    const feeDate = document.getElementById('feeDate')?.value;
+    const feeAmount = parseFloat(document.getElementById('feeAmount')?.value);
+    const feeNotes = document.getElementById('feeNotes')?.value?.trim() || '';
+    
+    // Validation
+    if (!feeDate || !feeAmount || isNaN(feeAmount)) {
+        alert('⚠️ Veuillez remplir tous les champs obligatoires (Date et Montant)');
+        return;
+    }
+    
+    if (feeAmount <= 0) {
+        alert('⚠️ Le montant des frais doit être positif');
+        return;
+    }
+    
+    // Vérifier si on est en mode édition
+    const modal = document.getElementById('addDailyFeeModal');
+    const editingId = modal?.dataset.editingId;
+    
+    // Construction du payload
+    const feeData = {
+        date: feeDate,
+        amount: feeAmount,
+        notes: feeNotes
+    };
+    
+    // Ajouter l'ID si on édite
+    if (editingId) {
+        feeData.id = parseInt(editingId);
+        console.log('[DAILY-FEE-UI] ✏️ Mode ÉDITION - Fee ID:', feeData.id);
+    }
+    
+    console.log('[DAILY-FEE-UI] Payload:', feeData);
+    
+    try {
+        const result = await window.dailyFeesAPI.create(feeData);
+        
+        if (result.error) {
+            console.error('[DAILY-FEE-UI] ❌ Erreur:', result.error);
+            alert(`⚠️ Erreur : ${result.error.message || 'Échec de l\'enregistrement'}`);
+            return;
+        }
+        
+        console.log('[DAILY-FEE-UI] ✅ Frais enregistrés:', result.data);
+        alert(editingId ? '✅ Frais modifiés avec succès' : '✅ Frais ajoutés avec succès');
+        
+        // Fermer le modal
+        closeModal('addDailyFeeModal');
+        
+        // Recharger les modules (calendrier, dashboard, etc.)
+        if (typeof window.refreshAllModules === 'function') {
+            window.refreshAllModules();
+        }
+    } catch (error) {
+        console.error('[DAILY-FEE-UI] ❌ Exception:', error);
+        alert(`⚠️ Erreur : ${error.message}`);
+    }
+}
+
+// Supprimer des frais quotidiens
+async function deleteDailyFee(feeId) {
+    console.log('[DAILY-FEE-UI] deleteDailyFee() - ID:', feeId);
+    
+    if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer ces frais ?\n\nCette action est irréversible.')) {
+        return;
+    }
+    
+    if (!window.dailyFeesAPI || !window.dailyFeesAPI.delete) {
+        console.error('[DAILY-FEE-UI] ❌ Module dailyFeesAPI non chargé');
+        alert('⚠️ Erreur : module non chargé');
+        return;
+    }
+    
+    try {
+        const result = await window.dailyFeesAPI.delete(feeId);
+        
+        if (result.error) {
+            console.error('[DAILY-FEE-UI] ❌ Erreur:', result.error);
+            alert(`⚠️ Erreur : ${result.error.message}`);
+            return;
+        }
+        
+        console.log('[DAILY-FEE-UI] ✅ Frais supprimés');
+        alert('✅ Frais supprimés avec succès');
+        
+        // Recharger les modules
+        if (typeof window.refreshAllModules === 'function') {
+            window.refreshAllModules();
+        }
+    } catch (error) {
+        console.error('[DAILY-FEE-UI] ❌ Exception:', error);
+        alert(`⚠️ Erreur : ${error.message}`);
+    }
+}
+
+// Exposer les fonctions globalement
+window.showAddDailyFeeModal = showAddDailyFeeModal;
+window.saveDailyFee = saveDailyFee;
+window.deleteDailyFee = deleteDailyFee;
 
 console.log('[OK] Fonctions modales exposées globalement');
 </script>
@@ -2262,9 +2403,14 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <h1 class="text-3xl font-bold text-gray-800 mb-2">Journal Quotidien</h1>
                         <p class="text-gray-600">Notez vos observations et analyses</p>
                     </div>
-                    <button onclick="showAddNoteModal()" class="trader-btn">
-                        <i class="fas fa-plus mr-2"></i>Ajouter une Note
-                    </button>
+                    <div class="flex gap-3">
+                        <button onclick="showAddDailyFeeModal()" class="trader-btn-secondary">
+                            <i class="fas fa-dollar-sign mr-2"></i>Frais du jour
+                        </button>
+                        <button onclick="showAddNoteModal()" class="trader-btn">
+                            <i class="fas fa-plus mr-2"></i>Ajouter une Note
+                        </button>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -2740,6 +2886,42 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 <div class="flex gap-4 mt-6">
                     <button type="button" onclick="addNote()" class="trader-btn flex-1">Ajouter la Note</button>
                     <button type="button" onclick="closeModal('addNoteModal')" class="trader-btn-secondary flex-1">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Daily Fee Modal -->
+    <div id="addDailyFeeModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close" onclick="closeModal('addDailyFeeModal')">&times;</span>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">💰 Ajouter des Frais Quotidiens</h2>
+            
+            <form id="dailyFeeForm">
+                <div class="form-group">
+                    <label>📅 Date</label>
+                    <input type="date" id="feeDate" required>
+                    <small style="color: #666; font-size: 0.85em; display: block; margin-top: 4px;">
+                        Les frais seront déduits du P&L de cette journée
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label>💵 Montant des frais ($)</label>
+                    <input type="number" step="0.01" id="feeAmount" placeholder="Ex: 12.60" required>
+                    <small style="color: #666; font-size: 0.85em; display: block; margin-top: 4px;">
+                        Entrez le montant total des frais pour cette journée (commissions, frais de plateforme...)
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label>📝 Note (optionnelle)</label>
+                    <textarea id="feeNotes" rows="3" placeholder="Ex: Frais Tradovate, Commissions journée..."></textarea>
+                </div>
+                
+                <div class="flex gap-4 mt-6">
+                    <button type="button" onclick="saveDailyFee()" class="trader-btn flex-1">Enregistrer</button>
+                    <button type="button" onclick="closeModal('addDailyFeeModal')" class="trader-btn-secondary flex-1">Annuler</button>
                 </div>
             </form>
         </div>
