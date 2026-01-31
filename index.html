@@ -6418,7 +6418,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            const dayPnl = dayTrades.reduce((sum, t) => sum + t.pnl, 0);
+            // ✅ Calculer le P&L brut des trades
+            const tradesPnl = dayTrades.reduce((sum, t) => sum + t.pnl, 0);
+            
+            // ✅ Charger les frais du jour
+            const dailyFeesForDate = (window.dailyFees || []).filter(fee => fee.date === dateString);
+            const totalFees = dailyFeesForDate.reduce((sum, fee) => sum + parseFloat(fee.amount || 0), 0);
+            
+            // ✅ P&L net = P&L trades - Frais quotidiens
+            const dayPnl = tradesPnl - totalFees;
             const pnlClass = dayPnl >= 0 ? 'text-green-600' : 'text-red-600';
             
             let html = `
@@ -6427,10 +6435,24 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <h3 class="text-lg font-bold text-gray-800 daily-trades-title">
                             Trades du ${formatDateFR(dateString)}
                         </h3>
-                        <div class="${pnlClass} font-bold text-xl">
-                            ${dayPnl >= 0 ? '+' : ''}$${dayPnl.toFixed(2)}
+                        <div>
+                            <div class="${pnlClass} font-bold text-xl">
+                                ${dayPnl >= 0 ? '+' : ''}$${dayPnl.toFixed(2)}
+                            </div>
+                            ${totalFees > 0 ? `<div class="text-xs text-gray-500 mt-1">P&L Trades: +$${tradesPnl.toFixed(2)} | Frais: -$${totalFees.toFixed(2)}</div>` : ''}
                         </div>
                     </div>
+                    ${totalFees > 0 && dailyFeesForDate.length > 0 ? `
+                        <div class="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium text-yellow-800">💰 Frais du jour: -$${totalFees.toFixed(2)}</span>
+                                <button onclick="deleteDailyFee(${dailyFeesForDate[0].id})" class="text-red-600 hover:text-red-800 text-xs" title="Supprimer les frais">
+                                    🗑️
+                                </button>
+                            </div>
+                            ${dailyFeesForDate[0].notes ? `<div class="text-xs text-gray-600 mt-1">${dailyFeesForDate[0].notes}</div>` : ''}
+                        </div>
+                    ` : ''}
                     <div class="space-y-2" id="dailyTradesItems">
             `;
             
@@ -6647,6 +6669,19 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     window.payouts = payoutsResult.data;
                     console.log('[REFRESH] ✅ payouts chargés:', window.payouts.length);
                 }
+            }
+            
+            console.log('[REFRESH] 💰 Chargement des frais quotidiens depuis Supabase...');
+            if (typeof window.dailyFeesAPI?.load === 'function') {
+                const feesResult = await window.dailyFeesAPI.load();
+                if (feesResult && feesResult.data) {
+                    window.dailyFees = feesResult.data;
+                    console.log('[REFRESH] ✅ frais quotidiens chargés:', window.dailyFees.length);
+                } else {
+                    window.dailyFees = [];
+                }
+            } else {
+                window.dailyFees = [];
             }
             
             console.log('🔄 REFRESH - Nombre total de trades:', trades.length);
@@ -6978,7 +7013,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     return isMatch;
                 });
                 
-                const dayPnl = dayTrades.reduce((sum, trade) => sum + trade.pnl, 0);
+                // ✅ Calculer le P&L brut des trades
+                const tradesP nl = dayTrades.reduce((sum, trade) => sum + trade.pnl, 0);
+                
+                // ✅ Ajouter les frais quotidiens (s'ils existent)
+                const dailyFeesForDate = (window.dailyFees || []).filter(fee => fee.date === dateString);
+                const totalFees = dailyFeesForDate.reduce((sum, fee) => sum + parseFloat(fee.amount || 0), 0);
+                
+                // ✅ P&L net = P&L trades - Frais quotidiens
+                const dayPnl = tradesPnl - totalFees;
                 
                 let className = 'text-center py-3 cursor-pointer rounded transition-all';
                 if (!isCurrentMonth) {
@@ -6995,22 +7038,26 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 // Construire le contenu de la cellule
                 let cellContent = `<div class="font-semibold">${date.getDate()}</div>`;
                 
-                if (dayTrades.length > 0 && isCurrentMonth) {
+                if ((dayTrades.length > 0 || totalFees > 0) && isCurrentMonth) {
                     // Calculer les statistiques du jour
                     const tradeCount = dayTrades.length;
                     const winningTrades = dayTrades.filter(t => t.pnl > 0).length;
-                    const winRate = ((winningTrades / tradeCount) * 100).toFixed(0);
+                    const winRate = tradeCount > 0 ? ((winningTrades / tradeCount) * 100).toFixed(0) : 0;
                     
                     let statsHtml = '<div class="text-xs mt-1 space-y-0.5">';
                     
                     // Afficher selon les préférences
                     if (calendarDisplay.showPnl) {
                         statsHtml += `<div class="font-semibold">${dayPnl > 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>`;
+                        // ✅ Afficher les frais s'ils existent
+                        if (totalFees > 0) {
+                            statsHtml += `<div class="text-xs opacity-60">(-$${totalFees.toFixed(2)} frais)</div>`;
+                        }
                     }
-                    if (calendarDisplay.showTradeCount) {
+                    if (calendarDisplay.showTradeCount && tradeCount > 0) {
                         statsHtml += `<div class="opacity-75">${tradeCount} trade${tradeCount > 1 ? 's' : ''}</div>`;
                     }
-                    if (calendarDisplay.showWinRate) {
+                    if (calendarDisplay.showWinRate && tradeCount > 0) {
                         const winRateColor = winRate >= 50 ? 'text-green-700' : 'text-red-700';
                         statsHtml += `<div class="${winRateColor} font-medium">${winRate}% win</div>`;
                     }
