@@ -1592,10 +1592,59 @@ async function deleteDailyFee(feeId) {
     }
 }
 
+// Afficher le tableau des frais quotidiens
+function displayDailyFeesTable() {
+    console.log('[DAILY-FEE-UI] displayDailyFeesTable() - START');
+    
+    const container = document.getElementById('dailyFeesTable');
+    if (!container) {
+        console.warn('[DAILY-FEE-UI] ⚠️ Container #dailyFeesTable introuvable');
+        return;
+    }
+    
+    const fees = window.dailyFees || [];
+    
+    if (fees.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Aucun frais enregistré</p>';
+        return;
+    }
+    
+    // Trier par date décroissante
+    const sortedFees = [...fees].sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    let html = '<div class="space-y-2">';
+    
+    sortedFees.forEach(fee => {
+        const feeDate = new Date(fee.date);
+        const dateStr = feeDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+        
+        html += `
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded border hover:bg-gray-100 transition">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3">
+                        <span class="font-semibold text-sm">${dateStr}</span>
+                        <span class="text-red-600 font-bold">-$${parseFloat(fee.amount).toFixed(2)}</span>
+                    </div>
+                    ${fee.notes ? `<div class="text-xs text-gray-600 mt-1">${fee.notes}</div>` : ''}
+                </div>
+                <button onclick="deleteDailyFee(${fee.id})" class="text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50" title="Supprimer">
+                    🗑️
+                </button>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    
+    container.innerHTML = html;
+    console.log('[DAILY-FEE-UI] ✅ Tableau affiché avec', fees.length, 'frais');
+}
+
 // Exposer les fonctions globalement
 window.showAddDailyFeeModal = showAddDailyFeeModal;
 window.saveDailyFee = saveDailyFee;
 window.deleteDailyFee = deleteDailyFee;
+window.displayDailyFeesTable = displayDailyFeesTable;
 
 console.log('[OK] Fonctions modales exposées globalement');
 </script>
@@ -2438,6 +2487,14 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                     <span class="text-gray-600">Avec images:</span>
                                     <span class="font-semibold" id="entriesWithImages">0</span>
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tableau des frais quotidiens -->
+                        <div class="trader-card p-6 mt-6">
+                            <h3 class="text-lg font-semibold mb-4">💰 Frais Quotidiens</h3>
+                            <div id="dailyFeesTable">
+                                <p class="text-gray-500 text-center py-4 text-sm">Aucun frais enregistré</p>
                             </div>
                         </div>
                     </div>
@@ -6649,6 +6706,24 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
             }
             
+            console.log('[REFRESH] 💰 Chargement des frais quotidiens depuis Supabase...');
+            if (typeof window.dailyFeesAPI?.load === 'function') {
+                const feesResult = await window.dailyFeesAPI.load();
+                if (feesResult && feesResult.data) {
+                    window.dailyFees = feesResult.data;
+                    console.log('[REFRESH] ✅ frais quotidiens chargés:', window.dailyFees.length);
+                    
+                    // Afficher le tableau des frais
+                    if (typeof window.displayDailyFeesTable === 'function') {
+                        window.displayDailyFeesTable();
+                    }
+                } else {
+                    window.dailyFees = [];
+                }
+            } else {
+                window.dailyFees = [];
+            }
+            
             console.log('🔄 REFRESH - Nombre total de trades:', trades.length);
             console.log('🔄 REFRESH - Array trades:', trades);
             
@@ -6978,7 +7053,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     return isMatch;
                 });
                 
-                const dayPnl = dayTrades.reduce((sum, trade) => sum + trade.pnl, 0);
+                // ✅ Calculer le P&L des trades
+                let dayPnl = dayTrades.reduce((sum, trade) => sum + trade.pnl, 0);
+                
+                // ✅ Déduire les frais quotidiens s'ils existent
+                const dailyFeesForDate = (window.dailyFees || []).filter(fee => fee.date === dateString);
+                const totalFees = dailyFeesForDate.reduce((sum, fee) => sum + parseFloat(fee.amount || 0), 0);
+                dayPnl = dayPnl - totalFees;
                 
                 let className = 'text-center py-3 cursor-pointer rounded transition-all';
                 if (!isCurrentMonth) {
