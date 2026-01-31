@@ -934,12 +934,17 @@
         /* ✅ Exception: Tableau des frais garde le fond CLAIR en mode sombre */
         body.dark-mode #dailyFeesTable {
             background-color: #ffffff !important;
-            color: #1f2937 !important;
         }
         
+        /* ✅ FORCER tout le texte en NOIR dans le tableau des frais */
+        body.dark-mode #dailyFeesTable *,
+        body.dark-mode #dailyFeesTable span,
+        body.dark-mode #dailyFeesTable div,
+        body.dark-mode #dailyFeesTable p,
         body.dark-mode #dailyFeesTable .text-gray-500,
-        body.dark-mode #dailyFeesTable .text-gray-600 {
-            color: #6b7280 !important;
+        body.dark-mode #dailyFeesTable .text-gray-600,
+        body.dark-mode #dailyFeesTable .font-semibold {
+            color: #1f2937 !important;
         }
         
         body.dark-mode #dailyFeesTable .bg-gray-50 {
