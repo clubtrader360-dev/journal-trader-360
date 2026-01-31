@@ -2335,31 +2335,31 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                 <!-- Semaine 1 -->
                                 <div class="bg-white rounded-lg border border-gray-200 p-3 text-center hover:shadow-md transition">
                                     <div class="text-sm font-semibold text-gray-700 mb-2">Semaine 1</div>
-                                    <div class="text-xl font-bold mb-1" id="week1Pnl">$0.00</div>
+                                    <div class="text-xl font-bold mb-1" id="week1Pnl">0.00$</div>
                                     <div class="text-xs text-gray-500" id="week1Days">0 jour</div>
                                 </div>
                                 <!-- Semaine 2 -->
                                 <div class="bg-white rounded-lg border border-gray-200 p-3 text-center hover:shadow-md transition">
                                     <div class="text-sm font-semibold text-gray-700 mb-2">Semaine 2</div>
-                                    <div class="text-xl font-bold mb-1" id="week2Pnl">$0.00</div>
+                                    <div class="text-xl font-bold mb-1" id="week2Pnl">0.00$</div>
                                     <div class="text-xs text-gray-500" id="week2Days">0 jour</div>
                                 </div>
                                 <!-- Semaine 3 -->
                                 <div class="bg-white rounded-lg border border-gray-200 p-3 text-center hover:shadow-md transition">
                                     <div class="text-sm font-semibold text-gray-700 mb-2">Semaine 3</div>
-                                    <div class="text-xl font-bold mb-1" id="week3Pnl">$0.00</div>
+                                    <div class="text-xl font-bold mb-1" id="week3Pnl">0.00$</div>
                                     <div class="text-xs text-gray-500" id="week3Days">0 jour</div>
                                 </div>
                                 <!-- Semaine 4 -->
                                 <div class="bg-white rounded-lg border border-gray-200 p-3 text-center hover:shadow-md transition">
                                     <div class="text-sm font-semibold text-gray-700 mb-2">Semaine 4</div>
-                                    <div class="text-xl font-bold mb-1" id="week4Pnl">$0.00</div>
+                                    <div class="text-xl font-bold mb-1" id="week4Pnl">0.00$</div>
                                     <div class="text-xs text-gray-500" id="week4Days">0 jour</div>
                                 </div>
                                 <!-- Semaine 5 -->
                                 <div class="bg-white rounded-lg border border-gray-200 p-3 text-center hover:shadow-md transition">
                                     <div class="text-sm font-semibold text-gray-700 mb-2">Semaine 5</div>
-                                    <div class="text-xl font-bold mb-1" id="week5Pnl">$0.00</div>
+                                    <div class="text-xl font-bold mb-1" id="week5Pnl">0.00$</div>
                                     <div class="text-xs text-gray-500" id="week5Days">0 jour</div>
                                 </div>
                             </div>
@@ -7408,10 +7408,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     // Afficher le P&L
                     if (pnl !== 0) {
-                        pnlEl.textContent = pnl >= 0 ? `+$${pnl.toFixed(2)}` : `-$${Math.abs(pnl).toFixed(2)}`;
+                        pnlEl.textContent = pnl >= 0 ? `+${pnl.toFixed(2)}$` : `-${Math.abs(pnl).toFixed(2)}$`;
                         pnlEl.className = 'text-lg font-bold ' + (pnl >= 0 ? 'text-green-600' : 'text-red-600');
                     } else {
-                        pnlEl.textContent = '$0.00';
+                        pnlEl.textContent = '0.00$';
                         pnlEl.className = 'text-lg font-bold text-gray-400';
                     }
                     
