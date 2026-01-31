@@ -931,6 +931,21 @@
             color: #e5e7eb !important;
         }
         
+        /* ✅ Exception: Tableau des frais garde le fond CLAIR en mode sombre */
+        body.dark-mode #dailyFeesTable {
+            background-color: #ffffff !important;
+            color: #1f2937 !important;
+        }
+        
+        body.dark-mode #dailyFeesTable .text-gray-500,
+        body.dark-mode #dailyFeesTable .text-gray-600 {
+            color: #6b7280 !important;
+        }
+        
+        body.dark-mode #dailyFeesTable .bg-gray-50 {
+            background-color: #f9fafb !important;
+        }
+        
         /* ✅ Mode Sombre: Trades d'une journée spécifique (clic sur calendrier) */
         body.dark-mode #dailyTradesDisplay .trader-card {
             background-color: #0a1629 !important;
