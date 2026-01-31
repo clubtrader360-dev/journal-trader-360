@@ -4068,15 +4068,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         .sort((a, b) => new Date(b.date) - new Date(a.date))
                         .map(cost => `
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 text-sm text-gray-900">${cost.date}</td>
-                                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                                <td class="py-3 px-2 text-sm text-gray-900">${cost.date}</td>
+                                <td class="py-3 px-2 text-sm font-medium text-gray-900">
                                     ${cost.account_name || 'Compte inconnu'}
                                     ${cost.notes ? '<br><span class="text-xs text-gray-500">' + cost.notes + '</span>' : ''}
                                 </td>
-                                <td class="px-6 py-4 text-sm font-medium text-green-600">
+                                <td class="py-3 px-2 text-sm font-medium text-red-600 text-right">
                                     $${parseFloat(cost.cost).toFixed(2)}
                                 </td>
-                                <td class="px-6 py-4 text-sm">
+                                <td class="py-3 px-2 text-sm text-center">
                                     <button onclick="viewAccountCost(${cost.id})" 
                                             class="text-gray-700 hover:text-gray-900 mr-2" 
                                             title="Voir les détails">
@@ -4115,15 +4115,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         .sort((a, b) => new Date(b.date) - new Date(a.date))
                         .map(payout => `
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 text-sm text-gray-900">${payout.date}</td>
-                                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                                <td class="py-3 px-2 text-sm text-gray-900">${payout.date}</td>
+                                <td class="py-3 px-2 text-sm font-medium text-gray-900">
                                     ${payout.account_name || 'Compte inconnu'}
                                     ${payout.notes ? '<br><span class="text-xs text-gray-500">' + payout.notes + '</span>' : ''}
                                 </td>
-                                <td class="px-6 py-4 text-sm font-medium text-blue-600">
+                                <td class="py-3 px-2 text-sm font-medium text-green-600 text-right">
                                     $${parseFloat(payout.amount).toFixed(2)}
                                 </td>
-                                <td class="px-6 py-4 text-sm">
+                                <td class="py-3 px-2 text-sm text-center">
                                     <button onclick="viewPayout(${payout.id})" 
                                             class="text-gray-700 hover:text-gray-900 mr-2" 
                                             title="Voir les détails">
