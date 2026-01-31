@@ -777,6 +777,21 @@
             opacity: 1;
         }
         
+        /* Lien Instagram */
+        .sidebar-instagram-link {
+            transition: all 0.2s ease;
+            opacity: 0.9;
+        }
+        
+        .sidebar-instagram-link:hover {
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+        
+        .sidebar-instagram-link:hover span {
+            color: #ffffff !important;
+        }
+        
         .theme-toggle {
             position: relative;
             width: 50px;
@@ -2161,6 +2176,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <div class="theme-toggle-slider"></div>
                     </div>
                     <i class="fas fa-moon theme-icon" style="color: #818cf8; font-size: 16px;"></i>
+                </div>
+                
+                <!-- Lien Instagram -->
+                <div style="margin-top: 20px; padding: 10px 20px; text-align: center;">
+                    <a href="https://www.instagram.com/trader360_officiel/" target="_blank" rel="noopener noreferrer" 
+                       class="sidebar-instagram-link"
+                       style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #e5e7eb; text-decoration: none; font-size: 14px;">
+                        <i class="fab fa-instagram" style="font-size: 20px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></i>
+                        <span style="font-weight: 500;">Notre Instagram</span>
+                    </a>
+                    <p style="color: #9ca3af; font-size: 11px; margin-top: 4px;">@trader360_officiel</p>
                 </div>
             </nav>
         </div>
