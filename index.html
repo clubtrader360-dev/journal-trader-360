@@ -8122,6 +8122,19 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
             
             // ========================================
+            // 8. Plus de 3 trades hors méthode
+            // ========================================
+            const horsMethodeTrades = filteredTrades.filter(t => t.is_hors_methode === true);
+            if (horsMethodeTrades.length > 3) {
+                const horsMethodePercent = (horsMethodeTrades.length / filteredTrades.length) * 100;
+                warnings.push({
+                    severity: 'high',
+                    icon: '❌',
+                    message: `${horsMethodeTrades.length} trades hors méthode détectés (${horsMethodePercent.toFixed(0)}% du total) - Recentrez-vous sur votre plan de trading !`
+                });
+            }
+            
+            // ========================================
             // Trier par sévérité et limiter à 5 alertes
             // ========================================
             const sortedWarnings = warnings
