@@ -947,8 +947,53 @@
             color: #1f2937 !important;
         }
         
+        /* ✅ Exception: Garder le montant en ROUGE */
+        body.dark-mode #dailyFeesTable .text-red-600 {
+            color: #dc2626 !important;
+        }
+        
         body.dark-mode #dailyFeesTable .bg-gray-50 {
             background-color: #f9fafb !important;
+        }
+        
+        /* ✅ Mode Sombre: Pop-up d'alerte (warnings) */
+        body.dark-mode #warningsBanner {
+            background: #FEF2F2 !important;
+            border-color: #FCA5A5 !important;
+        }
+        
+        body.dark-mode #warningsBanner h3,
+        body.dark-mode #warningsBanner p,
+        body.dark-mode #warningsBanner li,
+        body.dark-mode #warningsBanner span,
+        body.dark-mode #warningsBanner div {
+            color: #991B1B !important;
+        }
+        
+        /* ✅ Mode Sombre: TOUS les modals gardent un fond blanc et texte noir */
+        body.dark-mode .modal-content {
+            background-color: #ffffff !important;
+        }
+        
+        body.dark-mode .modal-content h2,
+        body.dark-mode .modal-content h3,
+        body.dark-mode .modal-content label,
+        body.dark-mode .modal-content p,
+        body.dark-mode .modal-content span,
+        body.dark-mode .modal-content div,
+        body.dark-mode .modal-content small,
+        body.dark-mode .modal-content .text-gray-600,
+        body.dark-mode .modal-content .text-gray-700,
+        body.dark-mode .modal-content .text-gray-800 {
+            color: #1f2937 !important;
+        }
+        
+        body.dark-mode .modal-content input,
+        body.dark-mode .modal-content select,
+        body.dark-mode .modal-content textarea {
+            background-color: #ffffff !important;
+            color: #1f2937 !important;
+            border-color: #e1e5e9 !important;
         }
         
         /* ✅ Mode Sombre: Trades d'une journée spécifique (clic sur calendrier) */
