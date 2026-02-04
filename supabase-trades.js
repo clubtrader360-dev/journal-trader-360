@@ -391,7 +391,8 @@ async function loadAccounts() {
         .from('trades')
         .select('*')  // ✅ Charger TOUTES les colonnes
         .eq('user_id', window.currentUser.uuid)
-        .order('entry_time', { ascending: false });
+        .order('entry_time', { ascending: false })
+        .limit(10000);  // ✅ AJOUT: Limite explicite de 10 000 trades (au lieu de 1000 par défaut)
 
       if (error) {
         console.error('[TRADES] ❌ Erreur chargement trades:', error);
