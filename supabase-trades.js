@@ -197,6 +197,59 @@ async function loadAccounts() {
   }
 
   // ========================================
+  // 3️⃣ UPDATE ACCOUNT
+  // ========================================
+  async function updateAccount(accountId, updatedData) {
+    console.log('[TRADES] updateAccount() - START', accountId, updatedData);
+
+    if (!window.currentUser || !window.currentUser.uuid) {
+      console.error('[TRADES] ❌ Erreur : utilisateur non connecté');
+      return { data: null, error: 'User not logged in' };
+    }
+
+    // ✅ VALIDATION : Au moins un champ à mettre à jour
+    if (!updatedData || Object.keys(updatedData).length === 0) {
+      console.error('[TRADES] ❌ Erreur : aucune donnée à mettre à jour');
+      return { data: null, error: 'No data to update' };
+    }
+
+    // ✅ VALIDATION : Si le nom est présent, il ne doit pas être vide
+    if (updatedData.name !== undefined && updatedData.name.trim() === '') {
+      console.error('[TRADES] ❌ Erreur : nom du compte vide');
+      alert('❌ Erreur : le nom du compte ne peut pas être vide.');
+      return { data: null, error: 'Name cannot be empty' };
+    }
+
+    try {
+      // ✅ Mise à jour dans Supabase
+      const { data, error } = await supabase
+        .from('accounts')
+        .update(updatedData)
+        .eq('id', accountId)
+        .eq('user_id', window.currentUser.uuid)
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('[TRADES] ❌ Erreur mise à jour compte:', error);
+        alert(`❌ Erreur : ${error.message}`);
+        return { data: null, error };
+      }
+
+      console.log('[TRADES] ✅ Compte mis à jour:', data);
+
+      // ✅ Recharger les comptes
+      await loadAccounts();
+
+      return { data, error: null };
+    } catch (err) {
+      console.error('[TRADES] ❌ Exception updateAccount:', err);
+      alert(`❌ Erreur : ${err.message}`);
+      return { data: null, error: err };
+    }
+  }
+
+  // ========================================
   // 4️⃣ ADD TRADE
   // ========================================
   async function addTrade(tradeData) {
@@ -555,6 +608,7 @@ async function loadAccounts() {
   window.tradesAPI = {
     loadAccounts,
     addAccount,
+    updateAccount,
     deleteAccount,
     loadTrades,
     addTrade,
@@ -565,6 +619,7 @@ async function loadAccounts() {
   // ⚠️ À SUPPRIMER DANS LA V3 (une fois migration UI complète)
   window.loadAccounts = loadAccounts;
   window.addAccount = addAccount;
+  window.updateAccount = updateAccount;
   window.deleteAccount = deleteAccount;
   window.loadTrades = loadTrades;
   window.addTrade = addTrade;

@@ -420,6 +420,28 @@
             transform: scale(0.95);
         }
 
+        .account-edit-btn {
+            background: transparent;
+            border: none;
+            color: #ac862b;
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .account-edit-btn:hover {
+            background: rgba(172, 134, 43, 0.1);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .account-edit-btn:active {
+            transform: scale(0.95);
+        }
+
         /* TradersZella Style Top Banner */
         .traderzella-banner {
             background: white;
@@ -5382,6 +5404,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <div class="account-name">${account.name}</div>
                         <div class="account-size text-xs">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
                     </div>
+                    <button onclick="editAccountName(${account.id})" class="account-edit-btn" title="Modifier le nom" style="margin-right: 4px;">
+                        <i class="fas fa-pen"></i>
+                    </button>
                     <button onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -5465,6 +5490,55 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         function showAddAccountModal() {
             document.getElementById('addAccountModal').style.display = 'block';
         }
+
+        // ========================================
+        // FONCTION: Modifier le nom d'un compte
+        // ========================================
+        async function editAccountName(accountId) {
+            console.log('[EDIT] editAccountName() - ID:', accountId);
+            
+            const account = accounts.find(a => a.id === accountId);
+            if (!account) {
+                alert('❌ Compte non trouvé');
+                return;
+            }
+            
+            // Demander le nouveau nom
+            const newName = prompt(`Modifier le nom du compte "${account.name}":`, account.name);
+            
+            // Si l'utilisateur annule ou entre un nom vide, ne rien faire
+            if (!newName || newName.trim() === '' || newName === account.name) {
+                return;
+            }
+            
+            console.log('[EDIT] Nouveau nom:', newName);
+            
+            // Vérifier que window.updateAccount existe
+            if (typeof window.updateAccount !== 'function') {
+                alert('❌ Erreur : module de mise à jour non disponible');
+                console.error('[EDIT] window.updateAccount non disponible');
+                return;
+            }
+            
+            // Appeler la fonction updateAccount
+            const result = await window.updateAccount(accountId, { name: newName.trim() });
+            
+            if (result && !result.error) {
+                console.log('[EDIT] ✅ Compte mis à jour:', result.data);
+                
+                // Rafraîchir l'affichage
+                if (typeof window.refreshAllModules === 'function') {
+                    await window.refreshAllModules();
+                }
+                
+                alert(`✅ Compte renommé : "${account.name}" → "${newName}"`);
+            } else {
+                console.error('[EDIT] ❌ Erreur:', result?.error);
+            }
+        }
+        
+        // Exposition globale
+        window.editAccountName = editAccountName;
 
 
         function deleteAccount_DISABLED(accountId) { return; // DÉSACTIVÉ - Voir supabase-trades.js
