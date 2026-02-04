@@ -2993,6 +2993,36 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         </div>
     </div>
 
+    <!-- Edit Account Modal -->
+    <div id="editAccountModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editAccountModal')">&times;</span>
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Modifier le Compte</h2>
+            
+            <form id="editAccountForm">
+                <input type="hidden" id="editAccountId">
+                
+                <div class="form-group">
+                    <label>Nom du compte</label>
+                    <input type="text" id="editAccountName" placeholder="Ex: Compte 100K" required>
+                </div>
+                <div class="form-group">
+                    <label>Type de compte</label>
+                    <select id="editAccountType" required>
+                        <option value="demo">Demo</option>
+                        <option value="funded">Funded</option>
+                        <option value="challenge">Challenge</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-4 mt-6">
+                    <button type="button" onclick="saveAccountEdit()" class="trader-btn-secondary flex-1">Enregistrer</button>
+                    <button type="button" onclick="closeModal('editAccountModal')" class="trader-btn-secondary flex-1">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Add Trade Modal -->
     <div id="addTradeModal" class="modal">
         <div class="modal-content">
@@ -5492,7 +5522,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         }
 
         // ========================================
-        // FONCTION: Modifier le nom d'un compte
+        // FONCTION: Modifier un compte (nom + type)
         // ========================================
         async function editAccountName(accountId) {
             console.log('[EDIT] editAccountName() - ID:', accountId);
@@ -5503,15 +5533,29 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            // Demander le nouveau nom
-            const newName = prompt(`Modifier le nom du compte "${account.name}":`, account.name);
+            // Remplir les champs de la modal avec les valeurs actuelles
+            document.getElementById('editAccountId').value = accountId;
+            document.getElementById('editAccountName').value = account.name;
+            document.getElementById('editAccountType').value = account.type;
             
-            // Si l'utilisateur annule ou entre un nom vide, ne rien faire
-            if (!newName || newName.trim() === '' || newName === account.name) {
+            // Ouvrir la modal
+            document.getElementById('editAccountModal').style.display = 'block';
+        }
+        
+        // ========================================
+        // FONCTION: Sauvegarder les modifications du compte
+        // ========================================
+        async function saveAccountEdit() {
+            const accountId = document.getElementById('editAccountId').value;
+            const newName = document.getElementById('editAccountName').value.trim();
+            const newType = document.getElementById('editAccountType').value;
+            
+            if (!newName) {
+                alert('❌ Le nom du compte ne peut pas être vide');
                 return;
             }
             
-            console.log('[EDIT] Nouveau nom:', newName);
+            console.log('[EDIT] Sauvegarde des modifications:', { accountId, newName, newType });
             
             // Vérifier que window.updateAccount existe
             if (typeof window.updateAccount !== 'function') {
@@ -5521,17 +5565,23 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
             
             // Appeler la fonction updateAccount
-            const result = await window.updateAccount(accountId, { name: newName.trim() });
+            const result = await window.updateAccount(accountId, { 
+                name: newName,
+                type: newType
+            });
             
             if (result && !result.error) {
                 console.log('[EDIT] ✅ Compte mis à jour:', result.data);
+                
+                // Fermer la modal
+                closeModal('editAccountModal');
                 
                 // Rafraîchir l'affichage
                 if (typeof window.refreshAllModules === 'function') {
                     await window.refreshAllModules();
                 }
                 
-                alert(`✅ Compte renommé : "${account.name}" → "${newName}"`);
+                alert(`✅ Compte modifié avec succès`);
             } else {
                 console.error('[EDIT] ❌ Erreur:', result?.error);
             }
@@ -5539,6 +5589,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         
         // Exposition globale
         window.editAccountName = editAccountName;
+        window.saveAccountEdit = saveAccountEdit;
 
 
         function deleteAccount_DISABLED(accountId) { return; // DÉSACTIVÉ - Voir supabase-trades.js
