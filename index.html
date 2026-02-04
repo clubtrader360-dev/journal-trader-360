@@ -6928,7 +6928,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                     (trade.instrument === 'ES' ? 50 : 
                                      trade.instrument === 'NQ' ? 20 : 
                                      trade.instrument === 'MES' ? 5 : 
-                                     trade.instrument === 'GC' ? 100 : 1);
+                                     trade.instrument === 'MNQ' ? 2 : 
+                                     trade.instrument === 'GC' ? 100 : 
+                                     trade.instrument === 'MGC' ? 10 : 1);
                         
                         // ✅ Soustraire les frais du P&L calculé
                         const fees = trade.fees || 0;
