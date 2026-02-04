@@ -2685,6 +2685,22 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Pagination -->
+                    <div id="tradesPagination" class="flex justify-between items-center mt-4 px-6 py-4 bg-gray-50 border-t border-gray-200" style="display: none;">
+                        <div class="text-sm text-gray-600">
+                            Affichage de <span id="tradesRangeStart">1</span>-<span id="tradesRangeEnd">100</span> sur <span id="tradesTotalCount">0</span> trades
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="tradesPrevBtn" onclick="changeTradePage(-1)" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-chevron-left"></i> Précédent
+                            </button>
+                            <span id="tradesPageInfo" class="px-3 py-1 text-sm text-gray-600">Page 1</span>
+                            <button id="tradesNextBtn" onclick="changeTradePage(1)" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                Suivant <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -4019,9 +4035,14 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         // DÉCLARATION GLOBALE: updateTradesTable
         // (Doit être définie APRÈS les variables globales)
         // ========================================
+        // Variables de pagination
+        let currentTradePage = 1;
+        const TRADES_PER_PAGE = 100;
+        
         window.updateTradesTable = function() {
             console.log("  → updateTradesTable() appelée");
             const tbody = document.getElementById('tradesTableBody');
+            const paginationDiv = document.getElementById('tradesPagination');
             
             // Filtrer par comptes actifs (cochés)
             const activeAccounts = accounts.filter(a => a.active === true).map(a => a.id);
@@ -4034,17 +4055,27 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return dateB - dateA;
             });
             
-            if (filteredTrades.length === 0) {
+            const totalTrades = filteredTrades.length;
+            
+            if (totalTrades === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="11" class="px-6 py-4 text-center text-gray-500">
                             Aucun trade enregistré pour les comptes sélectionnés.
                         </td>
                     </tr>`;
+                paginationDiv.style.display = 'none';
                 return;
             }
             
-            tbody.innerHTML = filteredTrades.map(trade => {
+            // Calcul de la pagination
+            const totalPages = Math.ceil(totalTrades / TRADES_PER_PAGE);
+            const startIndex = (currentTradePage - 1) * TRADES_PER_PAGE;
+            const endIndex = Math.min(startIndex + TRADES_PER_PAGE, totalTrades);
+            const tradesToDisplay = filteredTrades.slice(startIndex, endIndex);
+            
+            // Afficher les trades de la page courante
+            tbody.innerHTML = tradesToDisplay.map(trade => {
                 const account = accounts.find(a => a.id === trade.accountId);
                 const accountName = account ? account.name : 'Compte inconnu';
                 const accountColor = account ? (account.color || '#4A5568') : '#4A5568';
@@ -4099,6 +4130,34 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     </tr>
                 `;
             }).join('');
+            
+            // Mise à jour de la pagination
+            if (totalPages > 1) {
+                paginationDiv.style.display = 'flex';
+                document.getElementById('tradesRangeStart').textContent = startIndex + 1;
+                document.getElementById('tradesRangeEnd').textContent = endIndex;
+                document.getElementById('tradesTotalCount').textContent = totalTrades;
+                document.getElementById('tradesPageInfo').textContent = `Page ${currentTradePage} / ${totalPages}`;
+                
+                // Activer/désactiver les boutons
+                document.getElementById('tradesPrevBtn').disabled = currentTradePage === 1;
+                document.getElementById('tradesNextBtn').disabled = currentTradePage === totalPages;
+            } else {
+                paginationDiv.style.display = 'none';
+            }
+        }
+        
+        // Fonction pour changer de page
+        window.changeTradePage = function(direction) {
+            const activeAccounts = accounts.filter(a => a.active === true).map(a => a.id);
+            const filteredTrades = trades.filter(trade => activeAccounts.includes(trade.accountId));
+            const totalPages = Math.ceil(filteredTrades.length / TRADES_PER_PAGE);
+            
+            currentTradePage += direction;
+            if (currentTradePage < 1) currentTradePage = 1;
+            if (currentTradePage > totalPages) currentTradePage = totalPages;
+            
+            window.updateTradesTable();
         }
         console.log('[INIT] ✅ window.updateTradesTable définie (après variables globales)');
 
