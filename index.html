@@ -1329,7 +1329,9 @@ async function addTradeUI() {
             'ES': 50,      // E-mini S&P 500 : $50/point
             'MES': 5,      // Micro E-mini S&P 500 : $5/point
             'NQ': 20,      // E-mini Nasdaq-100 : $20/point
+            'MNQ': 2,      // Micro E-mini Nasdaq-100 : $2/point
             'GC': 100,     // Gold : $100/point
+            'MGC': 10,     // Micro Gold : $10/point
             'DEMO': 1      // DEMO : P&L manuel
         };
         
@@ -2985,7 +2987,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             <option value="ES">ES (E-mini S&P 500 - $50/point)</option>
                             <option value="MES">MES (Micro E-mini S&P 500 - $5/point)</option>
                             <option value="NQ">NQ (E-mini Nasdaq-100 - $20/point)</option>
+                            <option value="MNQ">MNQ (Micro E-mini Nasdaq-100 - $2/point)</option>
                             <option value="GC">GC (Gold - $100/point)</option>
+                            <option value="MGC">MGC (Micro Gold - $10/point)</option>
                             <option value="DEMO">DEMO (Saisie manuelle du P&L)</option>
                         </select>
                     </div>
@@ -3670,7 +3674,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     if (symbol.startsWith('ES') && symbol.length > 2) symbol = 'ES';
                     if (symbol.startsWith('MES') && symbol.length > 3) symbol = 'MES';
                     if (symbol.startsWith('NQ') && symbol.length > 2) symbol = 'NQ';
+                    if (symbol.startsWith('MNQ') && symbol.length > 3) symbol = 'MNQ';
                     if (symbol.startsWith('GC') && symbol.length > 2) symbol = 'GC';
+                    if (symbol.startsWith('MGC') && symbol.length > 3) symbol = 'MGC';
                     
                     // Parser les prix et quantité
                     const entryPrice = parseFloat(values[colIndices.entryPrice]);
@@ -3783,7 +3789,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         const multiplier = symbol === 'MES' ? 5 : 
                                           symbol === 'ES' ? 50 : 
                                           symbol === 'NQ' ? 20 : 
-                                          symbol === 'GC' ? 100 : 1;
+                                          symbol === 'MNQ' ? 2 : 
+                                          symbol === 'GC' ? 100 : 
+                                          symbol === 'MGC' ? 10 : 1;
                         pnl = (exitPrice - entryPrice) * quantity * multiplier;
                         if (tradeType === 'SHORT') pnl = -pnl;
                         console.log('[CSV] P&L calculé automatiquement:', pnl, '(multiplier:', multiplier, ')');
