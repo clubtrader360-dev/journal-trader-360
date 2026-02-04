@@ -247,7 +247,9 @@ async function loadAccounts() {
         'ES': 50,
         'MES': 5,
         'NQ': 20,
+        'MNQ': 2,
         'GC': 100,
+        'MGC': 10,
         'DEMO': 1
       };
       
