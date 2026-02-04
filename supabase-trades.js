@@ -387,20 +387,40 @@ async function loadAccounts() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('trades')
-        .select('*')  // ✅ Charger TOUTES les colonnes
-        .eq('user_id', window.currentUser.uuid)
-        .order('entry_time', { ascending: false })
-        .limit(10000);  // ✅ AJOUT: Limite explicite de 10 000 trades (au lieu de 1000 par défaut)
+      // ✅ CHARGEMENT PAR BATCH DE 1000 TRADES (ILLIMITÉ)
+      let allTrades = [];
+      let hasMore = true;
+      let offset = 0;
+      const batchSize = 1000;
 
-      if (error) {
-        console.error('[TRADES] ❌ Erreur chargement trades:', error);
-        return { data: [], error };
+      console.log('[TRADES] 📦 Chargement des trades par batch de', batchSize);
+
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('trades')
+          .select('*')
+          .eq('user_id', window.currentUser.uuid)
+          .order('entry_time', { ascending: false })
+          .range(offset, offset + batchSize - 1);
+
+        if (error) {
+          console.error('[TRADES] ❌ Erreur chargement batch', offset, '-', offset + batchSize, ':', error);
+          return { data: allTrades, error };
+        }
+
+        console.log(`[TRADES] ✅ Batch ${offset}-${offset + batchSize} : ${data.length} trades`);
+        allTrades = allTrades.concat(data);
+
+        // Si moins de batchSize trades, c'est le dernier batch
+        if (data.length < batchSize) {
+          hasMore = false;
+        } else {
+          offset += batchSize;
+        }
       }
 
-      console.log(`[TRADES] ✅ Trades chargés: ${data.length}`, data);
-      return { data, error: null };
+      console.log(`[TRADES] ✅ TOTAL CHARGÉ: ${allTrades.length} trades`);
+      return { data: allTrades, error: null };
     } catch (err) {
       console.error('[TRADES] ❌ Exception loadTrades:', err);
       return { data: [], error: err };
