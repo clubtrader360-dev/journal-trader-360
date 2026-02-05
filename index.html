@@ -6119,13 +6119,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (document.getElementById('tradeContreTendance')) document.getElementById('tradeContreTendance').checked = false;
             if (document.getElementById('tradeBreakEven')) document.getElementById('tradeBreakEven').checked = false;
             
+            // ✅ Décocher Méthode / Hors Méthode
+            if (document.getElementById('tradeMethode')) document.getElementById('tradeMethode').checked = false;
+            if (document.getElementById('tradeHorsMethode')) document.getElementById('tradeHorsMethode').checked = false;
+            
             // Masquer le champ P&L manuel
             document.getElementById('manualPnLGroup').style.display = 'none';
             document.getElementById('manualPnL').value = '';
             document.getElementById('manualPnL').required = false;
             
             // Supprimer l'ID du trade (mode création)
-            delete document.getElementById('addTradeModal').dataset.tradeId;
+            delete document.getElementById('addTradeModal').dataset.editingId;
             
             // Changer le titre pour "Ajouter un Trade"
             document.querySelector('#addTradeModal h2').textContent = 'Ajouter un Trade';
@@ -6639,6 +6643,20 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (breakEvenCheckbox) {
                 breakEvenCheckbox.checked = trade.is_break_even || false;
                 console.log('[EDIT] Break-Even:', trade.is_break_even ? '✅ Coché' : 'Non coché');
+            }
+            
+            // ✅ RECHARGER LES CASES MÉTHODE / HORS MÉTHODE
+            const methodeCheckbox = document.getElementById('tradeMethode');
+            const horsMethodeCheckbox = document.getElementById('tradeHorsMethode');
+            
+            if (methodeCheckbox) {
+                methodeCheckbox.checked = trade.is_methode || false;
+                console.log('[EDIT] Méthode:', trade.is_methode ? '✅ Coché' : 'Non coché');
+            }
+            
+            if (horsMethodeCheckbox) {
+                horsMethodeCheckbox.checked = trade.is_hors_methode || false;
+                console.log('[EDIT] Hors Méthode:', trade.is_hors_methode ? '✅ Coché' : 'Non coché');
             }
             
             // Stocker l'ID du trade en cours de modification
