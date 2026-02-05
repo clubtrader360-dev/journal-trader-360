@@ -4956,12 +4956,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 // Break-Even - checkbox
                 const is_break_even = document.getElementById('tradeBreakEven')?.checked || false;
                 
+                // Méthode / Hors Méthode - checkboxes
+                const is_methode = document.getElementById('tradeMethode')?.checked || false;
+                const is_hors_methode = document.getElementById('tradeHorsMethode')?.checked || false;
+                
                 console.log('[UI] Données extraites:', { 
                     account_id, trade_date, entry_time, exit_time, symbol, trade_type, 
                     entry_price, exit_price, quantity, stop_loss, take_profit, setup, notes, manual_pnl,
                     fees,  // ✅ AJOUT: Log des frais
                     trade_trend_type,
-                    is_break_even
+                    is_break_even,
+                    is_methode,
+                    is_hors_methode
                 });
                 
                 // Validation détaillée
@@ -5007,7 +5013,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     protections: protections.length > 0 ? protections : null, // ✅ Envoyer un ARRAY
                     trade_trend_type: trade_trend_type,  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
                     fees: fees,  // ✅ FRAIS lus depuis le formulaire
-                    is_break_even: is_break_even  // ✅ AJOUT: Indicateur Break-Even manuel
+                    is_break_even: is_break_even,  // ✅ AJOUT: Indicateur Break-Even manuel
+                    is_methode: is_methode,  // ✅ AJOUT: Trade méthode
+                    is_hors_methode: is_hors_methode  // ✅ AJOUT: Trade hors méthode
                 };
                 
                 // ✅ Si on est en mode édition, ajouter l'ID
