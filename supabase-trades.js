@@ -359,7 +359,9 @@ async function loadAccounts() {
       protections: tradeData.protections || null,
       trade_trend_type: tradeData.trade_trend_type || 'Non spécifié',  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
       fees: tradeData.fees || 0,  // ✅ AJOUT: Frais de trading
-      is_break_even: tradeData.is_break_even || false  // ✅ AJOUT: Indicateur Break-Even manuel
+      is_break_even: tradeData.is_break_even || false,  // ✅ AJOUT: Indicateur Break-Even manuel
+      is_methode: tradeData.is_methode || false,  // ✅ AJOUT: Trade méthode
+      is_hors_methode: tradeData.is_hors_methode || false  // ✅ AJOUT: Trade hors méthode
     };
     
     console.log('[TRADES] 📦 Payload final avec timestamps:', tradeWithUser);

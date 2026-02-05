@@ -3758,8 +3758,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     if (isTimestampFormat) {
                         // Format: "01/14/2026 09:34:18"
-                        const entryTimestamp = values[colIndices.entryTime];
-                        const exitTimestamp = values[colIndices.exitTime];
+                        // ✅ FIX : Récupérer bought et sold depuis les valeurs
+                        const boughtIdx = header.findIndex(h => h === 'boughttimestamp');
+                        const soldIdx = header.findIndex(h => h === 'soldtimestamp');
+                        const buyTimestamp = boughtIdx !== -1 ? values[boughtIdx] : '';
+                        const sellTimestamp = soldIdx !== -1 ? values[soldIdx] : '';
+                        
+                        // ✅ FIX : Pour SHORT, bought = sortie et sold = entrée
+                        const entryTimestamp = tradeType === 'SHORT' ? sellTimestamp : buyTimestamp;
+                        const exitTimestamp = tradeType === 'SHORT' ? buyTimestamp : sellTimestamp;
                         
                         if (entryTimestamp && entryTimestamp.includes(' ')) {
                             const [datePart, timePart] = entryTimestamp.split(' ');
@@ -3780,7 +3787,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             }
                         }
                         
-                        console.log('[CSV-TradeDefy] Date:', tradeDate, 'Entry:', entryTime, 'Exit:', exitTime);
+                        console.log('[CSV-TradeDefy] Type:', tradeType, 'Date:', tradeDate, 'Entry:', entryTime, '(from', tradeType === 'SHORT' ? 'sold' : 'bought', ') Exit:', exitTime, '(from', tradeType === 'SHORT' ? 'bought' : 'sold', ')');
                     } else {
                         // ===== TOPSTEPX : Format standard =====
                         tradeDate = values[colIndices.date];
@@ -7144,7 +7151,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             protections: trade.protections || [],  // ✅ Ajouter les protections (ARRAY)
                             notes: trade.notes || '',
                             trade_trend_type: trade.trade_trend_type || 'Non spécifié',  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
-                            is_break_even: trade.is_break_even || false  // ✅ AJOUT: Indicateur Break-Even manuel
+                            is_break_even: trade.is_break_even || false,  // ✅ AJOUT: Indicateur Break-Even manuel
+                            is_methode: trade.is_methode || false,  // ✅ AJOUT: Trade méthode
+                            is_hors_methode: trade.is_hors_methode || false  // ✅ AJOUT: Trade hors méthode
                         };
                     });
                     
