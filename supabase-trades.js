@@ -364,6 +364,13 @@ async function loadAccounts() {
       is_hors_methode: tradeData.is_hors_methode || false  // ✅ AJOUT: Trade hors méthode
     };
     
+    console.log('🔍 [DEBUG METHODE SUPABASE] Valeurs reçues:', {
+      is_methode_input: tradeData.is_methode,
+      is_hors_methode_input: tradeData.is_hors_methode,
+      is_methode_final: tradeWithUser.is_methode,
+      is_hors_methode_final: tradeWithUser.is_hors_methode
+    });
+    
     console.log('[TRADES] 📦 Payload final avec timestamps:', tradeWithUser);
     console.log('[TRADES] 🔍 Vérification des champs obligatoires:');
     console.log('  - user_id:', tradeWithUser.user_id ? '✅' : '❌');

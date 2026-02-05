@@ -1314,6 +1314,15 @@ async function addTradeUI() {
     const is_methode = document.getElementById('tradeMethode')?.checked || false;
     const is_hors_methode = document.getElementById('tradeHorsMethode')?.checked || false;
     
+    console.log('🔍 [DEBUG METHODE] Checkboxes récupérées:', {
+        tradeMethode_element: document.getElementById('tradeMethode'),
+        tradeMethode_checked: document.getElementById('tradeMethode')?.checked,
+        is_methode: is_methode,
+        tradeHorsMethode_element: document.getElementById('tradeHorsMethode'),
+        tradeHorsMethode_checked: document.getElementById('tradeHorsMethode')?.checked,
+        is_hors_methode: is_hors_methode
+    });
+    
     console.log('[UI] Données extraites:', { 
         account_id, trade_date, entry_time, exit_time, symbol, trade_type, 
         entry_price, exit_price, quantity, stop_loss, take_profit, setup, notes, manual_pnl,
