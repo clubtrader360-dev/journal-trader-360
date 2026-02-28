@@ -358,7 +358,7 @@
             display: flex;
             align-items: center;
             padding: 12px 20px;
-            cursor: move;
+            cursor: grab;
             transition: all 0.3s ease;
             border-radius: 8px;
             margin: 4px 0;
@@ -366,6 +366,10 @@
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
+        }
+        
+        .account-item:active {
+            cursor: grabbing;
         }
         
         .account-item * {
