@@ -76,14 +76,17 @@ async function loadAccounts() {
         
         if (accountsList) {
             // Charger la liste des comptes cramés depuis localStorage (visuel uniquement)
-            const blownAccountIds = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+            const blownAccountIdsRaw = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+            // Forcer la conversion en nombres pour éviter les problèmes de comparaison
+            const blownAccountIds = blownAccountIdsRaw.map(id => parseInt(id));
             
-            console.log('[TRADES] 🔍 localStorage blownAccounts:', blownAccountIds);
-            console.log('[TRADES] 🔍 Tous les comptes (data):', data.map(a => ({ id: a.id, name: a.name })));
+            console.log('[TRADES] 🔍 localStorage blownAccounts (raw):', blownAccountIdsRaw);
+            console.log('[TRADES] 🔍 localStorage blownAccounts (parsed):', blownAccountIds);
+            console.log('[TRADES] 🔍 Tous les comptes (data):', data.map(a => ({ id: a.id, name: a.name, typeId: typeof a.id })));
             
             // Séparer les comptes actifs et cramés
-            const activeAccounts = data.filter(account => !blownAccountIds.includes(account.id));
-            const blownAccounts = data.filter(account => blownAccountIds.includes(account.id));
+            const activeAccounts = data.filter(account => !blownAccountIds.includes(parseInt(account.id)));
+            const blownAccounts = data.filter(account => blownAccountIds.includes(parseInt(account.id)));
             
             console.log('[TRADES] 📊 Comptes actifs:', activeAccounts.length, '| Comptes cramés:', blownAccounts.length);
             console.log('[TRADES] 📊 IDs actifs:', activeAccounts.map(a => a.id));
