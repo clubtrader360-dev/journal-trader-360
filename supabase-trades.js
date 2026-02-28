@@ -100,7 +100,7 @@ async function loadAccounts() {
                     // ✅ Utiliser la valeur 'active' depuis Supabase, par défaut true si non défini
                     const isActive = account.active !== undefined ? account.active : true;
                     return `
-                        <div class="account-item" draggable="true" data-account-id="${account.id}" ondragstart="handleDragStart(event, ${account.id}, 'active')">
+                        <div class="account-item" draggable="true" data-account-id="${account.id}" data-from="active">
                             <input type="checkbox" class="account-checkbox" ${isActive ? 'checked' : ''} 
                                    draggable="false"
                                    onchange="toggleAccount(${account.id})" 
@@ -118,6 +118,16 @@ async function loadAccounts() {
                         </div>
                     `;
                 }).join('');
+                
+                // ✅ Attacher les événements drag & drop après génération HTML
+                accountsList.querySelectorAll('.account-item').forEach(item => {
+                    item.addEventListener('dragstart', (e) => {
+                        const accountId = item.getAttribute('data-account-id');
+                        const from = item.getAttribute('data-from');
+                        console.log('[DRAG] 🎯 dragstart event:', { accountId, from });
+                        window.handleDragStart(e, parseInt(accountId), from);
+                    });
+                });
             }
             
             // Afficher la section des comptes cramés (toujours visible)
@@ -127,7 +137,7 @@ async function loadAccounts() {
                 if (blownAccounts.length > 0) {
                     blownAccountsList.innerHTML = blownAccounts.map(account => {
                         return `
-                            <div class="account-item" draggable="true" data-account-id="${account.id}" ondragstart="handleDragStart(event, ${account.id}, 'blown')" style="opacity: 0.6;">
+                            <div class="account-item" draggable="true" data-account-id="${account.id}" data-from="blown" style="opacity: 0.6;">
                                 <div class="account-info" style="flex: 1;">
                                     <div class="account-name" style="text-decoration: line-through; color: #6b7280;">${account.name}</div>
                                     <div class="account-size text-xs" style="color: #9ca3af;">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
@@ -138,6 +148,17 @@ async function loadAccounts() {
                             </div>
                         `;
                     }).join('');
+                    
+                    // ✅ Attacher les événements drag & drop après génération HTML
+                    blownAccountsList.querySelectorAll('.account-item').forEach(item => {
+                        item.addEventListener('dragstart', (e) => {
+                            const accountId = item.getAttribute('data-account-id');
+                            const from = item.getAttribute('data-from');
+                            console.log('[DRAG] 🎯 dragstart event (blown):', { accountId, from });
+                            window.handleDragStart(e, parseInt(accountId), from);
+                        });
+                    });
+                    
                     console.log('[TRADES] ✅ blownAccountsList mis à jour:', blownAccounts.length, 'comptes');
                 } else {
                     // Zone vide pour drop
