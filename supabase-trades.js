@@ -100,45 +100,23 @@ async function loadAccounts() {
                     // ✅ Utiliser la valeur 'active' depuis Supabase, par défaut true si non défini
                     const isActive = account.active !== undefined ? account.active : true;
                     return `
-                        <div class="account-item" draggable="true" data-account-id="${account.id}" data-from="active">
+                        <div class="account-item" draggable="true" data-account-id="${account.id}" ondragstart="handleDragStart(event, ${account.id}, 'active')" style="cursor: move;">
                             <input type="checkbox" class="account-checkbox" ${isActive ? 'checked' : ''} 
-                                   draggable="false"
                                    onchange="toggleAccount(${account.id})" 
                                    title="Activer/Désactiver ce compte dans les métriques">
                             <div class="account-info" style="flex: 1;">
                                 <div class="account-name">${account.name}</div>
                                 <div class="account-size text-xs">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
                             </div>
-                            <button draggable="false" onclick="editAccountName(${account.id})" class="account-edit-btn" title="Modifier" style="margin-right: 4px;">
+                            <button onclick="editAccountName(${account.id})" class="account-edit-btn" title="Modifier" style="margin-right: 4px;">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button draggable="false" onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
+                            <button onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     `;
                 }).join('');
-                
-                // ✅ Attacher les événements drag & drop après génération HTML
-                accountsList.querySelectorAll('.account-item').forEach(item => {
-                    const accountId = item.getAttribute('data-account-id');
-                    const from = item.getAttribute('data-from');
-                    
-                    item.addEventListener('dragstart', (e) => {
-                        console.log('[DRAG] 🚀 DRAGSTART !', { accountId, from });
-                        e.dataTransfer.effectAllowed = 'move';
-                        e.dataTransfer.setData('text/plain', accountId);
-                        e.target.style.opacity = '0.4';
-                        
-                        // Stocker dans variables globales
-                        window.draggedAccountId = parseInt(accountId);
-                        window.draggedFrom = from;
-                    });
-                    
-                    item.addEventListener('dragend', (e) => {
-                        e.target.style.opacity = '1';
-                    });
-                });
             }
             
             // Afficher la section des comptes cramés (toujours visible)
@@ -148,114 +126,22 @@ async function loadAccounts() {
                 if (blownAccounts.length > 0) {
                     blownAccountsList.innerHTML = blownAccounts.map(account => {
                         return `
-                            <div class="account-item" draggable="true" data-account-id="${account.id}" data-from="blown" style="opacity: 0.6;">
+                            <div class="account-item" draggable="true" data-account-id="${account.id}" ondragstart="handleDragStart(event, ${account.id}, 'blown')" style="opacity: 0.6; cursor: move;">
                                 <div class="account-info" style="flex: 1;">
                                     <div class="account-name" style="text-decoration: line-through; color: #6b7280;">${account.name}</div>
                                     <div class="account-size text-xs" style="color: #9ca3af;">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
                                 </div>
-                                <button draggable="false" onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
+                                <button onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         `;
                     }).join('');
-                    
-                    // ✅ Attacher les événements drag & drop après génération HTML
-                    blownAccountsList.querySelectorAll('.account-item').forEach(item => {
-                        const accountId = item.getAttribute('data-account-id');
-                        const from = item.getAttribute('data-from');
-                        
-                        item.addEventListener('dragstart', (e) => {
-                            console.log('[DRAG] 🚀 DRAGSTART (blown) !', { accountId, from });
-                            e.dataTransfer.effectAllowed = 'move';
-                            e.dataTransfer.setData('text/plain', accountId);
-                            e.target.style.opacity = '0.2';
-                            
-                            // Stocker dans variables globales
-                            window.draggedAccountId = parseInt(accountId);
-                            window.draggedFrom = from;
-                        });
-                        
-                        item.addEventListener('dragend', (e) => {
-                            e.target.style.opacity = '0.6';
-                        });
-                    });
-                    
                     console.log('[TRADES] ✅ blownAccountsList mis à jour:', blownAccounts.length, 'comptes');
                 } else {
                     // Zone vide pour drop
                     blownAccountsList.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm" style="font-style: italic;">Glissez un compte ici pour l\'archiver</p>';
                 }
-            }
-            
-            // ✅ DRAG & DROP : Attacher dragover et drop sur les zones
-            if (accountsList) {
-                accountsList.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                    accountsList.style.backgroundColor = 'rgba(172, 134, 43, 0.1)';
-                    accountsList.style.border = '2px dashed #ac862b';
-                });
-                
-                accountsList.addEventListener('dragleave', (e) => {
-                    accountsList.style.backgroundColor = '';
-                    accountsList.style.border = '';
-                });
-                
-                accountsList.addEventListener('drop', async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    accountsList.style.backgroundColor = '';
-                    accountsList.style.border = '';
-                    
-                    console.log('[DROP] 🎯 Drop sur ACTIFS | Compte:', window.draggedAccountId, '| Depuis:', window.draggedFrom);
-                    
-                    if (window.draggedFrom === 'blown') {
-                        // Restaurer le compte
-                        const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
-                        const index = blownAccounts.indexOf(window.draggedAccountId);
-                        if (index > -1) {
-                            blownAccounts.splice(index, 1);
-                            localStorage.setItem('blownAccounts', JSON.stringify(blownAccounts));
-                            console.log('[DROP] ✅ Compte restauré:', window.draggedAccountId);
-                            await loadAccounts();
-                        }
-                    }
-                });
-            }
-            
-            if (blownAccountsList) {
-                blownAccountsList.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                    blownAccountsList.style.backgroundColor = 'rgba(172, 134, 43, 0.1)';
-                    blownAccountsList.style.border = '2px dashed #ac862b';
-                });
-                
-                blownAccountsList.addEventListener('dragleave', (e) => {
-                    blownAccountsList.style.backgroundColor = '';
-                    blownAccountsList.style.border = '';
-                });
-                
-                blownAccountsList.addEventListener('drop', async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    blownAccountsList.style.backgroundColor = '';
-                    blownAccountsList.style.border = '';
-                    
-                    console.log('[DROP] 🎯 Drop sur CRAMÉS | Compte:', window.draggedAccountId, '| Depuis:', window.draggedFrom);
-                    
-                    if (window.draggedFrom === 'active') {
-                        // Archiver le compte
-                        const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
-                        if (!blownAccounts.includes(window.draggedAccountId)) {
-                            blownAccounts.push(window.draggedAccountId);
-                            localStorage.setItem('blownAccounts', JSON.stringify(blownAccounts));
-                            console.log('[DROP] ✅ Compte archivé:', window.draggedAccountId);
-                            await loadAccounts();
-                        }
-                    }
-                });
             }
             
             console.log('[TRADES] ✅ accountsList mis à jour');
