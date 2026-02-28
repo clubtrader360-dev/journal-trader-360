@@ -2233,13 +2233,23 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             <!-- Accounts Section -->
             <div class="p-4 border-b border-gray-700">
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-sm font-semibold text-gray-300">Mes Comptes</h3>
+                    <h3 class="text-sm font-semibold text-gray-300">Mes Comptes Actifs</h3>
                     <button onclick="showAddAccountModal()" class="text-xs bg-transparent border border-gold text-gold px-2 py-1 rounded hover:bg-gold hover:text-blue transition-colors" style="border-color: #ac862b; color: #ac862b;">
                         +
                     </button>
                 </div>
                 <div id="accountsList">
                     <!-- Accounts will be populated here -->
+                </div>
+                
+                <!-- Section Comptes Cramés (visuel uniquement) -->
+                <div id="blownAccountsSection" style="display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid #374151;">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-sm font-semibold text-gray-400">🔥 Comptes Cramés</h3>
+                    </div>
+                    <div id="blownAccountsList">
+                        <!-- Blown accounts will be populated here -->
+                    </div>
                 </div>
             </div>
             
@@ -3070,6 +3080,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <option value="funded">Funded</option>
                         <option value="challenge">Challenge</option>
                     </select>
+                </div>
+                
+                <!-- Archivage visuel uniquement (LocalStorage) -->
+                <div class="form-group">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" id="editAccountIsBlown" class="mr-2">
+                        <span class="text-sm">🔥 Compte cramé (archiver visuellement)</span>
+                    </label>
+                    <p class="text-xs text-gray-500 mt-1">Déplace le compte dans "Comptes Cramés" sans supprimer les données.</p>
                 </div>
                 
                 <div class="flex gap-4 mt-6">
@@ -5929,6 +5948,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             document.getElementById('editAccountName').value = account.name;
             document.getElementById('editAccountType').value = account.type;
             
+            // Charger l'état "cramé" depuis localStorage
+            const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+            const isBlown = blownAccounts.includes(parseInt(accountId));
+            document.getElementById('editAccountIsBlown').checked = isBlown;
+            
             // Ouvrir la modal
             document.getElementById('editAccountModal').style.display = 'block';
         }
@@ -5940,13 +5964,34 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const accountId = document.getElementById('editAccountId').value;
             const newName = document.getElementById('editAccountName').value.trim();
             const newType = document.getElementById('editAccountType').value;
+            const isBlown = document.getElementById('editAccountIsBlown').checked;
             
             if (!newName) {
                 alert('❌ Le nom du compte ne peut pas être vide');
                 return;
             }
             
-            console.log('[EDIT] Sauvegarde des modifications:', { accountId, newName, newType });
+            console.log('[EDIT] Sauvegarde des modifications:', { accountId, newName, newType, isBlown });
+            
+            // Gérer l'état "cramé" dans localStorage (visuel uniquement)
+            const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+            const accountIdInt = parseInt(accountId);
+            
+            if (isBlown) {
+                // Ajouter à la liste des comptes cramés
+                if (!blownAccounts.includes(accountIdInt)) {
+                    blownAccounts.push(accountIdInt);
+                }
+            } else {
+                // Retirer de la liste des comptes cramés
+                const index = blownAccounts.indexOf(accountIdInt);
+                if (index > -1) {
+                    blownAccounts.splice(index, 1);
+                }
+            }
+            
+            localStorage.setItem('blownAccounts', JSON.stringify(blownAccounts));
+            console.log('[EDIT] ✅ État cramé sauvegardé dans localStorage:', blownAccounts);
             
             // Vérifier que window.updateAccount existe
             if (typeof window.updateAccount !== 'function') {

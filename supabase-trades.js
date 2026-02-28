@@ -71,11 +71,24 @@ async function loadAccounts() {
         
         // Sidebar accountsList (si existe) - ID CORRIGÉ
         const accountsList = document.getElementById('accountsList');
+        const blownAccountsList = document.getElementById('blownAccountsList');
+        const blownAccountsSection = document.getElementById('blownAccountsSection');
+        
         if (accountsList) {
-            if (data.length === 0) {
+            // Charger la liste des comptes cramés depuis localStorage (visuel uniquement)
+            const blownAccountIds = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+            
+            // Séparer les comptes actifs et cramés
+            const activeAccounts = data.filter(account => !blownAccountIds.includes(account.id));
+            const blownAccounts = data.filter(account => blownAccountIds.includes(account.id));
+            
+            console.log('[TRADES] 📊 Comptes actifs:', activeAccounts.length, '| Comptes cramés:', blownAccounts.length);
+            
+            // Afficher les comptes actifs
+            if (activeAccounts.length === 0) {
                 accountsList.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Aucun compte. Cliquez sur + pour créer.</p>';
             } else {
-                accountsList.innerHTML = data.map(account => {
+                accountsList.innerHTML = activeAccounts.map(account => {
                     // ✅ Utiliser la valeur 'active' depuis Supabase, par défaut true si non défini
                     const isActive = account.active !== undefined ? account.active : true;
                     return `
@@ -97,6 +110,33 @@ async function loadAccounts() {
                     `;
                 }).join('');
             }
+            
+            // Afficher la section des comptes cramés si nécessaire
+            if (blownAccountsList && blownAccountsSection) {
+                if (blownAccounts.length > 0) {
+                    blownAccountsSection.style.display = 'block';
+                    blownAccountsList.innerHTML = blownAccounts.map(account => {
+                        return `
+                            <div class="account-item" style="opacity: 0.6;">
+                                <div class="account-info" style="flex: 1;">
+                                    <div class="account-name" style="text-decoration: line-through; color: #6b7280;">${account.name}</div>
+                                    <div class="account-size text-xs" style="color: #9ca3af;">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
+                                </div>
+                                <button onclick="editAccountName(${account.id})" class="account-edit-btn" title="Restaurer" style="margin-right: 4px; color: #f59e0b;">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                <button onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+                    console.log('[TRADES] ✅ blownAccountsList mis à jour:', blownAccounts.length, 'comptes');
+                } else {
+                    blownAccountsSection.style.display = 'none';
+                }
+            }
+            
             console.log('[TRADES] ✅ accountsList mis à jour');
         }
         
