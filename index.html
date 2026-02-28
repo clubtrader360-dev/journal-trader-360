@@ -6043,12 +6043,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         let draggedFrom = null;
         
         function handleDragStart(event, accountId, from) {
+            console.log('[DRAG] 🚀 handleDragStart appelé:', { accountId, from, event });
             draggedAccountId = accountId;
             draggedFrom = from;
             event.dataTransfer.effectAllowed = 'move';
             event.dataTransfer.setData('text/html', event.target.innerHTML);
             event.target.style.opacity = '0.4';
-            console.log('[DRAG] Début drag:', { accountId, from });
+            console.log('[DRAG] ✅ Début drag:', { accountId, from });
         }
         
         function handleDragOver(event) {
