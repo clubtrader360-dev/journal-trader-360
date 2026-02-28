@@ -4395,6 +4395,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 
                 const pointsClass = points >= 0 ? 'text-green-600' : 'text-red-600';
                 const pointsSign = points >= 0 ? '+' : '';
+                const pointsDisplay = Math.abs(points); // ✅ Toujours afficher en positif
                 
                 return `
                     <tr class="hover:bg-gray-50">
@@ -4414,7 +4415,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <td class="px-6 py-4 text-sm text-gray-900">${trade.exitPrice}</td>
                         <td class="px-6 py-4 text-sm text-gray-900">${trade.quantity}</td>
                         <td class="px-6 py-4 text-sm font-medium ${pointsClass}">
-                            ${pointsSign}${points.toFixed(2)} pts
+                            ${pointsSign}${pointsDisplay.toFixed(2)} pts
                         </td>
                         <td class="px-6 py-4 text-sm font-medium ${pnlClass}">
                             ${trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)} $
