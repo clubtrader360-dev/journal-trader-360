@@ -100,19 +100,22 @@ async function loadAccounts() {
                     // ✅ Utiliser la valeur 'active' depuis Supabase, par défaut true si non défini
                     const isActive = account.active !== undefined ? account.active : true;
                     return `
-                        <div class="account-item" draggable="true" data-account-id="${account.id}" ondragstart="handleDragStart(event, ${account.id}, 'active')" style="cursor: move; user-select: none; -webkit-user-select: none;">
+                        <div class="account-item" draggable="true" data-account-id="${account.id}" ondragstart="handleDragStart(event, ${account.id}, 'active')" style="user-select: none; -webkit-user-select: none;">
                             <input type="checkbox" class="account-checkbox" ${isActive ? 'checked' : ''} 
+                                   draggable="false"
                                    onclick="event.stopPropagation()"
+                                   onmousedown="event.stopPropagation()"
                                    onchange="toggleAccount(${account.id})" 
-                                   title="Activer/Désactiver ce compte dans les métriques">
-                            <div class="account-info" style="flex: 1;">
+                                   title="Activer/Désactiver ce compte dans les métriques"
+                                   style="pointer-events: auto;">
+                            <div class="account-info" style="flex: 1; cursor: move;">
                                 <div class="account-name">${account.name}</div>
                                 <div class="account-size text-xs">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
                             </div>
-                            <button onclick="event.stopPropagation(); editAccountName(${account.id})" class="account-edit-btn" title="Modifier" style="margin-right: 4px;">
+                            <button draggable="false" onmousedown="event.stopPropagation()" onclick="event.stopPropagation(); editAccountName(${account.id})" class="account-edit-btn" title="Modifier" style="margin-right: 4px; pointer-events: auto;">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button onclick="event.stopPropagation(); deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
+                            <button draggable="false" onmousedown="event.stopPropagation()" onclick="event.stopPropagation(); deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer" style="pointer-events: auto;">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -127,12 +130,12 @@ async function loadAccounts() {
                 if (blownAccounts.length > 0) {
                     blownAccountsList.innerHTML = blownAccounts.map(account => {
                         return `
-                            <div class="account-item" draggable="true" data-account-id="${account.id}" ondragstart="handleDragStart(event, ${account.id}, 'blown')" style="opacity: 0.6; cursor: move; user-select: none; -webkit-user-select: none;">
-                                <div class="account-info" style="flex: 1;">
+                            <div class="account-item" draggable="true" data-account-id="${account.id}" ondragstart="handleDragStart(event, ${account.id}, 'blown')" style="opacity: 0.6; user-select: none; -webkit-user-select: none;">
+                                <div class="account-info" style="flex: 1; cursor: move;">
                                     <div class="account-name" style="text-decoration: line-through; color: #6b7280;">${account.name}</div>
                                     <div class="account-size text-xs" style="color: #9ca3af;">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
                                 </div>
-                                <button onclick="event.stopPropagation(); deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
+                                <button draggable="false" onmousedown="event.stopPropagation()" onclick="event.stopPropagation(); deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer" style="pointer-events: auto;">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
