@@ -4380,17 +4380,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 // ✅ CALCUL DES POINTS
                 const entryPrice = parseFloat(trade.entryPrice) || 0;
                 const exitPrice = parseFloat(trade.exitPrice) || 0;
+                const pnl = parseFloat(trade.pnl) || 0;
                 let points = 0;
                 
-                // Pour les LONG : points = sortie - entrée
-                // Pour les SHORT : points = entrée - sortie
-                if (trade.type && trade.type.toUpperCase().includes('LONG')) {
-                    points = exitPrice - entryPrice;
-                } else if (trade.type && trade.type.toUpperCase().includes('SHORT')) {
-                    points = entryPrice - exitPrice;
-                } else {
-                    // Par défaut, calculer comme un LONG
-                    points = exitPrice - entryPrice;
+                // Calculer la différence de points (toujours en valeur absolue d'abord)
+                points = Math.abs(exitPrice - entryPrice);
+                
+                // ✅ CORRECTION : Le signe des points doit correspondre au signe du P&L
+                // Si le P&L est négatif, les points doivent être négatifs aussi
+                if (pnl < 0) {
+                    points = -points;
                 }
                 
                 const pointsClass = points >= 0 ? 'text-green-600' : 'text-red-600';
