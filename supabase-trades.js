@@ -34,7 +34,7 @@ async function loadAccounts() {
     try {
         const { data, error } = await supabase
             .from('accounts')
-            .select('id, name, type, initial_balance, current_balance, active, is_blown')
+            .select('id, name, type, initial_balance, current_balance, active')
             .eq('user_id', window.currentUser.uuid)
             .order('created_at', { ascending: false });
         
@@ -56,33 +56,26 @@ async function loadAccounts() {
                 return;
             }
             
-            // Reset + remplissage (uniquement les comptes non cramés)
+            // Reset + remplissage
             selectEl.innerHTML = '<option value="">Sélectionner un compte...</option>';
             
-            data.filter(account => !account.is_blown).forEach(account => {
+            data.forEach(account => {
                 const option = document.createElement('option');
                 option.value = account.id;
                 option.textContent = account.name;
                 selectEl.appendChild(option);
             });
             
-            console.log(`[TRADES] ✅ Select #${selectId} hydraté (${data.filter(a => !a.is_blown).length} comptes actifs)`);
+            console.log(`[TRADES] ✅ Select #${selectId} hydraté (${data.length} comptes)`);
         });
         
         // Sidebar accountsList (si existe) - ID CORRIGÉ
         const accountsList = document.getElementById('accountsList');
-        const blownAccountsList = document.getElementById('blownAccountsList');
-        const blownAccountsSection = document.getElementById('blownAccountsSection');
-        
-        // Séparer les comptes actifs et cramés
-        const activeAccounts = data.filter(account => !account.is_blown);
-        const blownAccounts = data.filter(account => account.is_blown);
-        
         if (accountsList) {
-            if (activeAccounts.length === 0) {
+            if (data.length === 0) {
                 accountsList.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Aucun compte. Cliquez sur + pour créer.</p>';
             } else {
-                accountsList.innerHTML = activeAccounts.map(account => {
+                accountsList.innerHTML = data.map(account => {
                     // ✅ Utiliser la valeur 'active' depuis Supabase, par défaut true si non défini
                     const isActive = account.active !== undefined ? account.active : true;
                     return `
@@ -104,33 +97,7 @@ async function loadAccounts() {
                     `;
                 }).join('');
             }
-            console.log('[TRADES] ✅ accountsList mis à jour:', activeAccounts.length, 'comptes actifs');
-        }
-        
-        // Gérer la section des comptes cramés
-        if (blownAccountsList && blownAccountsSection) {
-            if (blownAccounts.length > 0) {
-                blownAccountsSection.style.display = 'block';
-                blownAccountsList.innerHTML = blownAccounts.map(account => {
-                    return `
-                        <div class="account-item" style="opacity: 0.7;">
-                            <div class="account-info" style="flex: 1;">
-                                <div class="account-name" style="text-decoration: line-through;">${account.name}</div>
-                                <div class="account-size text-xs">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
-                            </div>
-                            <button onclick="editAccountName(${account.id})" class="account-edit-btn" title="Dé-cramer" style="margin-right: 4px;">
-                                <i class="fas fa-undo"></i>
-                            </button>
-                            <button onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    `;
-                }).join('');
-                console.log('[TRADES] ✅ blownAccountsList mis à jour:', blownAccounts.length, 'comptes cramés');
-            } else {
-                blownAccountsSection.style.display = 'none';
-            }
+            console.log('[TRADES] ✅ accountsList mis à jour');
         }
         
         return { data, error: null };

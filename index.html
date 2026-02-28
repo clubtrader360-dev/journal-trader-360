@@ -2241,16 +2241,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 <div id="accountsList">
                     <!-- Accounts will be populated here -->
                 </div>
-                
-                <!-- Nouveau : Section Comptes Cramés -->
-                <div id="blownAccountsSection" style="display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid #374151;">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-sm font-semibold text-gray-400">🔥 Comptes Cramés</h3>
-                    </div>
-                    <div id="blownAccountsList">
-                        <!-- Blown accounts will be populated here -->
-                    </div>
-                </div>
             </div>
             
             <nav class="mt-6">
@@ -3080,15 +3070,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <option value="funded">Funded</option>
                         <option value="challenge">Challenge</option>
                     </select>
-                </div>
-                
-                <!-- Nouveau : Marquer le compte comme cramé -->
-                <div class="form-group">
-                    <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" id="editAccountIsBlown" class="mr-2">
-                        <span class="text-sm">🔥 Compte cramé (archiver)</span>
-                    </label>
-                    <p class="text-xs text-gray-500 mt-1">Si coché, le compte sera archivé dans "Comptes Cramés" en dessous.</p>
                 </div>
                 
                 <div class="flex gap-4 mt-6">
@@ -5947,7 +5928,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             document.getElementById('editAccountId').value = accountId;
             document.getElementById('editAccountName').value = account.name;
             document.getElementById('editAccountType').value = account.type;
-            document.getElementById('editAccountIsBlown').checked = account.is_blown || false;
             
             // Ouvrir la modal
             document.getElementById('editAccountModal').style.display = 'block';
@@ -5960,7 +5940,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const accountId = document.getElementById('editAccountId').value;
             const newName = document.getElementById('editAccountName').value.trim();
             const newType = document.getElementById('editAccountType').value;
-            const isBlown = document.getElementById('editAccountIsBlown').checked;
             
             if (!newName) {
                 alert('❌ Le nom du compte ne peut pas être vide');
@@ -5979,8 +5958,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             // Appeler la fonction updateAccount
             const result = await window.updateAccount(accountId, { 
                 name: newName,
-                type: newType,
-                is_blown: isBlown
+                type: newType
             });
             
             if (result && !result.error) {
