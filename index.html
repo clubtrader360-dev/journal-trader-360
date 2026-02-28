@@ -2232,22 +2232,29 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             <!-- Accounts Section -->
             <div class="p-4 border-b border-gray-700">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-sm font-semibold text-gray-300">Mes Comptes Actifs</h3>
-                    <button onclick="showAddAccountModal()" class="text-xs bg-transparent border border-gold text-gold px-2 py-1 rounded hover:bg-gold hover:text-blue transition-colors" style="border-color: #ac862b; color: #ac862b;">
+                <!-- Section Mes Comptes Actifs (avec accordion) -->
+                <div class="flex justify-between items-center mb-3 cursor-pointer" onclick="toggleAccountsSection('active')">
+                    <h3 class="text-sm font-semibold text-gray-300">
+                        <i id="activeAccountsChevron" class="fas fa-chevron-down mr-2" style="font-size: 10px;"></i>
+                        Mes Comptes Actifs
+                    </h3>
+                    <button onclick="event.stopPropagation(); showAddAccountModal()" class="text-xs bg-transparent border border-gold text-gold px-2 py-1 rounded hover:bg-gold hover:text-blue transition-colors" style="border-color: #ac862b; color: #ac862b;">
                         +
                     </button>
                 </div>
-                <div id="accountsList">
+                <div id="accountsList" style="display: block;">
                     <!-- Accounts will be populated here -->
                 </div>
                 
-                <!-- Section Comptes Cramés (visuel uniquement) -->
+                <!-- Section Comptes Cramés (avec accordion) -->
                 <div id="blownAccountsSection" style="display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid #374151;">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-sm font-semibold text-gray-400">🔥 Comptes Cramés</h3>
+                    <div class="flex justify-between items-center mb-3 cursor-pointer" onclick="toggleAccountsSection('blown')">
+                        <h3 class="text-sm font-semibold text-gray-400">
+                            <i id="blownAccountsChevron" class="fas fa-chevron-down mr-2" style="font-size: 10px;"></i>
+                            🔥 Comptes Cramés
+                        </h3>
                     </div>
-                    <div id="blownAccountsList">
+                    <div id="blownAccountsList" style="display: block;">
                         <!-- Blown accounts will be populated here -->
                     </div>
                 </div>
@@ -5998,6 +6005,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             localStorage.setItem('blownAccounts', JSON.stringify(blownAccounts));
             console.log('[EDIT] ✅ État cramé sauvegardé dans localStorage:', blownAccounts);
+            console.log('[EDIT] 🔍 localStorage après sauvegarde:', localStorage.getItem('blownAccounts'));
             
             // Vérifier que window.updateAccount existe
             if (typeof window.updateAccount !== 'function') {
@@ -6006,7 +6014,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            // Appeler la fonction updateAccount
+            // Appeler la fonction updateAccount (qui appellera loadAccounts())
             const result = await window.updateAccount(accountId, { 
                 name: newName,
                 type: newType
@@ -6014,6 +6022,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             if (result && !result.error) {
                 console.log('[EDIT] ✅ Compte mis à jour:', result.data);
+                console.log('[EDIT] 🔄 Appel de loadAccounts() pour rafraîchir l\'affichage...');
+                
+                // Force un second appel à loadAccounts() pour être sûr
+                if (typeof window.loadAccounts === 'function') {
+                    await window.loadAccounts();
+                    console.log('[EDIT] ✅ loadAccounts() rappelé manuellement');
+                }
                 
                 // Fermer la modal
                 closeModal('editAccountModal');
@@ -6032,6 +6047,41 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         // Exposition globale
         window.editAccountName = editAccountName;
         window.saveAccountEdit = saveAccountEdit;
+        
+        // ========================================
+        // FONCTION: Toggle accordion comptes (actifs / cramés)
+        // ========================================
+        function toggleAccountsSection(section) {
+            if (section === 'active') {
+                const list = document.getElementById('accountsList');
+                const chevron = document.getElementById('activeAccountsChevron');
+                
+                if (list.style.display === 'none') {
+                    list.style.display = 'block';
+                    chevron.classList.remove('fa-chevron-right');
+                    chevron.classList.add('fa-chevron-down');
+                } else {
+                    list.style.display = 'none';
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-right');
+                }
+            } else if (section === 'blown') {
+                const list = document.getElementById('blownAccountsList');
+                const chevron = document.getElementById('blownAccountsChevron');
+                
+                if (list.style.display === 'none') {
+                    list.style.display = 'block';
+                    chevron.classList.remove('fa-chevron-right');
+                    chevron.classList.add('fa-chevron-down');
+                } else {
+                    list.style.display = 'none';
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-right');
+                }
+            }
+        }
+        
+        window.toggleAccountsSection = toggleAccountsSection;
 
 
         function deleteAccount_DISABLED(accountId) { return; // DÉSACTIVÉ - Voir supabase-trades.js
