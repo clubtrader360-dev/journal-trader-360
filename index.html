@@ -3041,10 +3041,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             <form id="tradeForm">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="form-group">
-                        <label>Compte</label>
-                        <select id="tradeAccount" required>
-                            <option value="">Sélectionner un compte...</option>
-                        </select>
+                        <label>Compte(s) <span class="text-xs text-gray-500">(Sélection multiple)</span></label>
+                        <div class="relative">
+                            <div id="tradeAccountDropdown" class="border border-gray-300 rounded px-3 py-2 cursor-pointer bg-white" onclick="toggleTradeAccountDropdown()">
+                                <span id="tradeAccountSelected">Sélectionner un ou plusieurs comptes...</span>
+                                <i class="fas fa-chevron-down float-right mt-1"></i>
+                            </div>
+                            <div id="tradeAccountList" class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto" style="display: none;">
+                                <!-- Les checkboxes seront insérées ici dynamiquement -->
+                            </div>
+                        </div>
+                        <!-- Hidden input pour la validation -->
+                        <input type="hidden" id="tradeAccount" required>
                     </div>
                     <div class="form-group">
                         <label>Date</label>
@@ -3442,10 +3450,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 </div>
 
                 <div class="form-group">
-                    <label>Sélectionner le compte de destination</label>
-                    <select id="csvTargetAccount" required>
-                        <option value="">Choisir un compte...</option>
-                    </select>
+                    <label>Sélectionner le(s) compte(s) de destination <span class="text-xs text-gray-500">(Sélection multiple)</span></label>
+                    <div class="relative">
+                        <div id="csvAccountDropdown" class="border border-gray-300 rounded px-3 py-2 cursor-pointer bg-white" onclick="toggleCSVAccountDropdown()">
+                            <span id="csvAccountSelected">Sélectionner un ou plusieurs comptes...</span>
+                            <i class="fas fa-chevron-down float-right mt-1"></i>
+                        </div>
+                        <div id="csvAccountList" class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto" style="display: none;">
+                            <!-- Les checkboxes seront insérées ici dynamiquement -->
+                        </div>
+                    </div>
+                    <!-- Hidden input pour la validation -->
+                    <input type="hidden" id="csvTargetAccount" required>
                 </div>
 
                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gold transition-colors cursor-pointer" onclick="document.getElementById('csvFileInput').click()">
@@ -3582,12 +3598,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            // Vérifier le compte cible
-            const targetAccountId = document.getElementById('csvTargetAccount')?.value;
-            if (!targetAccountId) {
-                alert('⚠️ Veuillez sélectionner un compte de destination');
+            // ✅ Vérifier les comptes cibles (multi-select)
+            const selectedCheckboxes = document.querySelectorAll('.csv-account-checkbox:checked');
+            const targetAccountIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+            
+            if (targetAccountIds.length === 0) {
+                alert('⚠️ Veuillez sélectionner au moins un compte de destination');
                 return;
             }
+            
+            console.log('[CSV] Comptes cibles:', targetAccountIds);
             
             // Afficher le nom du fichier
             document.getElementById('csvFileNameText').textContent = file.name;
@@ -3600,19 +3620,25 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     const csvText = e.target.result;
                     console.log('[CSV] Fichier lu:', csvText.substring(0, 200) + '...');
                     
-                    // Parser le CSV
-                    const parsedTrades = parseCSV(csvText, parseInt(targetAccountId));
+                    // ✅ Parser le CSV pour chaque compte
+                    let allParsedTrades = [];
                     
-                    if (parsedTrades.length === 0) {
+                    for (const accountId of targetAccountIds) {
+                        const parsedTrades = parseCSV(csvText, parseInt(accountId));
+                        allParsedTrades = allParsedTrades.concat(parsedTrades);
+                        console.log(`[CSV] ${parsedTrades.length} trades parsés pour compte ${accountId}`);
+                    }
+                    
+                    if (allParsedTrades.length === 0) {
                         alert('❌ Aucun trade valide trouvé dans le fichier CSV');
                         return;
                     }
                     
                     // Stocker les trades parsés
-                    csvParsedTrades = parsedTrades;
+                    csvParsedTrades = allParsedTrades;
                     
                     // Afficher la prévisualisation
-                    displayCSVPreview(parsedTrades);
+                    displayCSVPreview(allParsedTrades);
                     
                     // Passer à l'étape 2
                     document.getElementById('csvUploadStep').style.display = 'none';
@@ -4923,8 +4949,19 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.log('[UI] addTradeUI() - START');
                 console.log('[UI] window.addTrade exists?', typeof window.addTrade);
                 
+                // ✅ Lecture des comptes sélectionnés (multi-select)
+                const selectedCheckboxes = document.querySelectorAll('.trade-account-checkbox:checked');
+                const selectedAccountIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+                
+                console.log('[UI] Comptes sélectionnés:', selectedAccountIds);
+                
+                if (selectedAccountIds.length === 0) {
+                    alert('⚠️ Veuillez sélectionner au moins un compte');
+                    return;
+                }
+                
                 // Lecture IDs DOM réels (extraits de l'audit)
-                const account_id = document.getElementById('tradeAccount')?.value;
+                const account_id = selectedAccountIds[0]; // Pour compatibilité validation
                 const trade_date = document.getElementById('tradeDate')?.value;
                 const entry_time = document.getElementById('entryTime')?.value;
                 const exit_time = document.getElementById('exitTime')?.value;
@@ -5041,18 +5078,48 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.log('[UI] Appel window.addTrade() avec:', tradeData);
                 
                 try {
-                    const result = await window.addTrade(tradeData);
-                    
-                    console.log('[UI] Résultat de addTrade():', result);
-                    
-                    if (result.error) {
-                        console.error('[UI] ❌ Erreur:', result.error);
-                        alert(`⚠️ ${result.error.message || 'Échec'}`);
-                        return;
+                    // ✅ Si édition : un seul compte, sinon boucle sur tous les comptes sélectionnés
+                    if (editingId) {
+                        // MODE ÉDITION : un seul compte
+                        const result = await window.addTrade(tradeData);
+                        
+                        if (result.error) {
+                            console.error('[UI] ❌ Erreur:', result.error);
+                            alert(`⚠️ ${result.error.message || 'Échec'}`);
+                            return;
+                        }
+                        
+                        console.log('[UI] ✅ Trade modifié:', result.data);
+                        alert('✅ Trade modifié avec succès');
+                    } else {
+                        // MODE AJOUT : boucle sur tous les comptes sélectionnés
+                        let successCount = 0;
+                        let failCount = 0;
+                        
+                        for (const accountId of selectedAccountIds) {
+                            const tradeForAccount = { ...tradeData, account_id: parseInt(accountId) };
+                            
+                            console.log(`[UI] Ajout trade pour compte ${accountId}`);
+                            
+                            const result = await window.addTrade(tradeForAccount);
+                            
+                            if (result.error) {
+                                console.error(`[UI] ❌ Erreur compte ${accountId}:`, result.error);
+                                failCount++;
+                            } else {
+                                console.log(`[UI] ✅ Trade ajouté pour compte ${accountId}`);
+                                successCount++;
+                            }
+                        }
+                        
+                        // Afficher le résumé
+                        if (successCount > 0) {
+                            alert(`✅ ${successCount} trade(s) ajouté(s) avec succès${failCount > 0 ? ` (${failCount} échec(s))` : ''}`);
+                        } else {
+                            alert(`❌ Échec de l'ajout des trades`);
+                            return;
+                        }
                     }
-                    
-                    console.log('[UI] ✅ Trade traité:', result.data);
-                    alert(editingId ? '✅ Trade modifié avec succès' : '✅ Trade ajouté avec succès');
                     
                     // ✅ Réinitialiser le mode édition
                     if (modal) {
@@ -5472,14 +5539,127 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             console.log('[ACCOUNTS] ✅ accountsList mis à jour:', accounts.length, 'comptes');
 
-            if (tradeAccountSelect) {
-                tradeAccountSelect.innerHTML = '<option value="">Sélectionner un compte...</option>' +
-                    accounts.map(account => `<option value="${account.id}">${account.name}</option>`).join('');
+            // ✅ Remplir la liste de sélection multiple pour les trades
+            const tradeAccountList = document.getElementById('tradeAccountList');
+            if (tradeAccountList) {
+                tradeAccountList.innerHTML = accounts.map(account => `
+                    <label class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer">
+                        <input type="checkbox" 
+                               class="trade-account-checkbox mr-2" 
+                               value="${account.id}" 
+                               onchange="updateSelectedTradeAccounts()">
+                        <span>${account.name} (${account.type})</span>
+                    </label>
+                `).join('');
+            }
+            
+            // ✅ Remplir la liste de sélection multiple pour l'import CSV
+            const csvAccountList = document.getElementById('csvAccountList');
+            if (csvAccountList) {
+                csvAccountList.innerHTML = accounts.map(account => `
+                    <label class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer">
+                        <input type="checkbox" 
+                               class="csv-account-checkbox mr-2" 
+                               value="${account.id}" 
+                               onchange="updateSelectedCSVAccounts()">
+                        <span>${account.name} (${account.type})</span>
+                    </label>
+                `).join('');
             }
         }
         
         // Exposition globale
         window.updateAccountsList = updateAccountsList;
+        
+        // ✅ NOUVELLE FONCTION: Gérer le dropdown de sélection multiple des comptes
+        function toggleTradeAccountDropdown() {
+            const dropdown = document.getElementById('tradeAccountList');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+        
+        // ✅ NOUVELLE FONCTION: Mettre à jour l'affichage des comptes sélectionnés
+        function updateSelectedTradeAccounts() {
+            const checkboxes = document.querySelectorAll('.trade-account-checkbox:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+            const selectedNames = Array.from(checkboxes).map(cb => {
+                const label = cb.closest('label');
+                return label ? label.textContent.trim() : '';
+            });
+            
+            // Mettre à jour l'affichage
+            const display = document.getElementById('tradeAccountSelected');
+            if (display) {
+                if (selectedIds.length === 0) {
+                    display.textContent = 'Sélectionner un ou plusieurs comptes...';
+                    display.style.color = '#999';
+                } else if (selectedIds.length === 1) {
+                    display.textContent = selectedNames[0];
+                    display.style.color = '#000';
+                } else {
+                    display.textContent = `${selectedIds.length} comptes sélectionnés`;
+                    display.style.color = '#000';
+                }
+            }
+            
+            // Mettre à jour le hidden input pour la validation (on met le premier compte comme valeur)
+            const hiddenInput = document.getElementById('tradeAccount');
+            if (hiddenInput) {
+                hiddenInput.value = selectedIds.length > 0 ? selectedIds[0] : '';
+            }
+            
+            console.log('[TRADE] Comptes sélectionnés:', selectedIds);
+        }
+        
+        // ✅ Exposition globale
+        window.toggleTradeAccountDropdown = toggleTradeAccountDropdown;
+        window.updateSelectedTradeAccounts = updateSelectedTradeAccounts;
+        
+        // ✅ NOUVELLE FONCTION: Gérer le dropdown CSV de sélection multiple des comptes
+        function toggleCSVAccountDropdown() {
+            const dropdown = document.getElementById('csvAccountList');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+        
+        // ✅ NOUVELLE FONCTION: Mettre à jour l'affichage des comptes sélectionnés pour le CSV
+        function updateSelectedCSVAccounts() {
+            const checkboxes = document.querySelectorAll('.csv-account-checkbox:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => cb.value);
+            const selectedNames = Array.from(checkboxes).map(cb => {
+                const label = cb.closest('label');
+                return label ? label.textContent.trim() : '';
+            });
+            
+            // Mettre à jour l'affichage
+            const display = document.getElementById('csvAccountSelected');
+            if (display) {
+                if (selectedIds.length === 0) {
+                    display.textContent = 'Sélectionner un ou plusieurs comptes...';
+                    display.style.color = '#999';
+                } else if (selectedIds.length === 1) {
+                    display.textContent = selectedNames[0];
+                    display.style.color = '#000';
+                } else {
+                    display.textContent = `${selectedIds.length} comptes sélectionnés`;
+                    display.style.color = '#000';
+                }
+            }
+            
+            // Mettre à jour le hidden input pour la validation (on met le premier compte comme valeur)
+            const hiddenInput = document.getElementById('csvTargetAccount');
+            if (hiddenInput) {
+                hiddenInput.value = selectedIds.length > 0 ? selectedIds[0] : '';
+            }
+            
+            console.log('[CSV] Comptes sélectionnés:', selectedIds);
+        }
+        
+        // ✅ Exposition globale
+        window.toggleCSVAccountDropdown = toggleCSVAccountDropdown;
+        window.updateSelectedCSVAccounts = updateSelectedCSVAccounts;
 
         function formatAccountSize(size) {
             const num = parseInt(size);
