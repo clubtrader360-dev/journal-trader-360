@@ -1100,13 +1100,10 @@
             border-color: #1a2942 !important;
         }
         
-        /* ✅ Garder les couleurs pour Type (LONG/SHORT) */
-        body.dark-mode #journalEntries .text-blue-600 {
-            color: #60a5fa !important; /* Bleu clair pour LONG */
-        }
-        
+        /* ✅ Type (LONG/SHORT) en BLANC en mode sombre */
+        body.dark-mode #journalEntries .text-blue-600,
         body.dark-mode #journalEntries .text-orange-600 {
-            color: #fb923c !important; /* Orange clair pour SHORT */
+            color: #ffffff !important; /* Blanc pour LONG et SHORT */
         }
         
         body.dark-mode #dailyFeesTable .bg-gray-50 {
