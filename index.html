@@ -2232,7 +2232,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             <!-- Accounts Section -->
             <div class="p-4 border-b border-gray-700">
-                <!-- Section Mes Comptes Actifs (avec accordion) -->
+                <!-- Section Mes Comptes Actifs (avec accordion + drop zone) -->
                 <div class="flex justify-between items-center mb-3 cursor-pointer" onclick="toggleAccountsSection('active')">
                     <h3 class="text-sm font-semibold text-gray-300">
                         <i id="activeAccountsChevron" class="fas fa-chevron-down mr-2" style="font-size: 10px;"></i>
@@ -2242,11 +2242,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         +
                     </button>
                 </div>
-                <div id="accountsList" style="display: block;">
+                <div id="accountsList" style="display: block; min-height: 60px; padding: 8px; border-radius: 6px; transition: background-color 0.2s;" 
+                     ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'active')" ondragleave="handleDragLeave(event)">
                     <!-- Accounts will be populated here -->
                 </div>
                 
-                <!-- Section Comptes Cramés (avec accordion) -->
+                <!-- Section Comptes Cramés (avec accordion + drop zone) -->
                 <div id="blownAccountsSection" style="display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid #374151;">
                     <div class="flex justify-between items-center mb-3 cursor-pointer" onclick="toggleAccountsSection('blown')">
                         <h3 class="text-sm font-semibold text-gray-400">
@@ -2254,7 +2255,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             🔥 Comptes Cramés
                         </h3>
                     </div>
-                    <div id="blownAccountsList" style="display: block;">
+                    <div id="blownAccountsList" style="display: block; min-height: 60px; padding: 8px; border-radius: 6px; transition: background-color 0.2s;" 
+                         ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'blown')" ondragleave="handleDragLeave(event)">
                         <!-- Blown accounts will be populated here -->
                     </div>
                 </div>
@@ -3087,19 +3089,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <option value="funded">Funded</option>
                         <option value="challenge">Challenge</option>
                     </select>
-                </div>
-                
-                <!-- Archivage visuel uniquement (LocalStorage) -->
-                <div class="form-group">
-                    <div class="flex items-start">
-                        <input type="checkbox" id="editAccountIsBlown" class="mt-1 mr-2">
-                        <div>
-                            <label for="editAccountIsBlown" class="cursor-pointer text-sm">
-                                🔥 Compte cramé (archiver visuellement)
-                            </label>
-                            <p class="text-xs text-gray-500 mt-1">Déplace le compte dans "Comptes Cramés" sans supprimer les données.</p>
-                        </div>
-                    </div>
                 </div>
                 
                 <div class="flex gap-4 mt-6">
@@ -5959,13 +5948,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             document.getElementById('editAccountName').value = account.name;
             document.getElementById('editAccountType').value = account.type;
             
-            // Charger l'état "cramé" depuis localStorage
-            const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
-            const isBlown = blownAccounts.includes(parseInt(accountId));
-            document.getElementById('editAccountIsBlown').checked = isBlown;
-            
-            console.log('[EDIT] 🔍 Chargement état cramé:', { accountId, accountIdInt: parseInt(accountId), blownAccounts, isBlown });
-            
             // Ouvrir la modal
             document.getElementById('editAccountModal').style.display = 'block';
         }
@@ -5977,35 +5959,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const accountId = document.getElementById('editAccountId').value;
             const newName = document.getElementById('editAccountName').value.trim();
             const newType = document.getElementById('editAccountType').value;
-            const isBlown = document.getElementById('editAccountIsBlown').checked;
             
             if (!newName) {
                 alert('❌ Le nom du compte ne peut pas être vide');
                 return;
             }
             
-            console.log('[EDIT] Sauvegarde des modifications:', { accountId, newName, newType, isBlown });
-            
-            // Gérer l'état "cramé" dans localStorage (visuel uniquement)
-            const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
-            const accountIdInt = parseInt(accountId);
-            
-            if (isBlown) {
-                // Ajouter à la liste des comptes cramés
-                if (!blownAccounts.includes(accountIdInt)) {
-                    blownAccounts.push(accountIdInt);
-                }
-            } else {
-                // Retirer de la liste des comptes cramés
-                const index = blownAccounts.indexOf(accountIdInt);
-                if (index > -1) {
-                    blownAccounts.splice(index, 1);
-                }
-            }
-            
-            localStorage.setItem('blownAccounts', JSON.stringify(blownAccounts));
-            console.log('[EDIT] ✅ État cramé sauvegardé dans localStorage:', blownAccounts);
-            console.log('[EDIT] 🔍 localStorage après sauvegarde:', localStorage.getItem('blownAccounts'));
+            console.log('[EDIT] Sauvegarde des modifications:', { accountId, newName, newType });
             
             // Vérifier que window.updateAccount existe
             if (typeof window.updateAccount !== 'function') {
@@ -6014,7 +5974,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            // Appeler la fonction updateAccount (qui appellera loadAccounts())
+            // Appeler la fonction updateAccount
             const result = await window.updateAccount(accountId, { 
                 name: newName,
                 type: newType
@@ -6022,13 +5982,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             if (result && !result.error) {
                 console.log('[EDIT] ✅ Compte mis à jour:', result.data);
-                console.log('[EDIT] 🔄 Appel de loadAccounts() pour rafraîchir l\'affichage...');
-                
-                // Force un second appel à loadAccounts() pour être sûr
-                if (typeof window.loadAccounts === 'function') {
-                    await window.loadAccounts();
-                    console.log('[EDIT] ✅ loadAccounts() rappelé manuellement');
-                }
                 
                 // Fermer la modal
                 closeModal('editAccountModal');
@@ -6082,6 +6035,98 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         }
         
         window.toggleAccountsSection = toggleAccountsSection;
+        
+        // ========================================
+        // FONCTIONS: Drag & Drop pour archivage comptes
+        // ========================================
+        let draggedAccountId = null;
+        let draggedFrom = null;
+        
+        function handleDragStart(event, accountId, from) {
+            draggedAccountId = accountId;
+            draggedFrom = from;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/html', event.target.innerHTML);
+            event.target.style.opacity = '0.4';
+            console.log('[DRAG] Début drag:', { accountId, from });
+        }
+        
+        function handleDragOver(event) {
+            if (event.preventDefault) {
+                event.preventDefault();
+            }
+            event.dataTransfer.dropEffect = 'move';
+            
+            // Highlight de la drop zone
+            const dropZone = event.currentTarget;
+            if (dropZone.id === 'accountsList' || dropZone.id === 'blownAccountsList') {
+                dropZone.style.backgroundColor = 'rgba(172, 134, 43, 0.1)';
+                dropZone.style.border = '2px dashed #ac862b';
+            }
+            return false;
+        }
+        
+        function handleDragLeave(event) {
+            const dropZone = event.currentTarget;
+            if (dropZone.id === 'accountsList' || dropZone.id === 'blownAccountsList') {
+                dropZone.style.backgroundColor = '';
+                dropZone.style.border = '';
+            }
+        }
+        
+        async function handleDrop(event, targetZone) {
+            if (event.stopPropagation) {
+                event.stopPropagation();
+            }
+            
+            console.log('[DROP] Drop sur:', targetZone, '| Compte:', draggedAccountId, '| Depuis:', draggedFrom);
+            
+            // Reset visual
+            const dropZone = event.currentTarget;
+            dropZone.style.backgroundColor = '';
+            dropZone.style.border = '';
+            
+            // Ne rien faire si drop dans la même zone
+            if (draggedFrom === targetZone) {
+                console.log('[DROP] ⚠️ Drop dans la même zone, annulation');
+                return false;
+            }
+            
+            // Mettre à jour localStorage
+            const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+            const accountIdInt = parseInt(draggedAccountId);
+            
+            if (targetZone === 'blown') {
+                // Déplacer vers "Comptes Cramés"
+                if (!blownAccounts.includes(accountIdInt)) {
+                    blownAccounts.push(accountIdInt);
+                    console.log('[DROP] ✅ Compte ajouté aux cramés:', accountIdInt);
+                }
+            } else if (targetZone === 'active') {
+                // Restaurer vers "Comptes Actifs"
+                const index = blownAccounts.indexOf(accountIdInt);
+                if (index > -1) {
+                    blownAccounts.splice(index, 1);
+                    console.log('[DROP] ✅ Compte retiré des cramés:', accountIdInt);
+                }
+            }
+            
+            localStorage.setItem('blownAccounts', JSON.stringify(blownAccounts));
+            console.log('[DROP] 💾 localStorage mis à jour:', blownAccounts);
+            
+            // Rafraîchir l'affichage
+            if (typeof window.loadAccounts === 'function') {
+                await window.loadAccounts();
+                console.log('[DROP] ✅ Affichage rafraîchi');
+            }
+            
+            return false;
+        }
+        
+        window.handleDragStart = handleDragStart;
+        window.handleDragOver = handleDragOver;
+        window.handleDragLeave = handleDragLeave;
+        window.handleDrop = handleDrop;
 
 
         function deleteAccount_DISABLED(accountId) { return; // DÉSACTIVÉ - Voir supabase-trades.js

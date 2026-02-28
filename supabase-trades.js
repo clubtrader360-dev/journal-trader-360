@@ -100,7 +100,7 @@ async function loadAccounts() {
                     // ✅ Utiliser la valeur 'active' depuis Supabase, par défaut true si non défini
                     const isActive = account.active !== undefined ? account.active : true;
                     return `
-                        <div class="account-item">
+                        <div class="account-item" draggable="true" data-account-id="${account.id}" ondragstart="handleDragStart(event, ${account.id}, 'active')" style="cursor: move;">
                             <input type="checkbox" class="account-checkbox" ${isActive ? 'checked' : ''} 
                                    onchange="toggleAccount(${account.id})" 
                                    title="Activer/Désactiver ce compte dans les métriques">
@@ -125,14 +125,11 @@ async function loadAccounts() {
                     blownAccountsSection.style.display = 'block';
                     blownAccountsList.innerHTML = blownAccounts.map(account => {
                         return `
-                            <div class="account-item" style="opacity: 0.6;">
+                            <div class="account-item" draggable="true" data-account-id="${account.id}" ondragstart="handleDragStart(event, ${account.id}, 'blown')" style="opacity: 0.6; cursor: move;">
                                 <div class="account-info" style="flex: 1;">
                                     <div class="account-name" style="text-decoration: line-through; color: #6b7280;">${account.name}</div>
                                     <div class="account-size text-xs" style="color: #9ca3af;">${account.type} - ${account.current_balance.toFixed(2)} USD</div>
                                 </div>
-                                <button onclick="editAccountName(${account.id})" class="account-edit-btn" title="Restaurer" style="margin-right: 4px; color: #f59e0b;">
-                                    <i class="fas fa-undo"></i>
-                                </button>
                                 <button onclick="deleteAccount(${account.id})" class="account-delete-btn" title="Supprimer">
                                     <i class="fas fa-trash"></i>
                                 </button>
