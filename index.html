@@ -1106,6 +1106,15 @@
             color: #ffffff !important; /* Blanc pour LONG et SHORT */
         }
         
+        /* ✅ P&L garde les couleurs VERT et ROUGE */
+        body.dark-mode #journalEntries .text-green-600 {
+            color: #10b981 !important; /* Vert pour P&L positif */
+        }
+        
+        body.dark-mode #journalEntries .text-red-600 {
+            color: #ef4444 !important; /* Rouge pour P&L négatif */
+        }
+        
         body.dark-mode #dailyFeesTable .bg-gray-50 {
             background-color: #f9fafb !important;
         }
