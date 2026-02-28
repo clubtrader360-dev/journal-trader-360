@@ -121,11 +121,22 @@ async function loadAccounts() {
                 
                 // ✅ Attacher les événements drag & drop après génération HTML
                 accountsList.querySelectorAll('.account-item').forEach(item => {
+                    const accountId = item.getAttribute('data-account-id');
+                    const from = item.getAttribute('data-from');
+                    
                     item.addEventListener('dragstart', (e) => {
-                        const accountId = item.getAttribute('data-account-id');
-                        const from = item.getAttribute('data-from');
-                        console.log('[DRAG] 🎯 dragstart event:', { accountId, from });
-                        window.handleDragStart(e, parseInt(accountId), from);
+                        console.log('[DRAG] 🚀 DRAGSTART !', { accountId, from });
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', accountId);
+                        e.target.style.opacity = '0.4';
+                        
+                        // Stocker dans variables globales
+                        window.draggedAccountId = parseInt(accountId);
+                        window.draggedFrom = from;
+                    });
+                    
+                    item.addEventListener('dragend', (e) => {
+                        e.target.style.opacity = '1';
                     });
                 });
             }
@@ -151,11 +162,22 @@ async function loadAccounts() {
                     
                     // ✅ Attacher les événements drag & drop après génération HTML
                     blownAccountsList.querySelectorAll('.account-item').forEach(item => {
+                        const accountId = item.getAttribute('data-account-id');
+                        const from = item.getAttribute('data-from');
+                        
                         item.addEventListener('dragstart', (e) => {
-                            const accountId = item.getAttribute('data-account-id');
-                            const from = item.getAttribute('data-from');
-                            console.log('[DRAG] 🎯 dragstart event (blown):', { accountId, from });
-                            window.handleDragStart(e, parseInt(accountId), from);
+                            console.log('[DRAG] 🚀 DRAGSTART (blown) !', { accountId, from });
+                            e.dataTransfer.effectAllowed = 'move';
+                            e.dataTransfer.setData('text/plain', accountId);
+                            e.target.style.opacity = '0.2';
+                            
+                            // Stocker dans variables globales
+                            window.draggedAccountId = parseInt(accountId);
+                            window.draggedFrom = from;
+                        });
+                        
+                        item.addEventListener('dragend', (e) => {
+                            e.target.style.opacity = '0.6';
                         });
                     });
                     
@@ -164,6 +186,76 @@ async function loadAccounts() {
                     // Zone vide pour drop
                     blownAccountsList.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm" style="font-style: italic;">Glissez un compte ici pour l\'archiver</p>';
                 }
+            }
+            
+            // ✅ DRAG & DROP : Attacher dragover et drop sur les zones
+            if (accountsList) {
+                accountsList.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    accountsList.style.backgroundColor = 'rgba(172, 134, 43, 0.1)';
+                    accountsList.style.border = '2px dashed #ac862b';
+                });
+                
+                accountsList.addEventListener('dragleave', (e) => {
+                    accountsList.style.backgroundColor = '';
+                    accountsList.style.border = '';
+                });
+                
+                accountsList.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    accountsList.style.backgroundColor = '';
+                    accountsList.style.border = '';
+                    
+                    console.log('[DROP] 🎯 Drop sur ACTIFS | Compte:', window.draggedAccountId, '| Depuis:', window.draggedFrom);
+                    
+                    if (window.draggedFrom === 'blown') {
+                        // Restaurer le compte
+                        const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+                        const index = blownAccounts.indexOf(window.draggedAccountId);
+                        if (index > -1) {
+                            blownAccounts.splice(index, 1);
+                            localStorage.setItem('blownAccounts', JSON.stringify(blownAccounts));
+                            console.log('[DROP] ✅ Compte restauré:', window.draggedAccountId);
+                            await loadAccounts();
+                        }
+                    }
+                });
+            }
+            
+            if (blownAccountsList) {
+                blownAccountsList.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    blownAccountsList.style.backgroundColor = 'rgba(172, 134, 43, 0.1)';
+                    blownAccountsList.style.border = '2px dashed #ac862b';
+                });
+                
+                blownAccountsList.addEventListener('dragleave', (e) => {
+                    blownAccountsList.style.backgroundColor = '';
+                    blownAccountsList.style.border = '';
+                });
+                
+                blownAccountsList.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    blownAccountsList.style.backgroundColor = '';
+                    blownAccountsList.style.border = '';
+                    
+                    console.log('[DROP] 🎯 Drop sur CRAMÉS | Compte:', window.draggedAccountId, '| Depuis:', window.draggedFrom);
+                    
+                    if (window.draggedFrom === 'active') {
+                        // Archiver le compte
+                        const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+                        if (!blownAccounts.includes(window.draggedAccountId)) {
+                            blownAccounts.push(window.draggedAccountId);
+                            localStorage.setItem('blownAccounts', JSON.stringify(blownAccounts));
+                            console.log('[DROP] ✅ Compte archivé:', window.draggedAccountId);
+                            await loadAccounts();
+                        }
+                    }
+                });
             }
             
             console.log('[TRADES] ✅ accountsList mis à jour');
