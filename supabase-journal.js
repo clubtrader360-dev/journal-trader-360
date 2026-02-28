@@ -345,6 +345,64 @@
             // DEBUG : Log pour chaque entrée
             console.log('[JOURNAL] 🖼️ Affichage note ID:', entry.id, 'Image URL:', entry.image_url);
             
+            // ✅ NOUVEAU : Récupérer les trades de la même date
+            const dayTrades = window.trades ? window.trades.filter(trade => trade.date === entry.entry_date) : [];
+            console.log(`[JOURNAL] 📊 Trades du ${entry.entry_date}:`, dayTrades.length);
+            
+            // Générer le HTML des trades si présents
+            let tradesHtml = '';
+            if (dayTrades.length > 0) {
+                const totalPnl = dayTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+                const totalPnlClass = totalPnl >= 0 ? 'text-green-600' : 'text-red-600';
+                
+                tradesHtml = `
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <h5 class="text-sm font-semibold text-gray-700">
+                                📊 Trades du jour (${dayTrades.length})
+                            </h5>
+                            <span class="text-sm font-bold ${totalPnlClass}">
+                                ${totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)} $
+                            </span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-2 py-1 text-left text-gray-500">Heure</th>
+                                        <th class="px-2 py-1 text-left text-gray-500">Type</th>
+                                        <th class="px-2 py-1 text-left text-gray-500">Symbole</th>
+                                        <th class="px-2 py-1 text-right text-gray-500">Entrée</th>
+                                        <th class="px-2 py-1 text-right text-gray-500">Sortie</th>
+                                        <th class="px-2 py-1 text-center text-gray-500">Qty</th>
+                                        <th class="px-2 py-1 text-right text-gray-500">P&L</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${dayTrades.map(trade => {
+                                        const pnlClass = trade.pnl >= 0 ? 'text-green-600' : 'text-red-600';
+                                        const typeClass = trade.type && trade.type.toUpperCase().includes('LONG') ? 'text-blue-600' : 'text-orange-600';
+                                        return `
+                                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                                <td class="px-2 py-1">${trade.entryTime || '-'}</td>
+                                                <td class="px-2 py-1 ${typeClass} font-medium">${trade.type || '-'}</td>
+                                                <td class="px-2 py-1 font-medium">${trade.symbol}</td>
+                                                <td class="px-2 py-1 text-right">${trade.entryPrice}</td>
+                                                <td class="px-2 py-1 text-right">${trade.exitPrice}</td>
+                                                <td class="px-2 py-1 text-center">${trade.quantity}</td>
+                                                <td class="px-2 py-1 text-right font-semibold ${pnlClass}">
+                                                    ${trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}$
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
             return `
                 <div class="border-b pb-4 mb-4 last:border-b-0">
                     <div class="flex justify-between items-start mb-2">
@@ -382,6 +440,7 @@
                             <img src="${entry.image_url_2}" alt="Note image 2" class="max-w-full h-48 object-contain border rounded" title="Image 2 de la note" onerror="console.error('[JOURNAL] ❌ Erreur chargement image 2:', '${entry.image_url_2}')">
                         </div>
                     ` : ''}
+                    ${tradesHtml}
                 </div>
             `;
         }).join('');
