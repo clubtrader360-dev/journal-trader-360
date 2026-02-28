@@ -78,11 +78,16 @@ async function loadAccounts() {
             // Charger la liste des comptes cramés depuis localStorage (visuel uniquement)
             const blownAccountIds = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
             
+            console.log('[TRADES] 🔍 localStorage blownAccounts:', blownAccountIds);
+            console.log('[TRADES] 🔍 Tous les comptes (data):', data.map(a => ({ id: a.id, name: a.name })));
+            
             // Séparer les comptes actifs et cramés
             const activeAccounts = data.filter(account => !blownAccountIds.includes(account.id));
             const blownAccounts = data.filter(account => blownAccountIds.includes(account.id));
             
             console.log('[TRADES] 📊 Comptes actifs:', activeAccounts.length, '| Comptes cramés:', blownAccounts.length);
+            console.log('[TRADES] 📊 IDs actifs:', activeAccounts.map(a => a.id));
+            console.log('[TRADES] 📊 IDs cramés:', blownAccounts.map(a => a.id));
             
             // Afficher les comptes actifs
             if (activeAccounts.length === 0) {

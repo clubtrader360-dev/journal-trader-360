@@ -3084,11 +3084,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 
                 <!-- Archivage visuel uniquement (LocalStorage) -->
                 <div class="form-group">
-                    <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" id="editAccountIsBlown" class="mr-2">
-                        <span class="text-sm">🔥 Compte cramé (archiver visuellement)</span>
-                    </label>
-                    <p class="text-xs text-gray-500 mt-1">Déplace le compte dans "Comptes Cramés" sans supprimer les données.</p>
+                    <div class="flex items-start">
+                        <input type="checkbox" id="editAccountIsBlown" class="mt-1 mr-2">
+                        <div>
+                            <label for="editAccountIsBlown" class="cursor-pointer text-sm">
+                                🔥 Compte cramé (archiver visuellement)
+                            </label>
+                            <p class="text-xs text-gray-500 mt-1">Déplace le compte dans "Comptes Cramés" sans supprimer les données.</p>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="flex gap-4 mt-6">
@@ -5952,6 +5956,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
             const isBlown = blownAccounts.includes(parseInt(accountId));
             document.getElementById('editAccountIsBlown').checked = isBlown;
+            
+            console.log('[EDIT] 🔍 Chargement état cramé:', { accountId, accountIdInt: parseInt(accountId), blownAccounts, isBlown });
             
             // Ouvrir la modal
             document.getElementById('editAccountModal').style.display = 'block';
