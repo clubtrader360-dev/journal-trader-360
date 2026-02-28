@@ -3485,6 +3485,21 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         Prévisualisation des trades (à importer: <span id="csvTradeCount">0</span>)
                     </h3>
                     <p class="text-sm text-gray-600">Vérifiez les données avant l'import. Vous pourrez modifier chaque trade après validation.</p>
+                    
+                    <!-- ✅ Bandeau d'info fusion -->
+                    <div id="csvMergeInfo" class="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3" style="display: none;">
+                        <div class="flex items-start">
+                            <i class="fas fa-layer-group text-blue-500 mt-0.5 mr-3"></i>
+                            <div>
+                                <p class="text-sm text-blue-800 font-medium">
+                                    <span id="csvMergeCount">0</span> trades identiques ont été fusionnés automatiquement
+                                </p>
+                                <p class="text-xs text-blue-600 mt-1">
+                                    Trades au même prix, même heure d'entrée (±1 min) → regroupés en un seul trade avec quantité cumulée
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto max-h-96 overflow-y-auto border rounded-lg">
@@ -3634,17 +3649,39 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         return;
                     }
                     
-                    // Stocker les trades parsés
-                    csvParsedTrades = allParsedTrades;
+                    console.log('[CSV] 📊 Trades parsés:', allParsedTrades.length);
+                    
+                    // ✅ Fusionner les trades identiques (même prix, même heure)
+                    const mergedTrades = mergeDuplicateTrades(allParsedTrades);
+                    
+                    const mergeCount = allParsedTrades.length - mergedTrades.length;
+                    if (mergeCount > 0) {
+                        console.log(`[CSV] ✅ ${mergeCount} trades fusionnés`);
+                        
+                        // Afficher le bandeau d'information
+                        const mergeInfoDiv = document.getElementById('csvMergeInfo');
+                        const mergeCountSpan = document.getElementById('csvMergeCount');
+                        if (mergeInfoDiv && mergeCountSpan) {
+                            mergeInfoDiv.style.display = 'block';
+                            mergeCountSpan.textContent = mergeCount;
+                        }
+                    } else {
+                        // Cacher le bandeau si pas de fusion
+                        const mergeInfoDiv = document.getElementById('csvMergeInfo');
+                        if (mergeInfoDiv) mergeInfoDiv.style.display = 'none';
+                    }
+                    
+                    // Stocker les trades fusionnés
+                    csvParsedTrades = mergedTrades;
                     
                     // Afficher la prévisualisation
-                    displayCSVPreview(allParsedTrades);
+                    displayCSVPreview(mergedTrades);
                     
                     // Passer à l'étape 2
                     document.getElementById('csvUploadStep').style.display = 'none';
                     document.getElementById('csvPreviewStep').style.display = 'block';
                     
-                    console.log('[CSV] ✅', parsedTrades.length, 'trades prêts à être importés');
+                    console.log('[CSV] ✅', mergedTrades.length, 'trades prêts à être importés');
                 } catch (err) {
                     console.error('[CSV] ❌ Erreur parsing:', err);
                     alert('❌ Erreur lors de la lecture du fichier CSV: ' + err.message);
@@ -3939,6 +3976,83 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
             
             return trades;
+        }
+        
+        // ✅ NOUVELLE FONCTION: Fusionner les trades identiques (même prix, même heure)
+        function mergeDuplicateTrades(trades) {
+            console.log('[CSV] 🔄 Fusion des trades identiques - Début');
+            console.log('[CSV] Trades avant fusion:', trades.length);
+            
+            const mergedTrades = [];
+            const processedIndices = new Set();
+            
+            for (let i = 0; i < trades.length; i++) {
+                // Si déjà traité, passer
+                if (processedIndices.has(i)) continue;
+                
+                const currentTrade = trades[i];
+                let mergedQuantity = currentTrade.quantity;
+                let mergedPnl = currentTrade.pnl;
+                let mergedFees = currentTrade.fees || 0;
+                
+                // Chercher les trades similaires
+                for (let j = i + 1; j < trades.length; j++) {
+                    if (processedIndices.has(j)) continue;
+                    
+                    const compareTrade = trades[j];
+                    
+                    // Critères de fusion (tolérance de ±1 minute sur l'heure d'entrée)
+                    const sameDate = currentTrade.trade_date === compareTrade.trade_date;
+                    const sameSymbol = currentTrade.symbol === compareTrade.symbol;
+                    const sameType = currentTrade.trade_type === compareTrade.trade_type;
+                    const sameEntryPrice = Math.abs(currentTrade.entry_price - compareTrade.entry_price) < 0.01;
+                    const sameExitPrice = Math.abs(currentTrade.exit_price - compareTrade.exit_price) < 0.01;
+                    
+                    // Vérifier si les heures d'entrée sont proches (±1 minute)
+                    const timeDiff = calculateTimeDifference(currentTrade.entry_time, compareTrade.entry_time);
+                    const sameEntryTime = timeDiff <= 1; // 1 minute de tolérance
+                    
+                    if (sameDate && sameSymbol && sameType && sameEntryPrice && sameExitPrice && sameEntryTime) {
+                        // Fusionner ce trade
+                        mergedQuantity += compareTrade.quantity;
+                        mergedPnl += compareTrade.pnl;
+                        mergedFees += (compareTrade.fees || 0);
+                        processedIndices.add(j);
+                        
+                        console.log(`[CSV] ✅ Fusion: Trade ${i} + Trade ${j} (${compareTrade.quantity} contrats)`);
+                    }
+                }
+                
+                // Créer le trade fusionné
+                const mergedTrade = {
+                    ...currentTrade,
+                    quantity: mergedQuantity,
+                    pnl: mergedPnl,
+                    manual_pnl: mergedPnl,
+                    fees: mergedFees
+                };
+                
+                mergedTrades.push(mergedTrade);
+                processedIndices.add(i);
+                
+                if (mergedQuantity > currentTrade.quantity) {
+                    console.log(`[CSV] 📦 Trade fusionné: ${currentTrade.symbol} ${currentTrade.trade_type} - Qty: ${currentTrade.quantity} → ${mergedQuantity}, P&L: ${currentTrade.pnl.toFixed(2)} → ${mergedPnl.toFixed(2)}`);
+                }
+            }
+            
+            console.log('[CSV] ✅ Fusion terminée:', trades.length, '→', mergedTrades.length, 'trades');
+            console.log('[CSV] 📊 Trades fusionnés:', trades.length - mergedTrades.length);
+            
+            return mergedTrades;
+        }
+        
+        // ✅ Fonction helper: Calculer la différence en minutes entre deux heures (HH:MM)
+        function calculateTimeDifference(time1, time2) {
+            const [h1, m1] = time1.split(':').map(Number);
+            const [h2, m2] = time2.split(':').map(Number);
+            const minutes1 = h1 * 60 + m1;
+            const minutes2 = h2 * 60 + m2;
+            return Math.abs(minutes1 - minutes2);
         }
         
         function displayCSVPreview(trades) {
