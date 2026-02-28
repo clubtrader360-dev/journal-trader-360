@@ -119,10 +119,11 @@ async function loadAccounts() {
                 }).join('');
             }
             
-            // Afficher la section des comptes cramés si nécessaire
+            // Afficher la section des comptes cramés (toujours visible)
             if (blownAccountsList && blownAccountsSection) {
+                blownAccountsSection.style.display = 'block';  // Toujours visible
+                
                 if (blownAccounts.length > 0) {
-                    blownAccountsSection.style.display = 'block';
                     blownAccountsList.innerHTML = blownAccounts.map(account => {
                         return `
                             <div class="account-item" draggable="true" data-account-id="${account.id}" ondragstart="handleDragStart(event, ${account.id}, 'blown')" style="opacity: 0.6; cursor: move;">
@@ -138,7 +139,8 @@ async function loadAccounts() {
                     }).join('');
                     console.log('[TRADES] ✅ blownAccountsList mis à jour:', blownAccounts.length, 'comptes');
                 } else {
-                    blownAccountsSection.style.display = 'none';
+                    // Zone vide pour drop
+                    blownAccountsList.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm" style="font-style: italic;">Glissez un compte ici pour l\'archiver</p>';
                 }
             }
             
