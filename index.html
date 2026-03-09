@@ -6098,7 +6098,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 event.stopPropagation();
             }
             
-            console.log('[DROP] Drop sur:', targetZone, '| Compte:', draggedAccountId, '| Depuis:', draggedFrom);
+            console.log('[DROP] 🎯 Drop sur:', targetZone, '| Compte:', draggedAccountId, '| Depuis:', draggedFrom);
             
             // Reset visual
             const dropZone = event.currentTarget;
@@ -6115,11 +6115,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
             const accountIdInt = parseInt(draggedAccountId);
             
+            console.log('[DROP] 📦 Avant modification - blownAccounts:', blownAccounts);
+            
             if (targetZone === 'blown') {
                 // Déplacer vers "Comptes Cramés"
                 if (!blownAccounts.includes(accountIdInt)) {
                     blownAccounts.push(accountIdInt);
                     console.log('[DROP] ✅ Compte ajouté aux cramés:', accountIdInt);
+                } else {
+                    console.log('[DROP] ⚠️ Compte déjà dans cramés:', accountIdInt);
                 }
             } else if (targetZone === 'active') {
                 // Restaurer vers "Comptes Actifs"
@@ -6127,16 +6131,22 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 if (index > -1) {
                     blownAccounts.splice(index, 1);
                     console.log('[DROP] ✅ Compte retiré des cramés:', accountIdInt);
+                } else {
+                    console.log('[DROP] ⚠️ Compte pas dans cramés:', accountIdInt);
                 }
             }
             
             localStorage.setItem('blownAccounts', JSON.stringify(blownAccounts));
-            console.log('[DROP] 💾 localStorage mis à jour:', blownAccounts);
+            console.log('[DROP] 💾 Après modification - blownAccounts:', blownAccounts);
+            console.log('[DROP] 💾 localStorage.blownAccounts:', localStorage.getItem('blownAccounts'));
             
             // Rafraîchir l'affichage
             if (typeof window.loadAccounts === 'function') {
+                console.log('[DROP] 🔄 Appel de loadAccounts()...');
                 await window.loadAccounts();
-                console.log('[DROP] ✅ Affichage rafraîchi');
+                console.log('[DROP] ✅ loadAccounts() terminé');
+            } else {
+                console.error('[DROP] ❌ window.loadAccounts non défini !');
             }
             
             return false;
