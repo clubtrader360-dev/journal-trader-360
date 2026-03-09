@@ -76,7 +76,11 @@ async function loadAccounts() {
         
         if (accountsList) {
             // Charger la liste des comptes cramés depuis localStorage (visuel uniquement)
-            const blownAccountIdsRaw = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+            let blownAccountIdsRaw = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+            
+            // ✅ NETTOYER : Supprimer les valeurs invalides (null, undefined, NaN) AVANT conversion
+            blownAccountIdsRaw = blownAccountIdsRaw.filter(id => id !== null && id !== undefined && !isNaN(parseInt(id)));
+            
             // Forcer la conversion en nombres pour éviter les problèmes de comparaison
             const blownAccountIds = blownAccountIdsRaw.map(id => parseInt(id));
             

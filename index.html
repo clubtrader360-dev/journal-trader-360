@@ -6112,7 +6112,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
             
             // Mettre à jour localStorage
-            const blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+            let blownAccounts = JSON.parse(localStorage.getItem('blownAccounts') || '[]');
+            
+            // ✅ NETTOYER : Supprimer les valeurs invalides (null, undefined, NaN)
+            blownAccounts = blownAccounts.filter(id => id !== null && id !== undefined && !isNaN(id));
+            
             const accountIdInt = parseInt(draggedAccountId);
             
             console.log('[DROP] 📦 Avant modification - blownAccounts:', blownAccounts);
