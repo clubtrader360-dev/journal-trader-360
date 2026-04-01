@@ -8245,10 +8245,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     });
                 }
                 
-                // ✅ N'afficher que les jours du mois en cours
-                if (isCurrentMonth) {
-                    calendarGrid.appendChild(dayElement);
-                }
+                // ✅ Afficher TOUS les jours (même ceux hors du mois, grisés)
+                calendarGrid.appendChild(dayElement);
             }
             
             // Mettre à jour les statistiques hebdomadaires
