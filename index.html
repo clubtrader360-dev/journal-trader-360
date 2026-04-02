@@ -3905,9 +3905,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     if (symbol.startsWith('MGC') && symbol.length > 3) symbol = 'MGC';
                     
                     // Parser les prix et quantité
-                    const entryPrice = parseFloat(values[colIndices.entryPrice]);
-                    const exitPrice = parseFloat(values[colIndices.exitPrice]);
+                    let entryPrice = parseFloat(values[colIndices.entryPrice]);
+                    let exitPrice = parseFloat(values[colIndices.exitPrice]);
                     const quantity = parseInt(values[colIndices.quantity]);
+                    
+                    // ✅ FIX TRADOVATE : Pour les SHORT, Tradovate inverse Entry/Exit dans le CSV
+                    // Entry Price (CSV) = Exit Price (réel), Exit Price (CSV) = Entry Price (réel)
+                    if (isTimestampFormat && tradeType === 'SHORT') {
+                        // Inverser les prix pour les SHORT
+                        [entryPrice, exitPrice] = [exitPrice, entryPrice];
+                        console.log('[CSV-Tradovate-SHORT] ✅ Prix inversés : Entry:', entryPrice, 'Exit:', exitPrice);
+                    }
                     
                     // ===== TRADE DEFY : Parsing des timestamps =====
                     let tradeDate = '';
