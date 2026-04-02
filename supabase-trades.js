@@ -379,17 +379,15 @@ async function loadAccounts() {
     // ✅ CALCUL DU P&L avec déduction des frais
     let calculated_pnl = null;
     
-    // Si manual_pnl est fourni (symbole DEMO uniquement)
+    // Si manual_pnl est fourni (symbole DEMO uniquement), l'utiliser et déduire les frais
     if (tradeData.manual_pnl !== null && tradeData.manual_pnl !== undefined) {
-      // Pour DEMO, le P&L manuel est DÉJÀ le P&L net final
-      // Les frais sont gérés manuellement par l'utilisateur
-      // Ne PAS déduire les frais automatiquement
-      calculated_pnl = parseFloat(tradeData.manual_pnl);
+      const pnl_brut = parseFloat(tradeData.manual_pnl);
+      calculated_pnl = pnl_brut - (tradeData.fees || 0);
       
       console.log('[TRADES] 💰 P&L manuel (DEMO):');
-      console.log('  - P&L saisi (final):', calculated_pnl.toFixed(2));
-      console.log('  - Frais (info):', (tradeData.fees || 0).toFixed(2));
-      console.log('  - P&L stocké:', calculated_pnl.toFixed(2));
+      console.log('  - P&L Brut (saisi):', pnl_brut.toFixed(2));
+      console.log('  - Frais:', (tradeData.fees || 0).toFixed(2));
+      console.log('  - P&L Net:', calculated_pnl.toFixed(2));
     } 
     // Sinon, calculer automatiquement selon le symbole
     else if (tradeData.entry_price && tradeData.exit_price && tradeData.quantity) {
