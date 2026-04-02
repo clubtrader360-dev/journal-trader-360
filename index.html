@@ -1413,49 +1413,18 @@ async function addTradeUI() {
         return;
     }
     
-    // ✅ CALCULER LE P&L ET DÉDUIRE LES FRAIS
+    // ✅ CALCULER LE P&L (uniquement pour DEMO avec P&L manuel)
     let calculated_pnl = null;
     
-    // Si P&L manuel fourni (symbole DEMO), l'utiliser directement et déduire les frais
-    if (manual_pnl && parseFloat(manual_pnl) !== 0) {
-        calculated_pnl = parseFloat(manual_pnl) - fees;
-        console.log('[UI] 💰 P&L manuel:', manual_pnl, '- Frais:', fees, '= P&L net:', calculated_pnl);
+    // Si P&L manuel fourni (symbole DEMO), l'utiliser directement
+    // Les frais seront déduits automatiquement dans supabase-trades.js
+    if (symbol === 'DEMO' && manual_pnl && parseFloat(manual_pnl) !== 0) {
+        calculated_pnl = parseFloat(manual_pnl);
+        console.log('[UI] 💰 P&L manuel (DEMO):', calculated_pnl, '(frais seront déduits côté serveur)');
     } else {
-        // Calculer le P&L automatiquement selon le symbole
-        const multiplierMap = {
-            'ES': 50,      // E-mini S&P 500 : $50/point
-            'MES': 5,      // Micro E-mini S&P 500 : $5/point
-            'NQ': 20,      // E-mini Nasdaq-100 : $20/point
-            'MNQ': 2,      // Micro E-mini Nasdaq-100 : $2/point
-            'GC': 100,     // Gold : $100/point
-            'MGC': 10,     // Micro Gold : $10/point
-            'DEMO': 1      // DEMO : P&L manuel
-        };
-        
-        const multiplier = multiplierMap[symbol] || 50;  // Par défaut ES
-        const pointDiff = exit_price - entry_price;
-        let pnl_brut = pointDiff * quantity * multiplier;
-        
-        // Si SHORT, inverser le signe
-        if (trade_type.toUpperCase().includes('SHORT')) {
-            pnl_brut = -pnl_brut;
-        }
-        
-        // Déduire les frais
-        calculated_pnl = pnl_brut - fees;
-        
-        console.log('[UI] 💰 Calcul P&L:', {
-            symbol,
-            trade_type,
-            entry_price,
-            exit_price,
-            quantity,
-            multiplier,
-            pointDiff,
-            pnl_brut,
-            fees,
-            calculated_pnl
-        });
+        // Pour les autres symboles (ES, NQ, etc.), NE PAS calculer le P&L ici
+        // Il sera calculé automatiquement dans supabase-trades.js avec les frais déduits
+        console.log('[UI] 💰 P&L sera calculé automatiquement dans supabase-trades.js avec frais:', fees);
     }
     
     // Construction payload
@@ -1473,10 +1442,10 @@ async function addTradeUI() {
         take_profit: take_profit ? parseFloat(take_profit) : null,
         setup: setup || null,
         notes: notes || null,
-        manual_pnl: calculated_pnl,  // ✅ P&L calculé avec frais déduits
+        manual_pnl: calculated_pnl,  // ✅ Uniquement pour DEMO, sinon null
         protections: protections.length > 0 ? protections.join(',') : null,
         trade_trend_type: trade_trend_type,  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
-        fees: fees,  // ✅ AJOUT: Frais
+        fees: fees,  // ✅ AJOUT: Frais (seront déduits automatiquement)
         is_break_even: is_break_even,  // ✅ AJOUT: Break-Even
         is_methode: is_methode,  // ✅ AJOUT: Méthode
         is_hors_methode: is_hors_methode  // ✅ AJOUT: Hors Méthode

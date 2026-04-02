@@ -376,10 +376,21 @@ async function loadAccounts() {
     
     console.log('[TRADES] 📊 Direction détectée:', tradeData.trade_type, '→', direction);
     
-    // ✅ CALCUL DU P&L avec déduction des frais (si manual_pnl n'est pas fourni)
-    let calculated_pnl = tradeData.manual_pnl;
+    // ✅ CALCUL DU P&L avec déduction des frais
+    let calculated_pnl = null;
     
-    if (!calculated_pnl && tradeData.entry_price && tradeData.exit_price && tradeData.quantity) {
+    // Si manual_pnl est fourni (symbole DEMO uniquement), l'utiliser et déduire les frais
+    if (tradeData.manual_pnl !== null && tradeData.manual_pnl !== undefined) {
+      const pnl_brut = parseFloat(tradeData.manual_pnl);
+      calculated_pnl = pnl_brut - (tradeData.fees || 0);
+      
+      console.log('[TRADES] 💰 P&L manuel (DEMO):');
+      console.log('  - P&L Brut (saisi):', pnl_brut.toFixed(2));
+      console.log('  - Frais:', (tradeData.fees || 0).toFixed(2));
+      console.log('  - P&L Net:', calculated_pnl.toFixed(2));
+    } 
+    // Sinon, calculer automatiquement selon le symbole
+    else if (tradeData.entry_price && tradeData.exit_price && tradeData.quantity) {
       const symbol = (tradeData.symbol || 'ES').toUpperCase().replace(/[0-9]/g, '');  // Enlever les chiffres (ESH6 -> ES)
       
       // Multipliers par instrument
@@ -420,10 +431,6 @@ async function loadAccounts() {
       console.log('  - P&L Brut:', pnl_brut.toFixed(2));
       console.log('  - Frais:', (tradeData.fees || 0).toFixed(2));
       console.log('  - P&L Net:', calculated_pnl.toFixed(2));
-    } else if (calculated_pnl) {
-      // Si manual_pnl est fourni (ex: depuis CSV), l'utiliser tel quel
-      // Les frais sont déjà déduits dans le CSV
-      console.log('[TRADES] 📊 P&L manuel utilisé (frais déjà inclus):', calculated_pnl.toFixed(2));
     }
     
     const tradeWithUser = {
