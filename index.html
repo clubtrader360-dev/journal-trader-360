@@ -7135,6 +7135,22 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // Remplir le formulaire avec les données du trade
             document.getElementById('tradeAccount').value = trade.accountId;
+            
+            // ✅ PRÉ-COCHER LE COMPTE dans le dropdown multi-sélection
+            const accountCheckboxes = document.querySelectorAll('#tradeAccountList input[type="checkbox"]');
+            accountCheckboxes.forEach(cb => {
+                // Décocher tous les comptes d'abord
+                cb.checked = false;
+                // Cocher uniquement le compte du trade
+                if (parseInt(cb.value) === parseInt(trade.accountId)) {
+                    cb.checked = true;
+                }
+            });
+            // Mettre à jour l'affichage du dropdown
+            if (window.updateSelectedTradeAccounts) {
+                window.updateSelectedTradeAccounts();
+            }
+            
             document.getElementById('tradeDate').value = trade.date;
             document.getElementById('entryTime').value = trade.entryTime || '';
             document.getElementById('exitTime').value = trade.exitTime || '';
@@ -7153,6 +7169,29 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
             
             document.getElementById('tradeType').value = trade.type;
+            
+            // ✅ FALLBACK: Si le type n'est pas trouvé (ex: "LONG" au lieu de "Long")
+            // Normaliser le type pour correspondre aux options du select
+            const tradeTypeSelect = document.getElementById('tradeType');
+            if (tradeTypeSelect && !tradeTypeSelect.value) {
+                // Essayer de trouver une correspondance approximative
+                const normalizedType = trade.type.toLowerCase();
+                if (normalizedType.includes('long') && normalizedType.includes('rr1')) {
+                    tradeTypeSelect.value = 'Long (RR1 atteint)';
+                } else if (normalizedType.includes('long') && normalizedType.includes('rr2')) {
+                    tradeTypeSelect.value = 'Long (RR2 atteint)';
+                } else if (normalizedType.includes('short') && normalizedType.includes('rr1')) {
+                    tradeTypeSelect.value = 'Short (RR1 atteint)';
+                } else if (normalizedType.includes('short') && normalizedType.includes('rr2')) {
+                    tradeTypeSelect.value = 'Short (RR2 atteint)';
+                } else if (normalizedType.includes('long')) {
+                    tradeTypeSelect.value = 'Long';
+                } else if (normalizedType.includes('short')) {
+                    tradeTypeSelect.value = 'Short';
+                }
+                console.log('[EDIT] Type normalisé:', trade.type, '→', tradeTypeSelect.value);
+            }
+            
             document.getElementById('entryPrice').value = trade.entryPrice;
             document.getElementById('exitPrice').value = trade.exitPrice;
             document.getElementById('quantity').value = trade.quantity;
