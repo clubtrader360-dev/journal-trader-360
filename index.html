@@ -3875,18 +3875,41 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 try {
                     const values = parseCSVLine(lines[i]).map(v => v.trim());
                     
-                    // ===== TRADE DEFY : Détection automatique du type =====
+                    // ===== TRADE DEFY / TRADOVATE : Détection automatique du type =====
                     let tradeType = 'LONG'; // Par défaut
                     if (isTimestampFormat) {
-                        const entryPriceRaw = parseFloat(values[colIndices.entryPrice]);
-                        const exitPriceRaw = parseFloat(values[colIndices.exitPrice]);
-                        // Si buyPrice > sellPrice, c'est un SHORT
-                        if (entryPriceRaw > exitPriceRaw) {
-                            tradeType = 'SHORT';
+                        // ✅ NOUVELLE LOGIQUE : Détecter SHORT/LONG basé sur l'ordre temporel
+                        const boughtIdx = header.findIndex(h => h === 'boughttimestamp');
+                        const soldIdx = header.findIndex(h => h === 'soldtimestamp');
+                        
+                        if (boughtIdx !== -1 && soldIdx !== -1) {
+                            const boughtTimestamp = values[boughtIdx];
+                            const soldTimestamp = values[soldIdx];
+                            
+                            // Convertir en Date pour comparer
+                            const boughtDate = new Date(boughtTimestamp);
+                            const soldDate = new Date(soldTimestamp);
+                            
+                            // Si sold < bought → SHORT (tu vends d'abord, tu rachètes après)
+                            // Si bought < sold → LONG (tu achètes d'abord, tu vends après)
+                            if (soldDate < boughtDate) {
+                                tradeType = 'SHORT';
+                            } else {
+                                tradeType = 'LONG';
+                            }
+                            
+                            console.log('[CSV-Tradovate] Type détecté:', tradeType, 'Bought:', boughtTimestamp, 'Sold:', soldTimestamp);
                         } else {
-                            tradeType = 'LONG';
+                            // Fallback : détecter par les prix (ancienne méthode)
+                            const entryPriceRaw = parseFloat(values[colIndices.entryPrice]);
+                            const exitPriceRaw = parseFloat(values[colIndices.exitPrice]);
+                            if (entryPriceRaw > exitPriceRaw) {
+                                tradeType = 'SHORT';
+                            } else {
+                                tradeType = 'LONG';
+                            }
+                            console.log('[CSV-Tradovate-Fallback] Type détecté:', tradeType, 'Entry:', entryPriceRaw, 'Exit:', exitPriceRaw);
                         }
-                        console.log('[CSV-TradeDefy] Type détecté:', tradeType, 'Entry:', entryPriceRaw, 'Exit:', exitPriceRaw);
                     } else {
                         // ===== TOPSTEPX : Type explicite =====
                         tradeType = values[colIndices.type].toUpperCase();
@@ -3909,12 +3932,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     let exitPrice = parseFloat(values[colIndices.exitPrice]);
                     const quantity = parseInt(values[colIndices.quantity]);
                     
-                    // ✅ FIX TRADOVATE : Pour les SHORT, Tradovate inverse Entry/Exit dans le CSV
-                    // Entry Price (CSV) = Exit Price (réel), Exit Price (CSV) = Entry Price (réel)
+                    // ✅ FIX TRADOVATE : Pour les SHORT, Tradovate utilise buyPrice/sellPrice
+                    // Pour SHORT : entryPrice = sellPrice (vente), exitPrice = buyPrice (rachat)
+                    // Pour LONG : entryPrice = buyPrice (achat), exitPrice = sellPrice (vente)
+                    // Dans le CSV Tradovate : buyPrice et sellPrice sont TOUJOURS dans cet ordre
+                    // Donc pour SHORT, il faut inverser !
                     if (isTimestampFormat && tradeType === 'SHORT') {
                         // Inverser les prix pour les SHORT
                         [entryPrice, exitPrice] = [exitPrice, entryPrice];
-                        console.log('[CSV-Tradovate-SHORT] ✅ Prix inversés : Entry:', entryPrice, 'Exit:', exitPrice);
+                        console.log('[CSV-Tradovate-SHORT] ✅ Prix inversés : Entry:', entryPrice, '(sell) Exit:', exitPrice, '(buy)');
                     }
                     
                     // ===== TRADE DEFY : Parsing des timestamps =====
