@@ -7134,7 +7134,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             // Si c'est un trade DEMO, afficher et remplir le champ P&L manuel
             toggleManualPnL();
             if (trade.symbol === 'DEMO') {
-                document.getElementById('manualPnL').value = trade.pnl || 0;
+                // ✅ IMPORTANT : Pour DEMO, afficher le P&L BRUT (avant frais)
+                // Car les frais seront déduits automatiquement lors de la sauvegarde
+                const pnlNet = trade.pnl || 0;
+                const fees = trade.fees || 0;
+                const pnlBrut = pnlNet + fees;  // Récupérer le P&L Brut en rajoutant les frais
+                document.getElementById('manualPnL').value = pnlBrut;
+                console.log('[EDIT] DEMO P&L: Net=', pnlNet, '+ Frais=', fees, '= Brut=', pnlBrut);
             }
             
             document.getElementById('tradeType').value = trade.type;
