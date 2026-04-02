@@ -69,6 +69,39 @@ async function loadAccounts() {
             console.log(`[TRADES] ✅ Select #${selectId} hydraté (${data.length} comptes)`);
         });
         
+        // ✅ Remplir les dropdowns de sélection multiple (import CSV + ajout trade)
+        const csvAccountList = document.getElementById('csvAccountList');
+        if (csvAccountList) {
+            csvAccountList.innerHTML = data.map(account => `
+                <label class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer">
+                    <input type="checkbox" 
+                           class="csv-account-checkbox mr-2" 
+                           value="${account.id}" 
+                           onchange="updateSelectedCSVAccounts()">
+                    <span>${account.name} (${account.type})</span>
+                </label>
+            `).join('');
+            console.log(`[TRADES] ✅ csvAccountList hydraté (${data.length} comptes)`);
+        } else {
+            console.log('[TRADES] ⚠️ csvAccountList absent du DOM (skip)');
+        }
+        
+        const tradeAccountList = document.getElementById('tradeAccountList');
+        if (tradeAccountList) {
+            tradeAccountList.innerHTML = data.map(account => `
+                <label class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer">
+                    <input type="checkbox" 
+                           class="trade-account-checkbox mr-2" 
+                           value="${account.id}" 
+                           onchange="updateSelectedTradeAccounts()">
+                    <span>${account.name} (${account.type})</span>
+                </label>
+            `).join('');
+            console.log(`[TRADES] ✅ tradeAccountList hydraté (${data.length} comptes)`);
+        } else {
+            console.log('[TRADES] ⚠️ tradeAccountList absent du DOM (skip)');
+        }
+        
         // Sidebar accountsList (si existe) - ID CORRIGÉ
         const accountsList = document.getElementById('accountsList');
         const blownAccountsList = document.getElementById('blownAccountsList');
