@@ -1416,11 +1416,12 @@ async function addTradeUI() {
     // ✅ CALCULER LE P&L (uniquement pour DEMO avec P&L manuel)
     let calculated_pnl = null;
     
-    // Si P&L manuel fourni (symbole DEMO), l'utiliser directement
-    // Les frais seront déduits automatiquement dans supabase-trades.js
+    // Si P&L manuel fourni (symbole DEMO), déduire les frais ICI
+    // Car supabase-trades.js ne les déduit PAS pour DEMO
     if (symbol === 'DEMO' && manual_pnl && parseFloat(manual_pnl) !== 0) {
-        calculated_pnl = parseFloat(manual_pnl);
-        console.log('[UI] 💰 P&L manuel (DEMO):', calculated_pnl, '(frais seront déduits côté serveur)');
+        const pnlBrut = parseFloat(manual_pnl);
+        calculated_pnl = pnlBrut - fees;  // Déduire les frais ICI
+        console.log('[UI] 💰 P&L manuel (DEMO):', pnlBrut, '- Frais:', fees, '= P&L Net:', calculated_pnl);
     } else {
         // Pour les autres symboles (ES, NQ, etc.), NE PAS calculer le P&L ici
         // Il sera calculé automatiquement dans supabase-trades.js avec les frais déduits
