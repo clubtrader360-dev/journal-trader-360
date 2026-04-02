@@ -1413,18 +1413,17 @@ async function addTradeUI() {
         return;
     }
     
-    // ✅ CALCULER LE P&L (uniquement pour DEMO avec P&L manuel)
+    // ✅ NE PAS envoyer manual_pnl en mode édition (sauf DEMO si modifié)
+    // Le P&L sera TOUJOURS recalculé dans supabase-trades.js à partir des prix + frais
     let calculated_pnl = null;
     
-    // Si P&L manuel fourni (symbole DEMO), l'utiliser directement
-    // Les frais seront déduits automatiquement dans supabase-trades.js
-    if (symbol === 'DEMO' && manual_pnl && parseFloat(manual_pnl) !== 0) {
+    // Uniquement pour DEMO en mode CRÉATION (pas édition)
+    if (!isEditing && symbol === 'DEMO' && manual_pnl && parseFloat(manual_pnl) !== 0) {
         calculated_pnl = parseFloat(manual_pnl);
-        console.log('[UI] 💰 P&L manuel (DEMO):', calculated_pnl, '(frais seront déduits côté serveur)');
+        console.log('[UI] 💰 P&L manuel (DEMO création):', calculated_pnl);
     } else {
-        // Pour les autres symboles (ES, NQ, etc.), NE PAS calculer le P&L ici
-        // Il sera calculé automatiquement dans supabase-trades.js avec les frais déduits
-        console.log('[UI] 💰 P&L sera calculé automatiquement dans supabase-trades.js avec frais:', fees);
+        // Pour ES/NQ/etc OU en mode édition : laisser supabase-trades.js calculer
+        console.log('[UI] 💰 P&L sera calculé dans supabase-trades.js (prix + frais)');
     }
     
     // Construction payload
@@ -1442,7 +1441,7 @@ async function addTradeUI() {
         take_profit: take_profit ? parseFloat(take_profit) : null,
         setup: setup || null,
         notes: notes || null,
-        manual_pnl: calculated_pnl,  // ✅ Uniquement pour DEMO, sinon null
+        manual_pnl: calculated_pnl,  // ✅ null en mode édition → recalcul auto
         protections: protections.length > 0 ? protections.join(',') : null,
         trade_trend_type: trade_trend_type,  // ✅ AJOUT: Type de trade (Tendance/Contre-tendance)
         fees: fees,  // ✅ AJOUT: Frais (seront déduits automatiquement)
