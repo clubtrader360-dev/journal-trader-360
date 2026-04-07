@@ -4091,6 +4091,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     const compareTrade = trades[j];
                     
+                    // ✅ IMPORTANT : Ne pas fusionner si les comptes sont différents
+                    if (currentTrade.account_id !== compareTrade.account_id) {
+                        continue;  // Sauter ce trade, garder les deux séparés
+                    }
+                    
                     // Critères de fusion (tolérance de ±1 minute sur l'heure d'entrée)
                     const sameDate = currentTrade.trade_date === compareTrade.trade_date;
                     const sameSymbol = currentTrade.symbol === compareTrade.symbol;
@@ -4109,7 +4114,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         mergedFees += (compareTrade.fees || 0);
                         processedIndices.add(j);
                         
-                        console.log(`[CSV] ✅ Fusion: Trade ${i} + Trade ${j} (${compareTrade.quantity} contrats)`);
+                        console.log(`[CSV] ✅ Fusion: Trade ${i} + Trade ${j} (${compareTrade.quantity} contrats) - Même compte ${currentTrade.account_id}`);
                     }
                 }
                 
@@ -4126,7 +4131,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 processedIndices.add(i);
                 
                 if (mergedQuantity > currentTrade.quantity) {
-                    console.log(`[CSV] 📦 Trade fusionné: ${currentTrade.symbol} ${currentTrade.trade_type} - Qty: ${currentTrade.quantity} → ${mergedQuantity}, P&L: ${currentTrade.pnl.toFixed(2)} → ${mergedPnl.toFixed(2)}`);
+                    console.log(`[CSV] 📦 Trade fusionné: ${currentTrade.symbol} ${currentTrade.trade_type} (Compte ${currentTrade.account_id}) - Qty: ${currentTrade.quantity} → ${mergedQuantity}, P&L: ${currentTrade.pnl.toFixed(2)} → ${mergedPnl.toFixed(2)}`);
                 }
             }
             
