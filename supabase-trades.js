@@ -376,61 +376,94 @@ async function loadAccounts() {
     
     console.log('[TRADES] 📊 Direction détectée:', tradeData.trade_type, '→', direction);
     
-    // ✅ CALCUL DU P&L avec déduction des frais
+    // ✅ EN MODE ÉDITION : Vérifier si les prix ou frais ont changé
+    let shouldRecalculatePnl = true;
+    
+    if (tradeData.id) {
+      // Récupérer le trade existant pour comparer
+      const { data: existingTrade } = await supabase
+        .from('trades')
+        .select('entry_price, exit_price, quantity, fees, manual_pnl')
+        .eq('id', tradeData.id)
+        .eq('user_id', window.currentUser.uuid)
+        .single();
+      
+      if (existingTrade) {
+        const pricesChanged = 
+          existingTrade.entry_price !== tradeData.entry_price ||
+          existingTrade.exit_price !== tradeData.exit_price ||
+          existingTrade.quantity !== tradeData.quantity;
+        
+        const feesChanged = (existingTrade.fees || 0) !== (tradeData.fees || 0);
+        
+        if (!pricesChanged && !feesChanged) {
+          // Les prix et frais n'ont PAS changé → garder le P&L actuel
+          shouldRecalculatePnl = false;
+          calculated_pnl = existingTrade.manual_pnl;
+          console.log('[TRADES] ℹ️ Prix et frais inchangés → P&L conservé:', calculated_pnl);
+        } else {
+          console.log('[TRADES] 🔄 Prix ou frais modifiés → Recalcul du P&L');
+        }
+      }
+    }
+    
+    // ✅ CALCUL DU P&L avec déduction des frais (si nécessaire)
     let calculated_pnl = null;
     
-    // Si manual_pnl est fourni (symbole DEMO uniquement), l'utiliser et déduire les frais
-    if (tradeData.manual_pnl !== null && tradeData.manual_pnl !== undefined) {
-      const pnl_brut = parseFloat(tradeData.manual_pnl);
-      calculated_pnl = pnl_brut - (tradeData.fees || 0);
-      
-      console.log('[TRADES] 💰 P&L manuel (DEMO):');
-      console.log('  - P&L Brut (saisi):', pnl_brut.toFixed(2));
-      console.log('  - Frais:', (tradeData.fees || 0).toFixed(2));
-      console.log('  - P&L Net:', calculated_pnl.toFixed(2));
-    } 
-    // Sinon, calculer automatiquement selon le symbole
-    else if (tradeData.entry_price && tradeData.exit_price && tradeData.quantity) {
-      const symbol = (tradeData.symbol || 'ES').toUpperCase().replace(/[0-9]/g, '');  // Enlever les chiffres (ESH6 -> ES)
-      
-      // Multipliers par instrument
-      const multipliers = {
-        'ES': 50,
-        'MES': 5,
-        'NQ': 20,
-        'MNQ': 2,
-        'GC': 100,
-        'MGC': 10,
-        'DEMO': 1
-      };
-      
-      const multiplier = multipliers[symbol] || 50;  // Par défaut: 50 (ES)
-      
-      console.log('[TRADES] 💰 Calcul P&L automatique:');
-      console.log('  - Instrument:', symbol, '→ Multiplier:', multiplier);
-      console.log('  - Entry:', tradeData.entry_price);
-      console.log('  - Exit:', tradeData.exit_price);
-      console.log('  - Quantity:', tradeData.quantity);
-      console.log('  - Fees:', tradeData.fees || 0);
-      
-      // Calcul du P&L brut
-      let point_diff = tradeData.exit_price - tradeData.entry_price;
-      let pnl_brut = point_diff * tradeData.quantity * multiplier;
-      
-      // Si SHORT, inverser le signe
-      if (direction === 'SHORT') {
-        pnl_brut = -pnl_brut;
-        console.log('[TRADES] 🔄 SHORT détecté → Inversion du P&L');
+    if (shouldRecalculatePnl) {
+      // Si manual_pnl est fourni (symbole DEMO uniquement), l'utiliser et déduire les frais
+      if (tradeData.manual_pnl !== null && tradeData.manual_pnl !== undefined) {
+        const pnl_brut = parseFloat(tradeData.manual_pnl);
+        calculated_pnl = pnl_brut - (tradeData.fees || 0);
+        
+        console.log('[TRADES] 💰 P&L manuel (DEMO):');
+        console.log('  - P&L Brut (saisi):', pnl_brut.toFixed(2));
+        console.log('  - Frais:', (tradeData.fees || 0).toFixed(2));
+        console.log('  - P&L Net:', calculated_pnl.toFixed(2));
+      } 
+      // Sinon, calculer automatiquement selon le symbole
+      else if (tradeData.entry_price && tradeData.exit_price && tradeData.quantity) {
+        const symbol = (tradeData.symbol || 'ES').toUpperCase().replace(/[0-9]/g, '');  // Enlever les chiffres (ESH6 -> ES)
+        
+        // Multipliers par instrument
+        const multipliers = {
+          'ES': 50,
+          'MES': 5,
+          'NQ': 20,
+          'MNQ': 2,
+          'GC': 100,
+          'MGC': 10,
+          'DEMO': 1
+        };
+        
+        const multiplier = multipliers[symbol] || 50;  // Par défaut: 50 (ES)
+        
+        console.log('[TRADES] 💰 Calcul P&L automatique:');
+        console.log('  - Instrument:', symbol, '→ Multiplier:', multiplier);
+        console.log('  - Entry:', tradeData.entry_price);
+        console.log('  - Exit:', tradeData.exit_price);
+        console.log('  - Quantity:', tradeData.quantity);
+        console.log('  - Fees:', tradeData.fees || 0);
+        
+        // Calcul du P&L brut
+        let point_diff = tradeData.exit_price - tradeData.entry_price;
+        let pnl_brut = point_diff * tradeData.quantity * multiplier;
+        
+        // Si SHORT, inverser le signe
+        if (direction === 'SHORT') {
+          pnl_brut = -pnl_brut;
+          console.log('[TRADES] 🔄 SHORT détecté → Inversion du P&L');
+        }
+        
+        // Déduire les frais
+        calculated_pnl = pnl_brut - (tradeData.fees || 0);
+        
+        console.log('[TRADES] 📊 P&L calculé:');
+        console.log('  - Point Diff:', point_diff.toFixed(2));
+        console.log('  - P&L Brut:', pnl_brut.toFixed(2));
+        console.log('  - Frais:', (tradeData.fees || 0).toFixed(2));
+        console.log('  - P&L Net:', calculated_pnl.toFixed(2));
       }
-      
-      // Déduire les frais
-      calculated_pnl = pnl_brut - (tradeData.fees || 0);
-      
-      console.log('[TRADES] 📊 P&L calculé:');
-      console.log('  - Point Diff:', point_diff.toFixed(2));
-      console.log('  - P&L Brut:', pnl_brut.toFixed(2));
-      console.log('  - Frais:', (tradeData.fees || 0).toFixed(2));
-      console.log('  - P&L Net:', calculated_pnl.toFixed(2));
     }
     
     const tradeWithUser = {
