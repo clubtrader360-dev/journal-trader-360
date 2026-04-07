@@ -376,41 +376,27 @@ async function loadAccounts() {
     
     console.log('[TRADES] 📊 Direction détectée:', tradeData.trade_type, '→', direction);
     
-    // ✅ EN MODE ÉDITION : Vérifier si les prix ou frais ont changé
-    let shouldRecalculatePnl = true;
+    // ✅ MODE ÉDITION : NE JAMAIS RECALCULER LE P&L
+    // Le P&L est "verrouillé" une fois enregistré avec les frais
+    // Il ne changera QUE si l'utilisateur modifie manuellement le P&L dans le formulaire
+    let calculated_pnl = null;
     
     if (tradeData.id) {
-      // Récupérer le trade existant pour comparer
+      // MODE ÉDITION : Récupérer et conserver le P&L actuel
       const { data: existingTrade } = await supabase
         .from('trades')
-        .select('entry_price, exit_price, quantity, fees, manual_pnl')
+        .select('manual_pnl')
         .eq('id', tradeData.id)
         .eq('user_id', window.currentUser.uuid)
         .single();
       
       if (existingTrade) {
-        const pricesChanged = 
-          existingTrade.entry_price !== tradeData.entry_price ||
-          existingTrade.exit_price !== tradeData.exit_price ||
-          existingTrade.quantity !== tradeData.quantity;
-        
-        const feesChanged = (existingTrade.fees || 0) !== (tradeData.fees || 0);
-        
-        if (!pricesChanged && !feesChanged) {
-          // Les prix et frais n'ont PAS changé → garder le P&L actuel
-          shouldRecalculatePnl = false;
-          calculated_pnl = existingTrade.manual_pnl;
-          console.log('[TRADES] ℹ️ Prix et frais inchangés → P&L conservé:', calculated_pnl);
-        } else {
-          console.log('[TRADES] 🔄 Prix ou frais modifiés → Recalcul du P&L');
-        }
+        calculated_pnl = existingTrade.manual_pnl;
+        console.log('[TRADES] 🔒 MODE ÉDITION → P&L verrouillé conservé:', calculated_pnl);
       }
-    }
-    
-    // ✅ CALCUL DU P&L avec déduction des frais (si nécessaire)
-    let calculated_pnl = null;
-    
-    if (shouldRecalculatePnl) {
+    } else {
+      // MODE CRÉATION : Calculer le P&L normalement
+      
       // Si manual_pnl est fourni (symbole DEMO uniquement), l'utiliser et déduire les frais
       if (tradeData.manual_pnl !== null && tradeData.manual_pnl !== undefined) {
         const pnl_brut = parseFloat(tradeData.manual_pnl);
@@ -438,7 +424,7 @@ async function loadAccounts() {
         
         const multiplier = multipliers[symbol] || 50;  // Par défaut: 50 (ES)
         
-        console.log('[TRADES] 💰 Calcul P&L automatique:');
+        console.log('[TRADES] 💰 Calcul P&L automatique (CRÉATION):');
         console.log('  - Instrument:', symbol, '→ Multiplier:', multiplier);
         console.log('  - Entry:', tradeData.entry_price);
         console.log('  - Exit:', tradeData.exit_price);
