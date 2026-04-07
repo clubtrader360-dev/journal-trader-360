@@ -1413,17 +1413,19 @@ async function addTradeUI() {
         return;
     }
     
-    // ✅ NE PAS envoyer manual_pnl en mode édition (sauf DEMO si modifié)
-    // Le P&L sera TOUJOURS recalculé dans supabase-trades.js à partir des prix + frais
+    // ✅ LOGIQUE SIMPLE :
+    // - DEMO : Envoyer manual_pnl uniquement en CRÉATION
+    // - ES/NQ/etc : NE JAMAIS envoyer manual_pnl (toujours calculé dans supabase-trades.js)
     let calculated_pnl = null;
     
-    // Uniquement pour DEMO en mode CRÉATION (pas édition)
-    if (!isEditing && symbol === 'DEMO' && manual_pnl && parseFloat(manual_pnl) !== 0) {
+    // Uniquement pour DEMO en mode CRÉATION
+    if (symbol === 'DEMO' && !isEditing && manual_pnl && parseFloat(manual_pnl) !== 0) {
         calculated_pnl = parseFloat(manual_pnl);
-        console.log('[UI] 💰 P&L manuel (DEMO création):', calculated_pnl);
+        console.log('[UI] 💰 P&L manuel DEMO (création uniquement):', calculated_pnl);
     } else {
-        // Pour ES/NQ/etc OU en mode édition : laisser supabase-trades.js calculer
-        console.log('[UI] 💰 P&L sera calculé dans supabase-trades.js (prix + frais)');
+        // Pour ES/NQ/etc (toujours) OU DEMO en édition : calcul auto
+        calculated_pnl = null;  // Force null pour déclencher le calcul dans supabase-trades.js
+        console.log('[UI] 💰 P&L sera calculé automatiquement à partir des prix + frais');
     }
     
     // Construction payload
