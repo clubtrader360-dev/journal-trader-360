@@ -11347,7 +11347,19 @@ async function sharePerformance() {
         const logoY = calendarY + calendarHeight + 30;
         const logoWidth = 200;
         const logoHeight = 50;
-        ctx.drawImage(logoImg, 440, logoY, logoWidth, logoHeight);
+        
+        // ✅ IMPORTANT : Attendre que le logo soit chargé avant de le dessiner
+        await new Promise((resolve) => {
+            logoImg.onload = () => {
+                ctx.drawImage(logoImg, 440, logoY, logoWidth, logoHeight);
+                resolve();
+            };
+            logoImg.onerror = () => {
+                console.warn("[SHARE] ⚠️ Logo non chargé, on continue sans");
+                resolve(); // Continue même si le logo ne charge pas
+            };
+            logoImg.src = logoImg.src; // Déclenche le chargement
+        });
         
         // 10. Watermark
         const watermarkY = 1350 - 80;
