@@ -5772,29 +5772,51 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             // ✅ Remplir la liste de sélection multiple pour les trades
             const tradeAccountList = document.getElementById('tradeAccountList');
             if (tradeAccountList) {
-                tradeAccountList.innerHTML = accounts.map(account => `
-                    <label class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer">
-                        <input type="checkbox" 
-                               class="trade-account-checkbox mr-2" 
-                               value="${account.id}" 
-                               onchange="updateSelectedTradeAccounts()">
-                        <span>${account.name} (${account.type})</span>
-                    </label>
-                `).join('');
+                tradeAccountList.innerHTML = `
+                    <div class="border-b border-gray-200 bg-gray-50">
+                        <label class="flex items-center px-3 py-2 font-semibold cursor-pointer hover:bg-gray-100">
+                            <input type="checkbox" 
+                                   id="selectAllTradeAccounts" 
+                                   class="mr-2" 
+                                   onchange="toggleAllTradeAccounts(this.checked)">
+                            <span class="text-purple-600">✓ Tout cocher</span>
+                        </label>
+                    </div>
+                    ${accounts.map(account => `
+                        <label class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer">
+                            <input type="checkbox" 
+                                   class="trade-account-checkbox mr-2" 
+                                   value="${account.id}" 
+                                   onchange="updateSelectedTradeAccounts()">
+                            <span>${account.name} (${account.type})</span>
+                        </label>
+                    `).join('')}
+                `;
             }
             
             // ✅ Remplir la liste de sélection multiple pour l'import CSV
             const csvAccountList = document.getElementById('csvAccountList');
             if (csvAccountList) {
-                csvAccountList.innerHTML = accounts.map(account => `
-                    <label class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer">
-                        <input type="checkbox" 
-                               class="csv-account-checkbox mr-2" 
-                               value="${account.id}" 
-                               onchange="updateSelectedCSVAccounts()">
-                        <span>${account.name} (${account.type})</span>
-                    </label>
-                `).join('');
+                csvAccountList.innerHTML = `
+                    <div class="border-b border-gray-200 bg-gray-50">
+                        <label class="flex items-center px-3 py-2 font-semibold cursor-pointer hover:bg-gray-100">
+                            <input type="checkbox" 
+                                   id="selectAllCSVAccounts" 
+                                   class="mr-2" 
+                                   onchange="toggleAllCSVAccounts(this.checked)">
+                            <span class="text-purple-600">✓ Tout cocher</span>
+                        </label>
+                    </div>
+                    ${accounts.map(account => `
+                        <label class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer">
+                            <input type="checkbox" 
+                                   class="csv-account-checkbox mr-2" 
+                                   value="${account.id}" 
+                                   onchange="updateSelectedCSVAccounts()">
+                            <span>${account.name} (${account.type})</span>
+                        </label>
+                    `).join('')}
+                `;
             }
         }
         
@@ -5842,9 +5864,20 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log('[TRADE] Comptes sélectionnés:', selectedIds);
         }
         
+        // ✅ NOUVELLE FONCTION: Tout cocher/décocher pour l'ajout de trade
+        function toggleAllTradeAccounts(checked) {
+            const checkboxes = document.querySelectorAll('.trade-account-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+            });
+            updateSelectedTradeAccounts();
+            console.log('[TRADE] Tout cocher:', checked);
+        }
+        
         // ✅ Exposition globale
         window.toggleTradeAccountDropdown = toggleTradeAccountDropdown;
         window.updateSelectedTradeAccounts = updateSelectedTradeAccounts;
+        window.toggleAllTradeAccounts = toggleAllTradeAccounts;
         
         // ✅ NOUVELLE FONCTION: Gérer le dropdown CSV de sélection multiple des comptes
         function toggleCSVAccountDropdown() {
@@ -5887,9 +5920,20 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log('[CSV] Comptes sélectionnés:', selectedIds);
         }
         
+        // ✅ NOUVELLE FONCTION: Tout cocher/décocher pour l'import CSV
+        function toggleAllCSVAccounts(checked) {
+            const checkboxes = document.querySelectorAll('.csv-account-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+            });
+            updateSelectedCSVAccounts();
+            console.log('[CSV] Tout cocher:', checked);
+        }
+        
         // ✅ Exposition globale
         window.toggleCSVAccountDropdown = toggleCSVAccountDropdown;
         window.updateSelectedCSVAccounts = updateSelectedCSVAccounts;
+        window.toggleAllCSVAccounts = toggleAllCSVAccounts;
 
         function formatAccountSize(size) {
             const num = parseInt(size);
