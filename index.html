@@ -11377,7 +11377,14 @@ async function sharePerformance() {
             logoImg.src = logoImg.src; // Déclenche le chargement
         });
         
-        // 11. Watermark
+        // 11. CTA (Call To Action)
+        const ctaY = 1350 - 140;  // 60px au-dessus du watermark
+        ctx.fillStyle = '#ac862b';  // Or doré (couleur Trader360)
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Prêt à nous rejoindre ? Contacte-moi en DM 💬', 540, ctaY);
+        
+        // 12. Watermark
         const watermarkY = 1350 - 80;
         ctx.fillStyle = '#9ca3af';
         ctx.font = '20px Arial';
@@ -11388,7 +11395,7 @@ async function sharePerformance() {
         const currentDate = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
         ctx.fillText(currentDate, 540, watermarkY + 30);
         
-        // 10. Convertir en blob et télécharger
+        // 13. Convertir en blob et télécharger
         finalCanvas.toBlob((blob) => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
