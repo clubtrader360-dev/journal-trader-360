@@ -7792,19 +7792,28 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 if (result && result.data) {
                     // ✅ Transformer les données Supabase pour correspondre au format attendu
                     window.trades = result.data.map(trade => {
-                        // Calculer le PnL (si manual_pnl n'existe pas)
-                        let pnl = (trade.exit_price - trade.entry_price) * trade.quantity * 
-                                    (trade.direction === 'LONG' ? 1 : -1) * 
-                                    (trade.instrument === 'ES' ? 50 : 
-                                     trade.instrument === 'NQ' ? 20 : 
-                                     trade.instrument === 'MES' ? 5 : 
-                                     trade.instrument === 'MNQ' ? 2 : 
-                                     trade.instrument === 'GC' ? 100 : 
-                                     trade.instrument === 'MGC' ? 10 : 1);
-                        
-                        // ✅ Soustraire les frais du P&L calculé
+                        let pnl = 0;
                         const fees = trade.fees || 0;
-                        pnl = pnl - fees;
+                        
+                        // ✅ Si manual_pnl existe, l'utiliser DIRECTEMENT (déjà net de frais)
+                        if (trade.manual_pnl !== null && trade.manual_pnl !== undefined) {
+                            pnl = trade.manual_pnl;
+                            console.log(`[REFRESH] 🔒 Trade #${trade.id} : P&L VERROUILLÉ (manual_pnl) = ${pnl.toFixed(2)} $`);
+                        } else {
+                            // Sinon, calculer le P&L automatiquement
+                            pnl = (trade.exit_price - trade.entry_price) * trade.quantity * 
+                                        (trade.direction === 'LONG' ? 1 : -1) * 
+                                        (trade.instrument === 'ES' ? 50 : 
+                                         trade.instrument === 'NQ' ? 20 : 
+                                         trade.instrument === 'MES' ? 5 : 
+                                         trade.instrument === 'MNQ' ? 2 : 
+                                         trade.instrument === 'GC' ? 100 : 
+                                         trade.instrument === 'MGC' ? 10 : 1);
+                            
+                            // Déduire les frais uniquement lors du calcul automatique
+                            pnl = pnl - fees;
+                            console.log(`[REFRESH] 📊 Trade #${trade.id} : P&L CALCULÉ = ${pnl.toFixed(2)} $ (brut: ${(pnl + fees).toFixed(2)}, frais: ${fees.toFixed(2)})`);
+                        }
                         
                         // Trouver le nom du compte
                         const account = accounts.find(a => a.id === trade.account_id);
@@ -7822,7 +7831,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             entryPrice: trade.entry_price,
                             exitPrice: trade.exit_price,
                             quantity: trade.quantity,
-                            pnl: trade.manual_pnl || pnl,  // ✅ Utiliser manual_pnl si disponible (CSV), sinon P&L calculé avec frais déduits
+                            pnl: pnl,  // ✅ P&L déjà calculé correctement ci-dessus (net de frais)
                             fees: fees,  // ✅ AJOUT: Conserver les frais
                             stopLoss: trade.stop_loss,
                             takeProfit: trade.take_profit,
