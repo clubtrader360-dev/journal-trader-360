@@ -379,53 +379,23 @@ async function loadAccounts() {
     // ✅ LOGIQUE VERROUILLÉE : En mode édition, le P&L ne change JAMAIS (sauf si prix ou frais modifiés)
     let calculated_pnl = null;
     
+    // ✅ EN MODE ÉDITION : TOUJOURS RECALCULER LE P&L
+    // Pas de verrouillage → garantit que le P&L est toujours à jour
+    console.log('[TRADES] Mode:', tradeData.id ? 'ÉDITION' : 'CRÉATION');
     if (tradeData.id) {
-      // MODE ÉDITION : Récupérer le trade existant
-      const { data: existingTrade } = await supabase
-        .from('trades')
-        .select('fees, manual_pnl, entry_price, exit_price, quantity')
-        .eq('id', tradeData.id)
-        .eq('user_id', window.currentUser.uuid)
-        .single();
-      
-      if (existingTrade) {
-        const oldEntry = parseFloat(existingTrade.entry_price) || 0;
-        const oldExit = parseFloat(existingTrade.exit_price) || 0;
-        const oldQty = parseFloat(existingTrade.quantity) || 0;
-        const oldFees = parseFloat(existingTrade.fees) || 0;
-        
-        const newEntry = parseFloat(tradeData.entry_price) || 0;
-        const newExit = parseFloat(tradeData.exit_price) || 0;
-        const newQty = parseFloat(tradeData.quantity) || 0;
-        const newFees = parseFloat(tradeData.fees) || 0;
-        
-        // Vérifier si PRIX OU FRAIS ont changé
-        const pricesChanged = (oldEntry !== newEntry || oldExit !== newExit || oldQty !== newQty);
-        const feesChanged = (oldFees !== newFees);
-        
-        if (pricesChanged || feesChanged) {
-          // PRIX OU FRAIS MODIFIÉS → Recalculer le P&L
-          console.log('[TRADES] 🔄 Prix ou frais modifiés → Recalcul du P&L');
-          // calculated_pnl reste null, donc calcul en bas
-        } else {
-          // RIEN N'A CHANGÉ → Conserver le P&L existant (VERROUILLÉ)
-          calculated_pnl = existingTrade.manual_pnl;
-          console.log('[TRADES] 🔒 Prix et frais inchangés → P&L VERROUILLÉ:', calculated_pnl);
-        }
-      }
+      console.log('[TRADES] 🔄 Mode ÉDITION → Le P&L sera recalculé automatiquement');
     }
     
     // Si calculated_pnl est toujours null, calculer le P&L
     if (calculated_pnl === null) {
-      // Si manual_pnl est fourni (symbole DEMO uniquement), l'utiliser et déduire les frais
+      // Si manual_pnl est fourni (import CSV ou symbole DEMO), l'utiliser DIRECTEMENT
+      // ⚠️ IMPORTANT : manual_pnl est déjà NET de frais lors de l'import CSV !
       if (tradeData.manual_pnl !== null && tradeData.manual_pnl !== undefined) {
-        const pnl_brut = parseFloat(tradeData.manual_pnl);
-        calculated_pnl = pnl_brut - (tradeData.fees || 0);
+        calculated_pnl = parseFloat(tradeData.manual_pnl);
         
-        console.log('[TRADES] 💰 P&L manuel (DEMO):');
-        console.log('  - P&L Brut (saisi):', pnl_brut.toFixed(2));
-        console.log('  - Frais:', (tradeData.fees || 0).toFixed(2));
-        console.log('  - P&L Net:', calculated_pnl.toFixed(2));
+        console.log('[TRADES] 💰 P&L fourni (CSV ou DEMO) - utilisé DIRECTEMENT:');
+        console.log('  - P&L Net (fourni):', calculated_pnl.toFixed(2));
+        console.log('  - Frais (pour info):', (tradeData.fees || 0).toFixed(2));
       } 
       // Sinon, calculer automatiquement selon le symbole
       else if (tradeData.entry_price && tradeData.exit_price && tradeData.quantity) {
