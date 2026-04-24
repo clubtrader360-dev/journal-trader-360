@@ -3520,6 +3520,37 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     <input type="hidden" id="csvTargetAccount" required>
                 </div>
 
+                <!-- ✅ NOUVEAU : Champ de saisie des frais par trade -->
+                <div class="form-group">
+                    <label for="csvDefaultFees">
+                        <i class="fas fa-dollar-sign mr-2" style="color: #ac862b;"></i>
+                        Frais par trade (optionnel)
+                        <span class="text-xs text-gray-500 ml-2">Si votre CSV ne contient pas de colonne Fees</span>
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <div class="flex-1">
+                            <input 
+                                type="number" 
+                                id="csvDefaultFees" 
+                                class="w-full border border-gray-300 rounded px-3 py-2" 
+                                placeholder="Ex: 4.50" 
+                                step="0.01" 
+                                min="0"
+                                value="0"
+                            >
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <span class="font-semibold">$</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">
+                        💡 Ces frais seront appliqués à <strong>tous</strong> les trades importés (sauf si le CSV contient déjà des frais)
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        🔒 Cette valeur sera <strong>enregistrée</strong> pour vos prochains imports
+                    </p>
+                </div>
+
                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gold transition-colors cursor-pointer" onclick="document.getElementById('csvFileInput').click()">
                     <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
                     <p class="text-gray-600 mb-2">Cliquez pour sélectionner un fichier CSV</p>
@@ -3568,6 +3599,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Entrée</th>
                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Sortie</th>
                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Fees</th>
                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">P&L</th>
                                 <th class="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase">Statut</th>
                             </tr>
@@ -3649,6 +3681,24 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         let durationChart = null;
         let accountingChart = null;
         
+        // ✅ NOUVEAU : Fonction pour charger les frais par défaut depuis localStorage
+        function loadCSVDefaultFees() {
+            const saved = localStorage.getItem('csvDefaultFees');
+            if (saved) {
+                const fees = parseFloat(saved);
+                console.log('[CSV] 💾 Frais par défaut chargés depuis localStorage:', fees, '$');
+                return fees;
+            }
+            console.log('[CSV] Aucun frais par défaut enregistré');
+            return 0;
+        }
+        
+        // ✅ NOUVEAU : Fonction pour sauvegarder les frais par défaut dans localStorage
+        function saveCSVDefaultFees(fees) {
+            localStorage.setItem('csvDefaultFees', fees.toString());
+            console.log('[CSV] ✅ Frais par défaut sauvegardés:', fees, '$');
+        }
+        
         // Variables comptabilité
         let accountCosts = [];
         let payouts = [];
@@ -3667,6 +3717,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             if (!file) {
                 console.warn('[CSV] Aucun fichier sélectionné');
                 return;
+            }
+            
+            // ✅ NOUVEAU : Sauvegarder les frais par défaut quand on upload un fichier
+            const defaultFees = parseFloat(document.getElementById('csvDefaultFees')?.value) || 0;
+            if (defaultFees !== loadCSVDefaultFees()) {
+                saveCSVDefaultFees(defaultFees);
             }
             
             // ✅ Vérifier les comptes cibles (multi-select)
@@ -3777,6 +3833,10 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         
         function parseCSV(csvText, targetAccountId) {
             console.log('[CSV] parseCSV - START', 'targetAccountId:', targetAccountId);
+            
+            // ✅ NOUVEAU : Récupérer les frais par défaut saisis par l'utilisateur
+            const defaultFees = parseFloat(document.getElementById('csvDefaultFees')?.value) || 0;
+            console.log('[CSV] 💰 Frais par défaut configurés:', defaultFees, '$');
             
             // Séparer les lignes
             const lines = csvText.trim().split('\n').map(l => l.trim()).filter(l => l);
@@ -4014,11 +4074,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         pnl = parseFloat(values[colIndices.pnl]);
                     }
                     
-                    // Collecter les frais (fees/commission) - uniquement TopStepX
+                    // Collecter les frais (fees/commission)
                     let fees = 0;
+                    
+                    // ✅ NOUVELLE LOGIQUE : Priorité aux frais du CSV, sinon frais par défaut
                     if (!isTimestampFormat && colIndices.fees !== -1 && values[colIndices.fees]) {
+                        // TopStepX : frais dans le CSV
                         fees = parseFloat(values[colIndices.fees]) || 0;
-                        console.log('[CSV-TopStepX] Frais détectés:', fees);
+                        console.log('[CSV-TopStepX] Frais détectés dans le CSV:', fees, '$');
+                    } else if (defaultFees > 0) {
+                        // Appliquer les frais par défaut si aucun frais dans le CSV
+                        fees = defaultFees;
+                        console.log('[CSV] ✅ Frais par défaut appliqués:', fees, '$');
                     }
                     
                     if (pnl === null) {
@@ -4034,10 +4101,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         console.log('[CSV] P&L calculé automatiquement:', pnl, '(multiplier:', multiplier, ')');
                     }
                     
-                    // ✅ SOUSTRAIRE LES FRAIS du P&L (uniquement TopStepX)
-                    if (!isTimestampFormat && fees !== 0) {
+                    // ✅ SOUSTRAIRE LES FRAIS du P&L (si présents)
+                    if (fees !== 0) {
+                        const brutPnl = pnl;
                         pnl = pnl - Math.abs(fees);
-                        console.log('[CSV-TopStepX] P&L final (après frais):', pnl, '(brut:', pnl + Math.abs(fees), '- frais:', Math.abs(fees), ')');
+                        console.log('[CSV] 💵 P&L final (après frais):', pnl, '(brut:', brutPnl, '- frais:', Math.abs(fees), ')');
                     }
                     
                     const trade = {
@@ -4174,7 +4242,15 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <td class="px-3 py-2 text-sm">${trade.entry_price.toFixed(2)}</td>
                         <td class="px-3 py-2 text-sm">${trade.exit_price.toFixed(2)}</td>
                         <td class="px-3 py-2 text-sm">${trade.quantity}</td>
-                        <td class="px-3 py-2 text-sm ${pnlColor} font-semibold">${trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}$</td>
+                        <td class="px-3 py-2">
+                            <input type="number" 
+                                   step="0.01" 
+                                   value="${(trade.fees || 0).toFixed(2)}"
+                                   onchange="updateCSVTradeFees(${idx}, this.value)"
+                                   class="w-20 px-2 py-1 text-sm border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                   style="text-align: right;">
+                        </td>
+                        <td class="px-3 py-2 text-sm ${pnlColor} font-semibold" id="csvPnl_${idx}">${trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}$</td>
                         <td class="px-3 py-2 text-center">
                             <span class="px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-700">
                                 <i class="fas fa-clock mr-1"></i>En attente
@@ -4184,6 +4260,59 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 `;
             }).join('');
         }
+        
+        // ✅ NOUVELLE FONCTION : Mettre à jour les frais et recalculer le P&L
+        function updateCSVTradeFees(tradeIndex, newFees) {
+            console.log('[CSV] updateCSVTradeFees - Index:', tradeIndex, 'Nouveaux frais:', newFees);
+            
+            const fees = parseFloat(newFees) || 0;
+            const trade = csvParsedTrades[tradeIndex];
+            
+            if (!trade) {
+                console.error('[CSV] Trade non trouvé à l\'index:', tradeIndex);
+                return;
+            }
+            
+            // Calculer le P&L BRUT (sans frais)
+            const multiplier = trade.symbol === 'MES' ? 5 : 
+                              trade.symbol === 'ES' ? 50 : 
+                              trade.symbol === 'NQ' ? 20 : 
+                              trade.symbol === 'MNQ' ? 2 : 
+                              trade.symbol === 'GC' ? 100 : 
+                              trade.symbol === 'MGC' ? 10 : 1;
+            
+            let pnl_brut = (trade.exit_price - trade.entry_price) * trade.quantity * multiplier;
+            
+            // Si SHORT, inverser le signe
+            if (trade.trade_type === 'SHORT') {
+                pnl_brut = -pnl_brut;
+            }
+            
+            // Calculer le P&L NET (avec frais déduits)
+            const pnl_net = pnl_brut - fees;
+            
+            // Mettre à jour le trade
+            trade.fees = fees;
+            trade.pnl = pnl_net;
+            trade.manual_pnl = pnl_net;
+            
+            console.log('[CSV] P&L mis à jour:', {
+                brut: pnl_brut.toFixed(2),
+                fees: fees.toFixed(2),
+                net: pnl_net.toFixed(2)
+            });
+            
+            // Mettre à jour l'affichage du P&L
+            const pnlCell = document.getElementById(`csvPnl_${tradeIndex}`);
+            if (pnlCell) {
+                const pnlColor = pnl_net >= 0 ? 'text-green-600' : 'text-red-600';
+                pnlCell.className = `px-3 py-2 text-sm ${pnlColor} font-semibold`;
+                pnlCell.textContent = `${pnl_net >= 0 ? '+' : ''}${pnl_net.toFixed(2)}$`;
+            }
+        }
+        
+        // ✅ Exposer la fonction globalement
+        window.updateCSVTradeFees = updateCSVTradeFees;
         
         async function confirmCSVImport() {
             console.log('[CSV] confirmCSVImport - START');
@@ -6801,6 +6930,14 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
         function showImportCSVModal() {
             document.getElementById('importCSVModal').style.display = 'block';
+            
+            // ✅ NOUVEAU : Charger les frais par défaut enregistrés
+            const savedFees = loadCSVDefaultFees();
+            const feesInput = document.getElementById('csvDefaultFees');
+            if (feesInput) {
+                feesInput.value = savedFees;
+                console.log('[CSV] 📄 Champ frais pré-rempli avec:', savedFees, '$');
+            }
         }function showAddAccountCostModal() {
             document.getElementById('addAccountCostModal').style.display = 'block';
         }function showAddPayoutModal() {
@@ -7792,19 +7929,28 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 if (result && result.data) {
                     // ✅ Transformer les données Supabase pour correspondre au format attendu
                     window.trades = result.data.map(trade => {
-                        // Calculer le PnL (si manual_pnl n'existe pas)
-                        let pnl = (trade.exit_price - trade.entry_price) * trade.quantity * 
-                                    (trade.direction === 'LONG' ? 1 : -1) * 
-                                    (trade.instrument === 'ES' ? 50 : 
-                                     trade.instrument === 'NQ' ? 20 : 
-                                     trade.instrument === 'MES' ? 5 : 
-                                     trade.instrument === 'MNQ' ? 2 : 
-                                     trade.instrument === 'GC' ? 100 : 
-                                     trade.instrument === 'MGC' ? 10 : 1);
-                        
-                        // ✅ Soustraire les frais du P&L calculé
+                        let pnl = 0;
                         const fees = trade.fees || 0;
-                        pnl = pnl - fees;
+                        
+                        // ✅ Si manual_pnl existe, l'utiliser DIRECTEMENT (déjà net de frais)
+                        if (trade.manual_pnl !== null && trade.manual_pnl !== undefined) {
+                            pnl = trade.manual_pnl;
+                            console.log(`[REFRESH] ✅ Trade #${trade.id} : P&L depuis DB (manual_pnl) = ${pnl.toFixed(2)} $`);
+                        } else {
+                            // Sinon, calculer le P&L automatiquement
+                            pnl = (trade.exit_price - trade.entry_price) * trade.quantity * 
+                                        (trade.direction === 'LONG' ? 1 : -1) * 
+                                        (trade.instrument === 'ES' ? 50 : 
+                                         trade.instrument === 'NQ' ? 20 : 
+                                         trade.instrument === 'MES' ? 5 : 
+                                         trade.instrument === 'MNQ' ? 2 : 
+                                         trade.instrument === 'GC' ? 100 : 
+                                         trade.instrument === 'MGC' ? 10 : 1);
+                            
+                            // Déduire les frais uniquement lors du calcul automatique
+                            pnl = pnl - fees;
+                            console.log(`[REFRESH] 📊 Trade #${trade.id} : P&L CALCULÉ = ${pnl.toFixed(2)} $ (brut: ${(pnl + fees).toFixed(2)}, frais: ${fees.toFixed(2)})`);
+                        }
                         
                         // Trouver le nom du compte
                         const account = accounts.find(a => a.id === trade.account_id);
@@ -7822,7 +7968,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             entryPrice: trade.entry_price,
                             exitPrice: trade.exit_price,
                             quantity: trade.quantity,
-                            pnl: trade.manual_pnl || pnl,  // ✅ Utiliser manual_pnl si disponible (CSV), sinon P&L calculé avec frais déduits
+                            pnl: pnl,  // ✅ P&L déjà calculé correctement ci-dessus (net de frais)
                             fees: fees,  // ✅ AJOUT: Conserver les frais
                             stopLoss: trade.stop_loss,
                             takeProfit: trade.take_profit,
