@@ -2231,6 +2231,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         +
                     </button>
                 </div>
+                
+                <!-- Bouton Tout cocher/décocher -->
+                <div class="mb-2" style="display: flex; justify-content: flex-end;">
+                    <button onclick="toggleAllSidebarAccounts()" 
+                            class="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                            style="background: none; border: none; cursor: pointer; padding: 4px 8px;">
+                        <i class="fas fa-check-square mr-1"></i>
+                        <span id="toggleAllAccountsText">Tout cocher</span>
+                    </button>
+                </div>
+                
                 <div id="accountsList" style="display: block; min-height: 60px; padding: 8px; border-radius: 6px; transition: background-color 0.2s;" 
                      ondragover="handleDragOver(event)" ondrop="handleDrop(event, 'active')" ondragleave="handleDragLeave(event)">
                     <!-- Accounts will be populated here -->
@@ -6204,6 +6215,43 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         // ========================================
         // FONCTION: Toggle accordion comptes (actifs / cramés)
         // ========================================
+        // ✅ NOUVELLE FONCTION: Tout cocher/décocher les comptes dans la sidebar
+        function toggleAllSidebarAccounts() {
+            const accountsList = document.getElementById('accountsList');
+            if (!accountsList) {
+                console.error('[SIDEBAR] accountsList introuvable');
+                return;
+            }
+            
+            const checkboxes = accountsList.querySelectorAll('input[type="checkbox"]');
+            const toggleText = document.getElementById('toggleAllAccountsText');
+            
+            if (!checkboxes || checkboxes.length === 0) {
+                console.warn('[SIDEBAR] Aucune checkbox trouvée');
+                return;
+            }
+            
+            // Vérifier combien sont cochées
+            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const allChecked = checkedCount === checkboxes.length;
+            
+            // Inverser l'état : si tout coché → tout décocher, sinon → tout cocher
+            const newState = !allChecked;
+            
+            checkboxes.forEach(cb => {
+                cb.checked = newState;
+            });
+            
+            // Mettre à jour le texte du bouton
+            if (toggleText) {
+                toggleText.textContent = newState ? 'Tout décocher' : 'Tout cocher';
+            }
+            
+            console.log(`[SIDEBAR] ${newState ? 'Tout coché' : 'Tout décoché'} (${checkboxes.length} comptes)`);
+        }
+        
+        window.toggleAllSidebarAccounts = toggleAllSidebarAccounts;
+        
         function toggleAccountsSection(section) {
             if (section === 'active') {
                 const list = document.getElementById('accountsList');
