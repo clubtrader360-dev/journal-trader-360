@@ -7077,6 +7077,67 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             console.log('[CHECKLIST] ✅ Initialisée avec', checkboxes.length, 'items');
         });
 
+        // ========================================
+        // FONCTIONS: Checklist Pré-Session
+        // ========================================
+        
+        // Charger l'état de la checklist depuis localStorage
+        function loadChecklistState() {
+            const savedState = localStorage.getItem('checklist_state');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                document.querySelectorAll('.checklist-item').forEach(checkbox => {
+                    const category = checkbox.dataset.category;
+                    const item = checkbox.dataset.item;
+                    const key = `${category}_${item}`;
+                    if (state[key]) {
+                        checkbox.checked = true;
+                    }
+                });
+                console.log('[CHECKLIST] État chargé depuis localStorage');
+            }
+        }
+        
+        // Sauvegarder l'état de la checklist dans localStorage
+        function saveChecklistState() {
+            const state = {};
+            document.querySelectorAll('.checklist-item').forEach(checkbox => {
+                const category = checkbox.dataset.category;
+                const item = checkbox.dataset.item;
+                const key = `${category}_${item}`;
+                state[key] = checkbox.checked;
+            });
+            localStorage.setItem('checklist_state', JSON.stringify(state));
+            console.log('[CHECKLIST] État sauvegardé:', state);
+        }
+        
+        // Réinitialiser la checklist
+        function resetChecklist() {
+            if (confirm('Voulez-vous vraiment réinitialiser toute la checklist ?')) {
+                document.querySelectorAll('.checklist-item').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                localStorage.removeItem('checklist_state');
+                console.log('[CHECKLIST] Réinitialisée');
+            }
+        }
+        
+        // Exposer les fonctions globalement
+        window.resetChecklist = resetChecklist;
+        
+        // Initialiser la checklist au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Attacher les événements aux checkboxes
+            document.querySelectorAll('.checklist-item').forEach(checkbox => {
+                checkbox.addEventListener('change', saveChecklistState);
+            });
+            
+            // Charger l'état sauvegardé
+            loadChecklistState();
+            
+            console.log('[CHECKLIST] Initialisée');
+        });
+        
         // Modal functions
         function showAddTradeModal() {
             if (typeof window.loadAccounts === "function") window.loadAccounts(); // Refresh account options
