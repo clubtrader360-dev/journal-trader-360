@@ -2232,14 +2232,16 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     </button>
                 </div>
                 
-                <!-- Bouton Tout cocher/décocher -->
-                <div class="mb-2" style="display: flex; justify-content: flex-end;">
-                    <button onclick="toggleAllSidebarAccounts()" 
-                            class="text-xs text-purple-400 hover:text-purple-300 transition-colors"
-                            style="background: none; border: none; cursor: pointer; padding: 4px 8px;">
-                        <i class="fas fa-check-square mr-1"></i>
-                        <span id="toggleAllAccountsText">Tout cocher</span>
-                    </button>
+                <!-- Checkbox Tout cocher -->
+                <div class="mb-2" style="padding: 0 8px;">
+                    <label class="flex items-center cursor-pointer text-sm" style="color: #ac862b;">
+                        <input type="checkbox" 
+                               id="selectAllSidebarAccounts"
+                               onchange="toggleAllSidebarAccounts(this.checked)"
+                               class="mr-2"
+                               style="accent-color: #ac862b; width: 16px; height: 16px; cursor: pointer;">
+                        <span style="color: #ac862b; font-weight: 500;">Tout cocher</span>
+                    </label>
                 </div>
                 
                 <div id="accountsList" style="display: block; min-height: 60px; padding: 8px; border-radius: 6px; transition: background-color 0.2s;" 
@@ -6215,8 +6217,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         // ========================================
         // FONCTION: Toggle accordion comptes (actifs / cramés)
         // ========================================
-        // ✅ NOUVELLE FONCTION: Tout cocher/décocher les comptes dans la sidebar
-        function toggleAllSidebarAccounts() {
+        // ✅ FONCTION: Tout cocher/décocher les comptes dans la sidebar
+        function toggleAllSidebarAccounts(checked) {
             const accountsList = document.getElementById('accountsList');
             if (!accountsList) {
                 console.error('[SIDEBAR] accountsList introuvable');
@@ -6224,30 +6226,18 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             }
             
             const checkboxes = accountsList.querySelectorAll('input[type="checkbox"]');
-            const toggleText = document.getElementById('toggleAllAccountsText');
             
             if (!checkboxes || checkboxes.length === 0) {
                 console.warn('[SIDEBAR] Aucune checkbox trouvée');
                 return;
             }
             
-            // Vérifier combien sont cochées
-            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-            const allChecked = checkedCount === checkboxes.length;
-            
-            // Inverser l'état : si tout coché → tout décocher, sinon → tout cocher
-            const newState = !allChecked;
-            
+            // Appliquer l'état à toutes les checkboxes des comptes
             checkboxes.forEach(cb => {
-                cb.checked = newState;
+                cb.checked = checked;
             });
             
-            // Mettre à jour le texte du bouton
-            if (toggleText) {
-                toggleText.textContent = newState ? 'Tout décocher' : 'Tout cocher';
-            }
-            
-            console.log(`[SIDEBAR] ${newState ? 'Tout coché' : 'Tout décoché'} (${checkboxes.length} comptes)`);
+            console.log(`[SIDEBAR] ${checked ? 'Tout coché' : 'Tout décoché'} (${checkboxes.length} comptes)`);
         }
         
         window.toggleAllSidebarAccounts = toggleAllSidebarAccounts;
