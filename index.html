@@ -3408,79 +3408,80 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
     <!-- Section Mon Pourquoi -->
     <div id="motivation" class="section hidden">
-        <div class="container mx-auto px-4 py-8">
-            <div class="max-w-4xl mx-auto">
+        <div class="container mx-auto px-4 py-8" style="min-height: calc(100vh - 100px);">
+            <div class="max-w-5xl mx-auto">
                 <!-- Header avec icône dorée -->
-                <div class="flex items-center justify-between mb-8">
-                    <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, #ac862b 0%, #d4af37 100%); box-shadow: 0 4px 12px rgba(172, 134, 43, 0.3);">
-                            <i class="fas fa-bullseye text-white text-3xl"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-3xl font-bold text-gray-900">MON POURQUOI</h1>
-                            <p class="text-gray-600 mt-1">Ma motivation profonde pour réussir dans le trading</p>
-                        </div>
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-20 h-20 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, #ac862b 0%, #d4af37 100%); box-shadow: 0 6px 20px rgba(172, 134, 43, 0.4);">
+                        <i class="fas fa-bullseye text-white text-4xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold" style="color: #ac862b;">MON POURQUOI</h1>
+                        <p class="text-gray-600 text-lg mt-2">Ma motivation profonde pour réussir dans le trading</p>
                     </div>
                 </div>
 
                 <!-- Citation inspirante -->
-                <div class="bg-gradient-to-r from-[#ac862b]/10 to-[#d4af37]/10 border-l-4 border-[#ac862b] p-6 rounded-lg mb-8">
-                    <p class="text-lg text-gray-800 italic text-center font-medium">
+                <div class="bg-gradient-to-r from-[#ac862b]/10 to-[#d4af37]/10 border-l-4 border-[#ac862b] p-6 rounded-xl mb-8 shadow-sm">
+                    <p class="text-xl text-gray-800 italic text-center font-medium leading-relaxed">
                         "Celui qui a un pourquoi peut supporter presque n'importe quel comment."
                     </p>
-                    <p class="text-sm text-gray-600 text-center mt-2">— Friedrich Nietzsche</p>
+                    <p class="text-sm text-gray-600 text-center mt-3">— Friedrich Nietzsche</p>
                 </div>
 
                 <!-- Affichage de la motivation -->
                 <div id="motivationDisplay" class="hidden">
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden border-3" style="border: 3px solid #ac862b;">
+                    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden" style="border: 4px solid #ac862b;">
                         <!-- Image -->
                         <div id="motivationImageContainer" class="hidden">
-                            <img id="motivationDisplayImage" src="" alt="Mon Pourquoi" class="w-full h-96 object-cover">
+                            <img id="motivationDisplayImage" src="" alt="Mon Pourquoi" class="w-full" style="max-height: 500px; object-fit: cover;">
                         </div>
                         
                         <!-- Texte -->
-                        <div class="p-8">
-                            <div class="flex items-start gap-4">
+                        <div class="p-10">
+                            <div class="flex items-start gap-6 mb-8">
                                 <div class="flex-shrink-0">
-                                    <i class="fas fa-quote-left text-4xl text-[#ac862b] opacity-30"></i>
+                                    <i class="fas fa-quote-left text-5xl text-[#ac862b] opacity-20"></i>
                                 </div>
                                 <div class="flex-1">
-                                    <p id="motivationDisplayText" class="text-xl text-gray-800 leading-relaxed whitespace-pre-wrap"></p>
+                                    <p id="motivationDisplayText" class="text-2xl text-gray-800 leading-relaxed whitespace-pre-wrap font-light"></p>
                                 </div>
                                 <div class="flex-shrink-0">
-                                    <i class="fas fa-quote-right text-4xl text-[#ac862b] opacity-30"></i>
+                                    <i class="fas fa-quote-right text-5xl text-[#ac862b] opacity-20"></i>
                                 </div>
                             </div>
                             
                             <!-- Options -->
-                            <div class="mt-8 pt-6 border-t border-gray-200 flex items-center justify-between">
-                                <label class="flex items-center gap-3 cursor-pointer">
-                                    <input type="checkbox" id="showOnLoginCheckbox" onchange="updateShowOnLogin()" class="w-5 h-5 accent-[#ac862b]">
-                                    <span class="text-gray-700">Afficher à chaque connexion</span>
+                            <div class="pt-6 border-t-2 border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                                <label class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-all">
+                                    <input type="checkbox" id="showOnLoginCheckbox" onchange="updateShowOnLogin()" class="w-6 h-6 accent-[#ac862b] cursor-pointer">
+                                    <span class="text-gray-700 font-medium text-lg">✨ Afficher à chaque connexion</span>
                                 </label>
-                                <button onclick="openEditMotivationModal()" class="px-6 py-2 rounded-lg font-medium transition-all" style="background: #ac862b; color: white;" onmouseover="this.style.background='#8a6d22'" onmouseout="this.style.background='#ac862b'">
-                                    <i class="fas fa-edit mr-2"></i>Modifier
+                                <button onclick="openEditMotivationModal()" class="px-8 py-3 rounded-xl font-semibold text-lg transition-all shadow-lg hover:shadow-xl" style="background: #ac862b; color: white;" onmouseover="this.style.background='#8a6d22'" onmouseout="this.style.background='#ac862b'">
+                                    <i class="fas fa-edit mr-2"></i>Modifier mon Pourquoi
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- État vide (première fois) -->
-                <div id="motivationEmpty" class="hidden">
-                    <div class="bg-white rounded-xl shadow-lg p-12 text-center border-3" style="border: 3px dashed #ac862b;">
-                        <div class="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, #ac862b 0%, #d4af37 100%);">
-                            <i class="fas fa-bullseye text-white text-5xl"></i>
+                <!-- État vide (première fois) - VISIBLE PAR DÉFAUT -->
+                <div id="motivationEmpty">
+                    <div class="bg-white rounded-2xl shadow-2xl p-16 text-center" style="border: 4px dashed #ac862b;">
+                        <div class="w-32 h-32 mx-auto mb-8 rounded-full flex items-center justify-center animate-pulse" style="background: linear-gradient(135deg, #ac862b 0%, #d4af37 100%); box-shadow: 0 8px 30px rgba(172, 134, 43, 0.5);">
+                            <i class="fas fa-bullseye text-white text-6xl"></i>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-4">Définissez votre "Pourquoi"</h3>
-                        <p class="text-gray-600 mb-8 max-w-2xl mx-auto">
-                            Ajoutez une photo et un texte qui représentent votre motivation profonde. 
-                            Que ce soit votre famille, vos rêves ou vos objectifs, gardez-les toujours à l'esprit 
-                            pour rester motivé dans les moments difficiles.
+                        <h2 class="text-4xl font-bold text-gray-900 mb-4">Définissez votre "Pourquoi"</h2>
+                        <p class="text-xl text-gray-600 mb-4 max-w-3xl mx-auto leading-relaxed">
+                            <strong style="color: #ac862b;">Votre "Pourquoi"</strong> est la raison profonde qui vous pousse à trader.
                         </p>
-                        <button onclick="openEditMotivationModal()" class="px-8 py-3 rounded-lg font-medium text-lg transition-all" style="background: #ac862b; color: white;" onmouseover="this.style.background='#8a6d22'" onmouseout="this.style.background='#ac862b'">
-                            <i class="fas fa-plus mr-2"></i>Créer mon Pourquoi
+                        <p class="text-lg text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+                            Ajoutez une <strong>photo</strong> (votre famille, vos objectifs, vos rêves) et un <strong>texte</strong> 
+                            qui vous rappelleront pourquoi vous faites tout ça. Dans les moments difficiles, c'est cette motivation 
+                            qui vous aidera à tenir le cap.
+                        </p>
+                        <button onclick="openEditMotivationModal()" class="px-12 py-4 rounded-xl font-bold text-xl transition-all shadow-xl hover:shadow-2xl transform hover:scale-105" style="background: linear-gradient(135deg, #ac862b 0%, #d4af37 100%); color: white;">
+                            <i class="fas fa-plus-circle mr-3"></i>Créer mon Pourquoi
                         </button>
                     </div>
                 </div>
