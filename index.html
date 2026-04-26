@@ -7302,7 +7302,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         window.exportAllDataToCSV = exportAllDataToCSV;
 
         // Navigation
-        function showSection(sectionName) {
+        async function showSection(sectionName) {
             console.log('[UI] showSection() appelé avec:', sectionName);
             
             document.querySelectorAll('.section').forEach(section => {
@@ -7334,8 +7334,22 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
             } else if (sectionName === 'motivation') {
                 console.log('[UI] Section Mon Pourquoi - Chargement...');
+                console.log('[UI] window.loadMotivation existe ?', typeof window.loadMotivation);
                 if (typeof window.loadMotivation === 'function') {
-                    window.loadMotivation();
+                    await window.loadMotivation();
+                    console.log('[UI] ✅ Motivation chargée');
+                } else {
+                    console.error('[UI] ❌ window.loadMotivation non trouvée - Affichage état vide par défaut');
+                    // Forcer l'affichage de l'état vide
+                    const emptyDiv = document.getElementById('motivationEmpty');
+                    const displayDiv = document.getElementById('motivationDisplay');
+                    if (emptyDiv) {
+                        emptyDiv.classList.remove('hidden');
+                        console.log('[UI] État vide affiché manuellement');
+                    }
+                    if (displayDiv) {
+                        displayDiv.classList.add('hidden');
+                    }
                 }
             }
         }
