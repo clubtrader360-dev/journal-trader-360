@@ -3573,6 +3573,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     <input type="hidden" id="sessionRating" value="0">
                 </div>
                 
+                <!-- Checkbox No Trade -->
+                <div class="form-group">
+                    <label class="flex items-center cursor-pointer p-3 rounded border-2 border-gray-300 hover:border-gold transition-colors" style="border-color: #ac862b;">
+                        <input type="checkbox" id="noTrade" class="mr-3" style="accent-color: #ac862b; width: 20px; height: 20px;">
+                        <div>
+                            <span class="font-semibold text-gray-800">🚫 Pas de trade aujourd'hui</span>
+                            <p class="text-sm text-gray-600 mt-1">Marché non propice, pas d'opportunité claire, ou jour de repos volontaire</p>
+                        </div>
+                    </label>
+                </div>
+                
                 <div class="form-group">
                     <label>📷 Ajouter une image (plan de trading, screenshot...)</label>
                     <input type="file" id="noteImage" accept="image/*" onchange="previewImage(this, 'imagePreview', 'previewImg')">
@@ -3589,6 +3600,20 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         <img id="previewImg2" src="" alt="Preview 2" class="max-w-full h-48 object-contain border rounded">
                         <button type="button" onclick="removeImage('noteImage2', 'imagePreview2')" class="mt-2 text-red-500 text-sm">Supprimer l'image</button>
                     </div>
+                </div>
+
+                <!-- Checkbox No Threads -->
+                <div class="form-group mt-4">
+                    <label class="flex items-center gap-3 p-4 border-2 border-[#ac862b] rounded-lg cursor-pointer hover:bg-[#ac862b]/5 transition-all">
+                        <input type="checkbox" id="noTradeToday" class="w-5 h-5 accent-[#ac862b] cursor-pointer">
+                        <span class="flex items-center gap-2 font-medium">
+                            <span>🚫</span>
+                            <span>Pas de trade aujourd'hui (marché non propice)</span>
+                        </span>
+                    </label>
+                    <p class="text-sm text-gray-500 mt-2 ml-1">
+                        Cochez cette case si vous n'avez pas tradé aujourd'hui pour une raison stratégique (marché non propice, conditions inadaptées, etc.)
+                    </p>
                 </div>
                 
                 <div class="flex gap-4 mt-6">
@@ -9078,6 +9103,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     return isMatch;
                 });
                 
+                // ✅ NOUVEAU : Vérifier si ce jour a une note "no trade"
+                let noTradeEntry = null;
+                if (window.journalEntries && Array.isArray(window.journalEntries)) {
+                    noTradeEntry = window.journalEntries.find(entry => entry.entry_date === dateString && entry.no_trade === true);
+                }
+                
                 // ✅ Calculer le P&L des trades
                 let dayPnl = dayTrades.reduce((sum, trade) => sum + trade.pnl, 0);
                 
@@ -9089,6 +9120,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 let className = 'text-center py-3 cursor-pointer rounded transition-all';
                 if (!isCurrentMonth) {
                     className += ' text-gray-300';
+                } else if (noTradeEntry) {
+                    // ✅ JOUR "NO TRADE" : Fond gris avec bordure
+                    className += ' bg-gray-100 text-gray-600 border-2 border-gray-300 hover:bg-gray-200';
                 } else if (dayTrades.length > 0) {
                     className += dayPnl > 0 ? ' bg-green-100 text-green-800 hover:bg-green-200' : ' bg-red-200 text-red-900 hover:bg-red-300';
                 } else {
@@ -9101,7 +9135,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 // Construire le contenu de la cellule
                 let cellContent = `<div class="font-semibold">${date.getDate()}</div>`;
                 
-                if (dayTrades.length > 0 && isCurrentMonth) {
+                if (noTradeEntry && isCurrentMonth) {
+                    // ✅ AFFICHAGE "NO TRADE"
+                    cellContent += `<div class="text-xs mt-1 space-y-0.5">
+                        <div class="text-2xl">🚫</div>
+                        <div class="text-[10px] font-medium">Pas de trade</div>
+                    </div>`;
+                } else if (dayTrades.length > 0 && isCurrentMonth) {
                     // Calculer les statistiques du jour
                     const tradeCount = dayTrades.length;
                     const winningTrades = dayTrades.filter(t => t.pnl > 0).length;
@@ -9123,6 +9163,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     statsHtml += '</div>';
                     cellContent += statsHtml;
+                } else if (noTradeEntry && isCurrentMonth) {
+                    // Afficher l'icône et le message "No Trade"
+                    cellContent += `<div class="text-xs mt-1"><span class="text-2xl">🚫</span><div class="mt-1 font-medium">Pas de trade</div></div>`;
                 }
                 
                 dayElement.innerHTML = cellContent;
