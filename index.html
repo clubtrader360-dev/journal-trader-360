@@ -1481,6 +1481,20 @@ async function addTradeUI() {
         }
         
         console.log('[UI] ✅ Trade ajouté:', result.data);
+        
+        // ✅ VÉRIFIER SI CHECKLIST VALIDÉE AUJOURD'HUI (uniquement en mode CRÉATION)
+        if (!isEditing) {
+            const checklistValidated = checkTodayChecklistValidation();
+            if (!checklistValidated) {
+                console.warn('[CHECKLIST] ⚠️ Trade ajouté sans checklist validée aujourd\'hui');
+                setTimeout(() => {
+                    showChecklistAlert();
+                }, 500); // Délai pour laisser le temps à l'alert de se fermer
+            } else {
+                console.log('[CHECKLIST] ✅ Checklist validée aujourd\'hui');
+            }
+        }
+        
         alert(isEditing ? '✅ Trade modifié avec succès' : '✅ Trade ajouté avec succès');
         
         closeModal('addTradeModal');
@@ -3050,6 +3064,46 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     <div class="mt-2" style="height: 2px; width: 400px; margin: 0 auto; background: #ac862b;"></div>
                 </div>
 
+                <!-- KPIs Checklist -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <!-- KPI 1: Checklist Remplie -->
+                    <div class="trader-card p-4 text-center" style="border: 2px solid #ac862b;">
+                        <p class="text-sm text-gray-500 mb-1">Checklist Remplie</p>
+                        <p class="text-2xl font-bold" id="checklistCompletedCount" style="color: #ac862b;">0/0</p>
+                        <p class="text-xs text-gray-400">jours de trading</p>
+                    </div>
+                    
+                    <!-- KPI 2: Taux de Complétion -->
+                    <div class="trader-card p-4 text-center" style="border: 2px solid #ac862b;">
+                        <p class="text-sm text-gray-500 mb-1">Taux de Complétion</p>
+                        <p class="text-2xl font-bold" id="checklistCompletionRate" style="color: #ac862b;">0%</p>
+                        <div class="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div id="checklistCompletionBar" class="h-full transition-all" style="width: 0%; background: #ac862b;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- KPI 3: Streak Actuel -->
+                    <div class="trader-card p-4 text-center" style="border: 2px solid #ac862b;">
+                        <p class="text-sm text-gray-500 mb-1">Streak Actuel</p>
+                        <p class="text-2xl font-bold" id="checklistStreak" style="color: #ac862b;">0 🔥</p>
+                        <p class="text-xs text-gray-400">jours consécutifs</p>
+                    </div>
+                </div>
+
+                <!-- Alerte Banner (caché par défaut) -->
+                <div id="checklistAlert" class="mb-6 p-4 rounded-lg" style="display: none; background: #fef2f2; border: 2px solid #dc2626;">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-exclamation-triangle text-2xl" style="color: #dc2626;"></i>
+                        <div class="flex-1">
+                            <p class="font-bold text-red-800" id="checklistAlertTitle">Attention !</p>
+                            <p class="text-sm text-red-700" id="checklistAlertMessage"></p>
+                        </div>
+                        <button onclick="dismissChecklistAlert()" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Mise en page 2 colonnes -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     
@@ -3175,8 +3229,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                         </div>
                     </div>
 
-                        <!-- Bouton Reset Checklist -->
-                        <div class="text-center mt-6">
+                        <!-- Boutons Checklist -->
+                        <div class="flex gap-3 mt-6">
+                            <button onclick="validateChecklist()" class="flex-1 px-4 py-2 rounded-lg font-semibold transition-all text-sm" style="background: #10b981; color: white; border: none; cursor: pointer;">
+                                <i class="fas fa-check mr-2"></i>Valider la checklist
+                            </button>
                             <button onclick="resetChecklist()" class="px-4 py-2 rounded-lg font-semibold transition-all text-sm" style="background: #ac862b; color: white; border: none; cursor: pointer;">
                                 <i class="fas fa-redo mr-2"></i>Réinitialiser
                             </button>
@@ -7039,6 +7096,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             } else if (sectionName === 'dailyjournal') {
                 console.log('[UI] Section Journal Quotidien - Chargement des notes...');
                 updateJournalEntries();
+            } else if (sectionName === 'checklist') {
+                console.log('[UI] Section Checklist - Mise à jour KPIs...');
+                if (typeof updateChecklistKPIs === 'function') {
+                    updateChecklistKPIs();
+                }
             }
         }
 
@@ -7120,6 +7182,7 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             
             // Charger qualités et défauts
             loadQualitiesDefauts();
+            updateChecklistKPIs();
         });
 
         // ========================================
@@ -7227,6 +7290,150 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         window.addDefaut = addDefaut;
         window.updateDefaut = updateDefaut;
         window.deleteDefaut = deleteDefaut;
+
+        // ========================================
+        // FONCTIONS: Tracking & Alertes Checklist
+        // ========================================
+        
+        // Valider la checklist
+        function validateChecklist() {
+            const checkboxes = document.querySelectorAll('.checklist-item');
+            const total = checkboxes.length;
+            const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const completionRate = (checked / total * 100).toFixed(0);
+            
+            if (checked < total * 0.8) {
+                alert(`⚠️ Vous n'avez coché que ${checked}/${total} items (${completionRate}%).\n\nPour valider la checklist, vous devez cocher au moins 80% des items (${Math.ceil(total * 0.8)}/${total}).`);
+                return;
+            }
+            
+            // Sauvegarder la validation
+            const today = new Date().toISOString().split('T')[0];
+            const validations = JSON.parse(localStorage.getItem('checklist_validations') || '{}');
+            
+            validations[today] = {
+                timestamp: Date.now(),
+                completed: true,
+                items_checked: checked,
+                total_items: total,
+                completion_rate: parseFloat(completionRate)
+            };
+            
+            localStorage.setItem('checklist_validations', JSON.stringify(validations));
+            
+            // Feedback visuel
+            alert(`✅ Checklist validée !\n\n${checked}/${total} items cochés (${completionRate}%)\nDate: ${today}`);
+            
+            // Mettre à jour les KPIs
+            updateChecklistKPIs();
+            
+            console.log('[CHECKLIST] Validation enregistrée:', validations[today]);
+        }
+        
+        // Mettre à jour les KPIs
+        function updateChecklistKPIs() {
+            const validations = JSON.parse(localStorage.getItem('checklist_validations') || '{}');
+            const today = new Date();
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            
+            // Compter les jours ouvrés du mois en cours
+            let workingDays = 0;
+            let validatedDays = 0;
+            let currentDate = new Date(firstDayOfMonth);
+            
+            while (currentDate <= today) {
+                const dayOfWeek = currentDate.getDay();
+                // Lundi (1) à Vendredi (5)
+                if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                    workingDays++;
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    if (validations[dateStr] && validations[dateStr].completed) {
+                        validatedDays++;
+                    }
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            // Calculer le taux
+            const completionRate = workingDays > 0 ? Math.round((validatedDays / workingDays) * 100) : 0;
+            
+            // Calculer le streak
+            let streak = 0;
+            let checkDate = new Date(today);
+            while (true) {
+                const dayOfWeek = checkDate.getDay();
+                if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                    const dateStr = checkDate.toISOString().split('T')[0];
+                    if (validations[dateStr] && validations[dateStr].completed) {
+                        streak++;
+                    } else {
+                        break;
+                    }
+                }
+                checkDate.setDate(checkDate.getDate() - 1);
+                if (streak > 100) break; // Sécurité
+            }
+            
+            // Mettre à jour l'affichage
+            document.getElementById('checklistCompletedCount').textContent = `${validatedDays}/${workingDays}`;
+            document.getElementById('checklistCompletionRate').textContent = `${completionRate}%`;
+            document.getElementById('checklistCompletionBar').style.width = `${completionRate}%`;
+            document.getElementById('checklistStreak').textContent = `${streak} 🔥`;
+            
+            // Colorer le taux selon le pourcentage
+            const rateElement = document.getElementById('checklistCompletionRate');
+            if (completionRate >= 80) {
+                rateElement.style.color = '#10b981'; // Vert
+            } else if (completionRate >= 50) {
+                rateElement.style.color = '#f59e0b'; // Orange
+            } else {
+                rateElement.style.color = '#dc2626'; // Rouge
+            }
+            
+            console.log('[CHECKLIST KPIs]', {
+                validatedDays,
+                workingDays,
+                completionRate: `${completionRate}%`,
+                streak
+            });
+        }
+        
+        // Vérifier si la checklist a été validée aujourd'hui
+        function checkTodayChecklistValidation() {
+            const today = new Date().toISOString().split('T')[0];
+            const validations = JSON.parse(localStorage.getItem('checklist_validations') || '{}');
+            return validations[today] && validations[today].completed;
+        }
+        
+        // Afficher l'alerte si trade ajouté sans checklist
+        function showChecklistAlert() {
+            const alertBanner = document.getElementById('checklistAlert');
+            const alertTitle = document.getElementById('checklistAlertTitle');
+            const alertMessage = document.getElementById('checklistAlertMessage');
+            
+            if (!alertBanner) return;
+            
+            alertBanner.style.display = 'block';
+            alertTitle.textContent = '⚠️ Checklist non remplie !';
+            alertMessage.textContent = 'Vous avez ajouté un trade sans valider votre checklist pré-session. La préparation mentale est essentielle pour trader avec discipline.';
+            
+            console.log('[CHECKLIST ALERT] Affichée');
+        }
+        
+        // Masquer l'alerte
+        function dismissChecklistAlert() {
+            const alertBanner = document.getElementById('checklistAlert');
+            if (alertBanner) {
+                alertBanner.style.display = 'none';
+            }
+        }
+        
+        // Exposer les fonctions globalement
+        window.validateChecklist = validateChecklist;
+        window.updateChecklistKPIs = updateChecklistKPIs;
+        window.checkTodayChecklistValidation = checkTodayChecklistValidation;
+        window.showChecklistAlert = showChecklistAlert;
+        window.dismissChecklistAlert = dismissChecklistAlert;
 
         // ========================================
         // FONCTIONS: Checklist Pré-Session
