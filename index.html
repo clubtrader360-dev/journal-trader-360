@@ -1237,6 +1237,137 @@
             color: #000B25 !important;
         }
     </style>
+
+    <!-- Modal Édition Mon Pourquoi -->
+    <div id="editMotivationModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="close" onclick="closeModal('editMotivationModal')">&times;</span>
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-3" style="color: #ac862b;">
+                <i class="fas fa-bullseye"></i>
+                <span id="motivationModalTitle">Définir mon Pourquoi</span>
+            </h2>
+            
+            <form id="motivationForm" onsubmit="saveMotivation(event)">
+                <!-- Texte de motivation -->
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">
+                        <i class="fas fa-pen mr-2" style="color: #ac862b;"></i>
+                        Pourquoi je trade ? Quelle est ma motivation profonde ?
+                    </label>
+                    <textarea 
+                        id="motivationTextInput" 
+                        rows="6" 
+                        placeholder="Ex: Pour offrir une vie meilleure à mes enfants, être libre financièrement, réaliser mes rêves..."
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#ac862b] transition-all resize-none"
+                        style="font-size: 16px;"
+                    ></textarea>
+                    <p class="text-sm text-gray-500 mt-2">
+                        <i class="fas fa-lightbulb mr-1"></i>
+                        Soyez sincère et précis. Ce message vous motivera dans les moments difficiles.
+                    </p>
+                </div>
+
+                <!-- Upload d'image -->
+                <div class="form-group">
+                    <label class="block text-gray-700 font-medium mb-2">
+                        <i class="fas fa-image mr-2" style="color: #ac862b;"></i>
+                        Photo de motivation (optionnelle)
+                    </label>
+                    <input 
+                        type="file" 
+                        id="motivationImageInput" 
+                        accept="image/*" 
+                        onchange="previewMotivationImage(this)"
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#ac862b] transition-all"
+                    >
+                    <p class="text-sm text-gray-500 mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Ajoutez une photo de votre famille, de vos objectifs, ou tout ce qui vous inspire
+                    </p>
+                    
+                    <!-- Prévisualisation de l'image -->
+                    <div id="motivationImagePreview" class="mt-4 hidden">
+                        <img id="motivationPreviewImg" src="" alt="Preview" class="max-w-full h-64 object-cover rounded-lg border-2 border-[#ac862b] shadow-lg">
+                        <button type="button" onclick="removeMotivationImage()" class="mt-3 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
+                            <i class="fas fa-trash mr-2"></i>Supprimer l'image
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Option afficher à la connexion -->
+                <div class="form-group">
+                    <label class="flex items-center gap-3 p-4 border-2 border-[#ac862b] rounded-lg cursor-pointer hover:bg-[#ac862b]/5 transition-all">
+                        <input type="checkbox" id="showOnLoginInput" checked class="w-5 h-5 accent-[#ac862b] cursor-pointer">
+                        <span class="flex items-center gap-2 font-medium text-gray-700">
+                            <i class="fas fa-eye" style="color: #ac862b;"></i>
+                            <span>Afficher à chaque connexion</span>
+                        </span>
+                    </label>
+                    <p class="text-sm text-gray-500 mt-2 ml-1">
+                        Cochez cette case pour voir votre motivation à chaque fois que vous vous connectez
+                    </p>
+                </div>
+
+                <!-- Boutons -->
+                <div class="flex gap-4 mt-6">
+                    <button type="submit" class="flex-1 px-6 py-3 rounded-lg font-medium text-white transition-all" style="background: #ac862b;" onmouseover="this.style.background='#8a6d22'" onmouseout="this.style.background='#ac862b'">
+                        <i class="fas fa-save mr-2"></i>Enregistrer
+                    </button>
+                    <button type="button" onclick="closeModal('editMotivationModal')" class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-all">
+                        <i class="fas fa-times mr-2"></i>Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Affichage Mon Pourquoi (à la connexion) -->
+    <div id="motivationWelcomeModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="close" onclick="closeModal('motivationWelcomeModal')">&times;</span>
+            
+            <div class="text-center">
+                <!-- Header avec icône -->
+                <div class="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, #ac862b 0%, #d4af37 100%); box-shadow: 0 6px 20px rgba(172, 134, 43, 0.4);">
+                    <i class="fas fa-bullseye text-white text-4xl"></i>
+                </div>
+                
+                <h2 class="text-3xl font-bold mb-2" style="color: #ac862b;">MON POURQUOI</h2>
+                <p class="text-gray-600 mb-6">N'oubliez jamais pourquoi vous êtes ici</p>
+            </div>
+            
+            <!-- Image -->
+            <div id="motivationWelcomeImageContainer" class="hidden mb-6">
+                <img id="motivationWelcomeImage" src="" alt="Mon Pourquoi" class="w-full h-80 object-cover rounded-lg shadow-xl">
+            </div>
+            
+            <!-- Texte -->
+            <div class="bg-gradient-to-r from-[#ac862b]/10 to-[#d4af37]/10 p-6 rounded-lg mb-6">
+                <div class="flex items-start gap-4">
+                    <i class="fas fa-quote-left text-3xl text-[#ac862b] opacity-50 flex-shrink-0 mt-1"></i>
+                    <p id="motivationWelcomeText" class="text-xl text-gray-800 leading-relaxed whitespace-pre-wrap flex-1"></p>
+                    <i class="fas fa-quote-right text-3xl text-[#ac862b] opacity-50 flex-shrink-0 mt-1"></i>
+                </div>
+            </div>
+            
+            <!-- Options -->
+            <div class="flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-lg">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="dontShowTodayCheckbox" class="w-5 h-5 accent-[#ac862b]">
+                    <span class="text-gray-700">Ne plus afficher aujourd'hui</span>
+                </label>
+                <button onclick="openEditMotivationModal(); closeModal('motivationWelcomeModal');" class="text-[#ac862b] hover:underline font-medium">
+                    <i class="fas fa-edit mr-1"></i>Modifier
+                </button>
+            </div>
+            
+            <!-- Bouton fermer -->
+            <button onclick="closeMotivationWelcomeModal()" class="w-full px-6 py-3 rounded-lg font-medium text-white transition-all" style="background: #ac862b;" onmouseover="this.style.background='#8a6d22'" onmouseout="this.style.background='#ac862b'">
+                <i class="fas fa-check mr-2"></i>C'est parti !
+            </button>
+        </div>
+    </div>
+
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- ========================================
@@ -1247,6 +1378,7 @@
 <script src="supabase-trades.js"></script>
 <script src="supabase-journal.js"></script>
 <script src="supabase-payouts.js"></script>
+<script src="supabase-motivation.js"></script>
 <script src="supabase-account-costs.js"></script>
 <script src="supabase-daily-fees.js"></script>
 <script src="supabase-coach.js"></script>
@@ -2294,6 +2426,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 <div class="sidebar-item" onclick="showSection('checklist')">
                     <i class="fas fa-clipboard-check mr-3"></i>Checklist
                 </div>
+                <div class="sidebar-item" onclick="showSection('motivation')">
+                    <i class="fas fa-bullseye mr-3" style="color: #ac862b;"></i>Mon Pourquoi
+                </div>
                 <div id="logoutBtn" class="sidebar-item logoutBtn" data-action="logout" style="margin-top: 20px; border-top: 1px solid #374151; padding-top: 20px;">
                     <i class="fas fa-sign-out-alt mr-3"></i>Déconnexion
                 </div>
@@ -3265,6 +3400,88 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                             </button>
                         </div>
 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Mon Pourquoi -->
+    <div id="motivation" class="section hidden">
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-4xl mx-auto">
+                <!-- Header avec icône dorée -->
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, #ac862b 0%, #d4af37 100%); box-shadow: 0 4px 12px rgba(172, 134, 43, 0.3);">
+                            <i class="fas fa-bullseye text-white text-3xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">MON POURQUOI</h1>
+                            <p class="text-gray-600 mt-1">Ma motivation profonde pour réussir dans le trading</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Citation inspirante -->
+                <div class="bg-gradient-to-r from-[#ac862b]/10 to-[#d4af37]/10 border-l-4 border-[#ac862b] p-6 rounded-lg mb-8">
+                    <p class="text-lg text-gray-800 italic text-center font-medium">
+                        "Celui qui a un pourquoi peut supporter presque n'importe quel comment."
+                    </p>
+                    <p class="text-sm text-gray-600 text-center mt-2">— Friedrich Nietzsche</p>
+                </div>
+
+                <!-- Affichage de la motivation -->
+                <div id="motivationDisplay" class="hidden">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden border-3" style="border: 3px solid #ac862b;">
+                        <!-- Image -->
+                        <div id="motivationImageContainer" class="hidden">
+                            <img id="motivationDisplayImage" src="" alt="Mon Pourquoi" class="w-full h-96 object-cover">
+                        </div>
+                        
+                        <!-- Texte -->
+                        <div class="p-8">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-quote-left text-4xl text-[#ac862b] opacity-30"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p id="motivationDisplayText" class="text-xl text-gray-800 leading-relaxed whitespace-pre-wrap"></p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-quote-right text-4xl text-[#ac862b] opacity-30"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Options -->
+                            <div class="mt-8 pt-6 border-t border-gray-200 flex items-center justify-between">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="checkbox" id="showOnLoginCheckbox" onchange="updateShowOnLogin()" class="w-5 h-5 accent-[#ac862b]">
+                                    <span class="text-gray-700">Afficher à chaque connexion</span>
+                                </label>
+                                <button onclick="openEditMotivationModal()" class="px-6 py-2 rounded-lg font-medium transition-all" style="background: #ac862b; color: white;" onmouseover="this.style.background='#8a6d22'" onmouseout="this.style.background='#ac862b'">
+                                    <i class="fas fa-edit mr-2"></i>Modifier
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- État vide (première fois) -->
+                <div id="motivationEmpty" class="hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-12 text-center border-3" style="border: 3px dashed #ac862b;">
+                        <div class="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style="background: linear-gradient(135deg, #ac862b 0%, #d4af37 100%);">
+                            <i class="fas fa-bullseye text-white text-5xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">Définissez votre "Pourquoi"</h3>
+                        <p class="text-gray-600 mb-8 max-w-2xl mx-auto">
+                            Ajoutez une photo et un texte qui représentent votre motivation profonde. 
+                            Que ce soit votre famille, vos rêves ou vos objectifs, gardez-les toujours à l'esprit 
+                            pour rester motivé dans les moments difficiles.
+                        </p>
+                        <button onclick="openEditMotivationModal()" class="px-8 py-3 rounded-lg font-medium text-lg transition-all" style="background: #ac862b; color: white;" onmouseover="this.style.background='#8a6d22'" onmouseout="this.style.background='#ac862b'">
+                            <i class="fas fa-plus mr-2"></i>Créer mon Pourquoi
+                        </button>
                     </div>
                 </div>
             </div>
@@ -5555,6 +5772,12 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 if (typeof window.refreshAllModules === 'function' && !isCoachMode && mainApp && mainApp.style.display !== 'none') {
                     await window.refreshAllModules();
                     console.log('[INIT] ✅ Données chargées et affichées automatiquement');
+                    
+                    // ✅ Charger la motivation de l'utilisateur
+                    if (typeof window.loadMotivation === 'function') {
+                        await window.loadMotivation();
+                        console.log('[INIT] ✅ Motivation chargée');
+                    }
                 } else if (isCoachMode) {
                     console.log('[INIT] ℹ️ Mode Coach - Pas de refresh automatique');
                 } else {
@@ -7114,6 +7337,11 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.log('[UI] Section Checklist - Mise à jour KPIs...');
                 if (typeof updateChecklistKPIs === 'function') {
                     updateChecklistKPIs();
+                }
+            } else if (sectionName === 'motivation') {
+                console.log('[UI] Section Mon Pourquoi - Chargement...');
+                if (typeof window.loadMotivation === 'function') {
+                    window.loadMotivation();
                 }
             }
         }
