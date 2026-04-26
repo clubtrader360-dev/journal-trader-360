@@ -147,10 +147,9 @@
         
         console.log('[MOTIVATION] Check welcome modal:', { showOnLogin, today, lastShown });
         
-        // Afficher si :
-        // 1. show_on_login est true
-        // 2. La date d'aujourd'hui est différente de last_shown_date
-        if (showOnLogin && lastShown !== today) {
+        // Afficher si show_on_login est true
+        // (on affiche à CHAQUE connexion, pas seulement une fois par jour)
+        if (showOnLogin) {
             showWelcomeModal();
         }
     }
