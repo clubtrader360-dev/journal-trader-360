@@ -44,6 +44,7 @@
         const sessionRating = document.getElementById('sessionRating')?.value;
         const imageFile = document.getElementById('noteImage')?.files[0];
         const imageFile2 = document.getElementById('noteImage2')?.files[0];
+        const noTradeToday = document.getElementById('noTradeToday')?.checked || false;
         
         // Validation
         if (!noteDate || !noteText) {
@@ -52,7 +53,7 @@
             return { data: null, error: 'Missing required fields' };
         }
         
-        console.log('[JOURNAL] Données collectées:', { noteDate, noteText, emotionBefore, emotionAfter, sessionRating, hasImage: !!imageFile, hasImage2: !!imageFile2 });
+        console.log('[JOURNAL] Données collectées:', { noteDate, noteText, emotionBefore, emotionAfter, sessionRating, hasImage: !!imageFile, hasImage2: !!imageFile2, noTradeToday });
         
         // Upload de l'image si présente
         let imageUrl = null;
@@ -181,7 +182,8 @@
             emotion_before: emotionBefore || null,
             emotion_after: emotionAfter || null,
             session_rating: sessionRating ? parseInt(sessionRating) : null,
-            image_url: imageUrl
+            image_url: imageUrl,
+            no_trade: noTradeToday
         };
         
         // ✅ Ajouter image_url_2 UNIQUEMENT si elle existe (pour compatibilité)
@@ -275,6 +277,11 @@
             // Rafraîchir l'affichage
             await loadJournalEntries();
             
+            // ✅ Rafraîchir le calendrier pour afficher les jours "no trade"
+            if (window.updateCalendar) {
+                window.updateCalendar();
+            }
+            
             return { data, error: null };
         } catch (err) {
             console.error('[JOURNAL] ❌ Exception addNote:', err);
@@ -314,6 +321,9 @@
 
             console.log(`[JOURNAL] ✅ ${data.length} entrée(s) chargée(s)`);
             
+            // ✅ Stocker dans window.journalEntries pour le calendrier
+            window.journalEntries = data;
+            
             // Afficher les entrées dans le DOM
             displayJournalEntries(data);
             
@@ -342,8 +352,15 @@
             const stars = '⭐'.repeat(entry.session_rating || 0);
             const hasEmotions = entry.emotion_before || entry.emotion_after;
             
+            // Badge "Pas de trade" si no_trade est vrai
+            const noTradeBadge = entry.no_trade ? `
+                <span class="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full border border-gray-300">
+                    🚫 Pas de trade
+                </span>
+            ` : '';
+            
             // DEBUG : Log pour chaque entrée
-            console.log('[JOURNAL] 🖼️ Affichage note ID:', entry.id, 'Image URL:', entry.image_url);
+            console.log('[JOURNAL] 🖼️ Affichage note ID:', entry.id, 'Image URL:', entry.image_url, 'No Trade:', entry.no_trade);
             
             // ✅ NOUVEAU : Récupérer les trades de la même date
             const dayTrades = window.trades ? window.trades.filter(trade => trade.date === entry.entry_date) : [];
@@ -407,7 +424,10 @@
                 <div class="border-b pb-4 mb-4 last:border-b-0">
                     <div class="flex justify-between items-start mb-2">
                         <div class="flex-1">
-                            <h4 class="font-semibold text-gray-800">${entry.entry_date}</h4>
+                            <div class="flex items-center gap-3 mb-1">
+                                <h4 class="font-semibold text-gray-800">${entry.entry_date}</h4>
+                                ${noTradeBadge}
+                            </div>
                             ${stars ? `<span class="text-sm text-gray-500">${stars}</span>` : ''}
                         </div>
                         <div class="flex gap-2">
@@ -545,6 +565,11 @@
             
             // Rafraîchir l'affichage
             await loadJournalEntries();
+            
+            // ✅ Rafraîchir le calendrier pour afficher les jours "no trade"
+            if (window.updateCalendar) {
+                window.updateCalendar();
+            }
             
             return { data: true, error: null };
         } catch (err) {
@@ -762,6 +787,12 @@ ${data.content}
             document.getElementById('emotionBefore').value = data.emotion_before || '';
             document.getElementById('emotionAfter').value = data.emotion_after || '';
             document.getElementById('sessionRating').value = data.session_rating || 0;
+            
+            // ✅ Pré-remplir la checkbox "Pas de trade"
+            const noTradeCheckbox = document.getElementById('noTradeToday');
+            if (noTradeCheckbox) {
+                noTradeCheckbox.checked = data.no_trade || false;
+            }
             
             // Mettre à jour les étoiles visuellement
             const rating = data.session_rating || 0;
