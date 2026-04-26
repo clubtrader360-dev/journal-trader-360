@@ -26,6 +26,9 @@
         
         if (!window.currentUser || !window.currentUser.uuid) {
             console.warn('[MOTIVATION] ⚠️ Utilisateur non connecté');
+            // Afficher quand même l'état vide
+            currentMotivation = null;
+            displayMotivationSection();
             return { data: null, error: 'User not logged in' };
         }
         
@@ -44,7 +47,11 @@
                     displayMotivationSection();
                     return { data: null, error: null };
                 }
+                // Autre erreur (ex: table n'existe pas)
                 console.error('[MOTIVATION] ❌ Erreur chargement:', error);
+                console.log('[MOTIVATION] ℹ️ Affichage état vide par défaut');
+                currentMotivation = null;
+                displayMotivationSection(); // Afficher l'état vide quand même
                 return { data: null, error };
             }
             
@@ -58,6 +65,10 @@
             return { data, error: null };
         } catch (err) {
             console.error('[MOTIVATION] ❌ Exception loadMotivation:', err);
+            // Afficher l'état vide en cas d'exception
+            console.log('[MOTIVATION] ℹ️ Affichage état vide après exception');
+            currentMotivation = null;
+            displayMotivationSection();
             return { data: null, error: err };
         }
     }
