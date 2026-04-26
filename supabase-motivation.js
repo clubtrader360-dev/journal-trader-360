@@ -23,14 +23,25 @@
     // ===== FONCTION CHARGEMENT MOTIVATION =====
     async function loadMotivation() {
         console.log('[MOTIVATION] loadMotivation() - START');
+        console.log('[MOTIVATION] window.currentUser:', window.currentUser);
+        
+        // Attendre que l'utilisateur soit chargé (max 5s)
+        let attempts = 0;
+        while ((!window.currentUser || !window.currentUser.uuid) && attempts < 50) {
+            console.log('[MOTIVATION] ⏳ Attente de l\'utilisateur...', attempts);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
         
         if (!window.currentUser || !window.currentUser.uuid) {
-            console.warn('[MOTIVATION] ⚠️ Utilisateur non connecté');
+            console.warn('[MOTIVATION] ⚠️ Utilisateur non connecté après 5s');
             // Afficher quand même l'état vide
             currentMotivation = null;
             displayMotivationSection();
             return { data: null, error: 'User not logged in' };
         }
+        
+        console.log('[MOTIVATION] ✅ Utilisateur trouvé:', window.currentUser.uuid);
         
         try {
             const { data, error } = await supabase
