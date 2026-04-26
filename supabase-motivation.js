@@ -455,6 +455,7 @@
     window.saveMotivation = saveMotivation;
     window.updateShowOnLogin = updateShowOnLogin;
     window.closeMotivationWelcomeModal = closeMotivationWelcomeModal;
+    window.checkShowWelcomeModal = checkShowWelcomeModal;
 
     console.log('[MOTIVATION] ✅ Module chargé');
 
