@@ -64,8 +64,14 @@
 
     // ===== FONCTION AFFICHAGE SECTION MOTIVATION =====
     function displayMotivationSection() {
+        console.log('[MOTIVATION] displayMotivationSection() - START');
+        console.log('[MOTIVATION] currentMotivation:', currentMotivation);
+        
         const displayDiv = document.getElementById('motivationDisplay');
         const emptyDiv = document.getElementById('motivationEmpty');
+        
+        console.log('[MOTIVATION] displayDiv:', displayDiv);
+        console.log('[MOTIVATION] emptyDiv:', emptyDiv);
         
         if (!displayDiv || !emptyDiv) {
             console.warn('[MOTIVATION] ⚠️ Éléments DOM introuvables');
@@ -74,6 +80,7 @@
         
         if (currentMotivation && (currentMotivation.motivation_text || currentMotivation.motivation_image_url)) {
             // Afficher la motivation
+            console.log('[MOTIVATION] ✅ Affichage motivation existante');
             displayDiv.classList.remove('hidden');
             emptyDiv.classList.add('hidden');
             
@@ -101,6 +108,7 @@
             }
         } else {
             // Afficher l'état vide
+            console.log('[MOTIVATION] ✅ Affichage état vide (première utilisation)');
             displayDiv.classList.add('hidden');
             emptyDiv.classList.remove('hidden');
         }
