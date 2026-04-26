@@ -9019,6 +9019,19 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 console.error('[DATA] ❌ updateComptabilite non définie');
             }
             
+            // Charger la motivation et afficher le popup si nécessaire
+            console.log('[DATA] Chargement de la motivation...');
+            if (typeof window.loadMotivation === 'function') {
+                try {
+                    await window.loadMotivation();
+                    console.log('[DATA] ✅ Motivation chargée');
+                } catch (err) {
+                    console.error('[DATA] ❌ Erreur chargement motivation:', err);
+                }
+            } else {
+                console.warn('[DATA] ⚠️ window.loadMotivation non définie');
+            }
+            
             console.log("[OK] Rafraîchissement terminé");
             console.log("");
             
