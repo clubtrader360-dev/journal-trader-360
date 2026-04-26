@@ -5772,12 +5772,6 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 if (typeof window.refreshAllModules === 'function' && !isCoachMode && mainApp && mainApp.style.display !== 'none') {
                     await window.refreshAllModules();
                     console.log('[INIT] ✅ Données chargées et affichées automatiquement');
-                    
-                    // ✅ Charger la motivation de l'utilisateur
-                    if (typeof window.loadMotivation === 'function') {
-                        await window.loadMotivation();
-                        console.log('[INIT] ✅ Motivation chargée');
-                    }
                 } else if (isCoachMode) {
                     console.log('[INIT] ℹ️ Mode Coach - Pas de refresh automatique');
                 } else {
