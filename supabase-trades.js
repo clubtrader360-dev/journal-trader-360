@@ -184,6 +184,26 @@ async function loadAccounts() {
             console.log('[TRADES] ✅ accountsList mis à jour');
         }
         
+        // ✅ FIX CRITIQUE: Synchroniser avec les variables globales accounts et window.accounts
+        // Cela permet à toggleAccount(), toggleAllSidebarAccounts(), et toutes les fonctions de filtrage de fonctionner correctement
+        if (typeof window.accounts !== 'undefined') {
+            // Hydratation de la variable locale accounts (dans index.html)
+            window.accounts.length = 0; // Vider l'array existant
+            data.forEach(account => {
+                // Ajouter la propriété active si elle n'existe pas (défaut: true)
+                if (account.active === undefined) account.active = true;
+                window.accounts.push(account);
+            });
+            console.log('[TRADES] ✅ window.accounts synchronisé:', window.accounts.length, 'comptes');
+        } else {
+            // Créer window.accounts si elle n'existe pas encore
+            window.accounts = data.map(account => {
+                if (account.active === undefined) account.active = true;
+                return account;
+            });
+            console.log('[TRADES] ✅ window.accounts créé:', window.accounts.length, 'comptes');
+        }
+        
         return { data, error: null };
     } catch (err) {
         console.error('[TRADES] ❌ Exception:', err);

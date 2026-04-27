@@ -6558,9 +6558,19 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
             const account = accounts.find(a => a.id === accountId);
             if (account) {
                 account.active = !account.active;
+                
+                // ✅ FIX CRITIQUE: Synchroniser avec window.accounts
+                if (window.accounts && Array.isArray(window.accounts)) {
+                    const windowAccount = window.accounts.find(a => a.id === accountId);
+                    if (windowAccount) {
+                        windowAccount.active = account.active;
+                    }
+                }
+                
                 console.log(`[TOGGLE] ========================================`);
                 console.log(`[TOGGLE] Compte ${account.name} (ID: ${accountId}) → active: ${account.active}`);
                 console.log(`[TOGGLE] Tous les comptes:`, accounts.map(a => ({ id: a.id, name: a.name, active: a.active })));
+                console.log(`[TOGGLE] window.accounts synchronisé:`, window.accounts ? 'OUI' : 'NON');
                 console.log(`[TOGGLE] ========================================`);
                 
                 // ✅ Sauvegarder dans Supabase au lieu de localStorage
