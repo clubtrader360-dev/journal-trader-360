@@ -4930,14 +4930,17 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
 
         // FONCTION HELPER: Obtenir les trades filtrés par compte
         function getFilteredTrades() {
+            // ✅ FIX: Utiliser window.accounts pour garantir la synchronisation avec toggleAllSidebarAccounts
+            const accountsToUse = window.accounts || accounts;
+            
             // Si aucun compte n'existe, retourner tous les trades
-            if (accounts.length === 0) {
+            if (accountsToUse.length === 0) {
                 return trades;
             }
             // Sinon, filtrer par comptes actifs (cochés)
             // ✅ FIX: Utiliser === true pour éviter undefined
-            const activeAccountIds = accounts.filter(a => a.active === true).map(a => a.id);
-            console.log('[FILTER] getFilteredTrades() - Comptes actifs:', activeAccountIds, '| Total trades:', trades.length);
+            const activeAccountIds = accountsToUse.filter(a => a.active === true).map(a => a.id);
+            console.log('[FILTER] getFilteredTrades() - Comptes actifs:', activeAccountIds, '| Total trades:', trades.length, '(source:', window.accounts ? 'window.accounts' : 'accounts', ')');
             const filtered = trades.filter(t => activeAccountIds.includes(t.accountId));
             console.log('[FILTER] getFilteredTrades() - Trades filtrés:', filtered.length);
             return filtered;
@@ -9222,11 +9225,13 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         window.updateDashboard = function() {
             console.log("  → updateDashboard() appelée");
             // Filtrer par comptes actifs (cochés)
-            const activeAccounts = accounts.filter(a => a.active === true).map(a => a.id);
-            console.log('[FILTER] Comptes actifs:', activeAccounts);
+            // ✅ FIX: Utiliser window.accounts pour garantir la synchronisation avec toggleAllSidebarAccounts
+            const accountsToUse = window.accounts || accounts;
+            const activeAccounts = accountsToUse.filter(a => a.active === true).map(a => a.id);
+            console.log('[FILTER] Comptes actifs:', activeAccounts, '(source:', window.accounts ? 'window.accounts' : 'accounts', ')');
             
             // ✅ FIX: Si aucun compte actif OU si accounts.length === 0, filtrer par comptes actifs
-            const filteredTrades = (accounts.length === 0)
+            const filteredTrades = (accountsToUse.length === 0)
                 ? trades  // Si aucun compte n'existe encore, afficher tous les trades
                 : trades.filter(trade => activeAccounts.includes(trade.accountId)); // Sinon filtrer par comptes cochés
 
