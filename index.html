@@ -9808,10 +9808,22 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     return isMatch;
                 });
                 
-                // ✅ NOUVEAU : Vérifier si ce jour a une note "no trade"
+                // ✅ NOUVEAU : Vérifier si ce jour a une note "no trade" + points positifs/erreurs
                 let noTradeEntry = null;
+                let journalEntry = null;
                 if (window.journalEntries && Array.isArray(window.journalEntries)) {
-                    noTradeEntry = window.journalEntries.find(entry => entry.entry_date === dateString && entry.no_trade === true);
+                    journalEntry = window.journalEntries.find(entry => entry.entry_date === dateString);
+                    if (journalEntry && journalEntry.no_trade === true) {
+                        noTradeEntry = journalEntry;
+                    }
+                }
+                
+                // ✅ Compter les points positifs et erreurs du jour
+                let positiveCount = 0;
+                let errorsCount = 0;
+                if (journalEntry) {
+                    positiveCount = (journalEntry.positive_points && Array.isArray(journalEntry.positive_points)) ? journalEntry.positive_points.length : 0;
+                    errorsCount = (journalEntry.errors_committed && Array.isArray(journalEntry.errors_committed)) ? journalEntry.errors_committed.length : 0;
                 }
                 
                 // ✅ Calculer le P&L des trades
@@ -9868,9 +9880,80 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     
                     statsHtml += '</div>';
                     cellContent += statsHtml;
+                    
+                    // ✅ NOUVEAU : Afficher badges points positifs / erreurs
+                    if (positiveCount > 0 || errorsCount > 0) {
+                        let badgesHtml = '<div class="flex items-center justify-center gap-1 mt-1">';
+                        if (positiveCount > 0) {
+                            badgesHtml += `<span class="text-xs px-1.5 py-0.5 rounded" style="background: #10b981; color: white; font-weight: 600;">✅ ${positiveCount}</span>`;
+                        }
+                        if (errorsCount > 0) {
+                            badgesHtml += `<span class="text-xs px-1.5 py-0.5 rounded" style="background: #ef4444; color: white; font-weight: 600;">❌ ${errorsCount}</span>`;
+                        }
+                        badgesHtml += '</div>';
+                        cellContent += badgesHtml;
+                    }
                 } else if (noTradeEntry && isCurrentMonth) {
-                    // Afficher l'icône et le message "No Trade"
-                    cellContent += `<div class="text-xs mt-1"><span class="text-2xl">🚫</span><div class="mt-1 font-medium">Pas de trade</div></div>`;
+                    // ✅ AFFICHAGE "NO TRADE" + badges points positifs/erreurs
+                    cellContent += `<div class="text-xs mt-1 space-y-0.5">
+                        <div class="text-2xl">🚫</div>
+                        <div class="text-[10px] font-medium">Pas de trade</div>
+                    </div>`;
+                    
+                    // ✅ NOUVEAU : Afficher badges même pour "no trade"
+                    if (positiveCount > 0 || errorsCount > 0) {
+                        let badgesHtml = '<div class="flex items-center justify-center gap-1 mt-1">';
+                        if (positiveCount > 0) {
+                            badgesHtml += `<span class="text-xs px-1.5 py-0.5 rounded" style="background: #10b981; color: white; font-weight: 600;">✅ ${positiveCount}</span>`;
+                        }
+                        if (errorsCount > 0) {
+                            badgesHtml += `<span class="text-xs px-1.5 py-0.5 rounded" style="background: #ef4444; color: white; font-weight: 600;">❌ ${errorsCount}</span>`;
+                        }
+                        badgesHtml += '</div>';
+                        cellContent += badgesHtml;
+                    }
+                } else if (isCurrentMonth && (positiveCount > 0 || errorsCount > 0)) {
+                    // ✅ NOUVEAU : Jour sans trade mais avec journal (points positifs/erreurs seulement)
+                    let badgesHtml = '<div class="flex items-center justify-center gap-1 mt-1">';
+                    if (positiveCount > 0) {
+                        badgesHtml += `<span class="text-xs px-1.5 py-0.5 rounded" style="background: #10b981; color: white; font-weight: 600;">✅ ${positiveCount}</span>`;
+                    }
+                    if (errorsCount > 0) {
+                        badgesHtml += `<span class="text-xs px-1.5 py-0.5 rounded" style="background: #ef4444; color: white; font-weight: 600;">❌ ${errorsCount}</span>`;
+                    }
+                    badgesHtml += '</div>';
+                    cellContent += badgesHtml;
+                }
+                
+                // ✅ NOUVEAU : Ajouter tooltip détaillé au survol
+                if (isCurrentMonth && journalEntry && (positiveCount > 0 || errorsCount > 0)) {
+                    let tooltipText = `📅 ${dateString}\n`;
+                    
+                    if (dayTrades.length > 0) {
+                        tooltipText += `\n💰 P&L : ${dayPnl > 0 ? '+' : ''}${dayPnl.toFixed(2)}$\n`;
+                        tooltipText += `📊 ${dayTrades.length} trade${dayTrades.length > 1 ? 's' : ''}\n`;
+                    }
+                    
+                    if (noTradeEntry) {
+                        tooltipText += `\n🚫 Pas de trade aujourd'hui\n`;
+                    }
+                    
+                    if (positiveCount > 0) {
+                        tooltipText += `\n✅ Points positifs (${positiveCount}) :\n`;
+                        journalEntry.positive_points.forEach(p => {
+                            tooltipText += `• ${p}\n`;
+                        });
+                    }
+                    
+                    if (errorsCount > 0) {
+                        tooltipText += `\n❌ Erreurs (${errorsCount}) :\n`;
+                        journalEntry.errors_committed.forEach(e => {
+                            tooltipText += `• ${e}\n`;
+                        });
+                    }
+                    
+                    tooltipText += `\n[Cliquer pour ouvrir le journal]`;
+                    dayElement.title = tooltipText;
                 }
                 
                 dayElement.innerHTML = cellContent;
