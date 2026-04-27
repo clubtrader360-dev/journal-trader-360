@@ -6707,12 +6707,20 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            // ✅ ÉTAPE 1: Mettre à jour le tableau window.accounts
+            // ✅ ÉTAPE 1: Mettre à jour le tableau window.accounts ET accounts (variable locale)
             if (window.accounts && Array.isArray(window.accounts)) {
                 window.accounts.forEach(account => {
                     account.active = checked;
                 });
                 console.log(`[SIDEBAR] ✅ Mise à jour de ${window.accounts.length} comptes dans window.accounts`);
+            }
+            
+            // ✅ SYNCHRONISER la variable locale accounts avec window.accounts
+            if (typeof accounts !== 'undefined' && Array.isArray(accounts)) {
+                accounts.forEach(account => {
+                    account.active = checked;
+                });
+                console.log(`[SIDEBAR] ✅ Synchronisation de la variable locale accounts (${accounts.length} comptes)`);
             }
             
             // ✅ ÉTAPE 2: Appliquer l'état visuel à toutes les checkboxes
