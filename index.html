@@ -3758,6 +3758,298 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                     <textarea id="noteText" rows="6" placeholder="Décrivez votre journée de trading, vos observations, vos erreurs, vos succès..." required></textarea>
                 </div>
                 
+                <!-- ========================================
+                     SECTION POINTS POSITIFS (ACCORDÉONS)
+                     ======================================== -->
+                <div class="form-group">
+                    <label class="flex items-center justify-between mb-2">
+                        <span class="flex items-center gap-2">
+                            <span>✅</span>
+                            <span>Points Positifs</span>
+                        </span>
+                        <span id="positivePointsCount" class="text-sm px-2 py-1 rounded" style="background: #10b981; color: white; font-weight: 600;">(0)</span>
+                    </label>
+                    
+                    <!-- Discipline -->
+                    <div class="accordion-category mb-2" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div class="accordion-header" onclick="toggleAccordion('positive-discipline')" style="display: flex; align-items: center; padding: 12px 16px; background: #f9fafb; cursor: pointer; user-select: none;">
+                            <span id="chevron-positive-discipline" style="margin-right: 8px; font-size: 14px; transition: transform 0.2s;">▶</span>
+                            <span style="font-weight: 500; flex: 1;">Discipline</span>
+                            <span id="badge-positive-discipline" class="text-xs px-2 py-1 rounded" style="background: #10b981; color: white; display: none;"></span>
+                        </div>
+                        <div id="positive-discipline" class="accordion-content" style="display: none; padding: 12px 16px; background: white;">
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Respecté mon plan de trading à 100%" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Respecté mon plan de trading à 100%</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Pas tradé quand marché non conforme" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Pas tradé quand marché non conforme</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Arrêté après X pertes (respect règle)" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Arrêté après X pertes (respect règle)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Resté calme et discipliné" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Resté calme et discipliné</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Exécution -->
+                    <div class="accordion-category mb-2" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div class="accordion-header" onclick="toggleAccordion('positive-execution')" style="display: flex; align-items: center; padding: 12px 16px; background: #f9fafb; cursor: pointer; user-select: none;">
+                            <span id="chevron-positive-execution" style="margin-right: 8px; font-size: 14px; transition: transform 0.2s;">▶</span>
+                            <span style="font-weight: 500; flex: 1;">Exécution</span>
+                            <span id="badge-positive-execution" class="text-xs px-2 py-1 rounded" style="background: #10b981; color: white; display: none;"></span>
+                        </div>
+                        <div id="positive-execution" class="accordion-content" style="display: none; padding: 12px 16px; background: white;">
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Bonne gestion de mon trade" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Bonne gestion de mon trade</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Patient avant l'entrée" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Patient avant l'entrée</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Entrée au bon moment" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Entrée au bon moment</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Laissé respirer mon trade" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Laissé respirer mon trade (pas micro-managé)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Risk Management -->
+                    <div class="accordion-category mb-2" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div class="accordion-header" onclick="toggleAccordion('positive-risk')" style="display: flex; align-items: center; padding: 12px 16px; background: #f9fafb; cursor: pointer; user-select: none;">
+                            <span id="chevron-positive-risk" style="margin-right: 8px; font-size: 14px; transition: transform 0.2s;">▶</span>
+                            <span style="font-weight: 500; flex: 1;">Risk Management</span>
+                            <span id="badge-positive-risk" class="text-xs px-2 py-1 rounded" style="background: #10b981; color: white; display: none;"></span>
+                        </div>
+                        <div id="positive-risk" class="accordion-content" style="display: none; padding: 12px 16px; background: white;">
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Taille de position parfaite" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Taille de position parfaite</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Coupé rapidement mes pertes" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Coupé rapidement mes pertes</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Laissé courir mes gains" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Laissé courir mes gains</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Sorti sur mon objectif (RR1/RR2)" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Sorti sur mon objectif (RR1/RR2)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Analyse -->
+                    <div class="accordion-category mb-2" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div class="accordion-header" onclick="toggleAccordion('positive-analyse')" style="display: flex; align-items: center; padding: 12px 16px; background: #f9fafb; cursor: pointer; user-select: none;">
+                            <span id="chevron-positive-analyse" style="margin-right: 8px; font-size: 14px; transition: transform 0.2s;">▶</span>
+                            <span style="font-weight: 500; flex: 1;">Analyse</span>
+                            <span id="badge-positive-analyse" class="text-xs px-2 py-1 rounded" style="background: #10b981; color: white; display: none;"></span>
+                        </div>
+                        <div id="positive-analyse" class="accordion-content" style="display: none; padding: 12px 16px; background: white;">
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Bonne lecture du marché" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Bonne lecture du marché</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Setup parfait (A+)" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Setup parfait (A+)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Pris seulement mes meilleurs setups" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Pris seulement mes meilleurs setups</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Bien analysé le contexte HTF" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Bien analysé le contexte HTF</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Mental -->
+                    <div class="accordion-category mb-2" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div class="accordion-header" onclick="toggleAccordion('positive-mental')" style="display: flex; align-items: center; padding: 12px 16px; background: #f9fafb; cursor: pointer; user-select: none;">
+                            <span id="chevron-positive-mental" style="margin-right: 8px; font-size: 14px; transition: transform 0.2s;">▶</span>
+                            <span style="font-weight: 500; flex: 1;">Mental</span>
+                            <span id="badge-positive-mental" class="text-xs px-2 py-1 rounded" style="background: #10b981; color: white; display: none;"></span>
+                        </div>
+                        <div id="positive-mental" class="accordion-content" style="display: none; padding: 12px 16px; background: white;">
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="État d'esprit optimal" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">État d'esprit optimal</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Pas stressé pendant le trade" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Pas stressé pendant le trade</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Confiant dans mon analyse" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Confiant dans mon analyse</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="positive-checkbox" value="Accepté la perte sereinement" onchange="updatePositiveCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                                <span style="font-size: 14px;">Accepté la perte sereinement</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ========================================
+                     SECTION ERREURS COMMISES (ACCORDÉONS)
+                     ======================================== -->
+                <div class="form-group">
+                    <label class="flex items-center justify-between mb-2">
+                        <span class="flex items-center gap-2">
+                            <span>❌</span>
+                            <span>Erreurs Commises</span>
+                        </span>
+                        <span id="errorsCount" class="text-sm px-2 py-1 rounded" style="background: #ef4444; color: white; font-weight: 600;">(0)</span>
+                    </label>
+                    
+                    <!-- Discipline -->
+                    <div class="accordion-category mb-2" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div class="accordion-header" onclick="toggleAccordion('error-discipline')" style="display: flex; align-items: center; padding: 12px 16px; background: #f9fafb; cursor: pointer; user-select: none;">
+                            <span id="chevron-error-discipline" style="margin-right: 8px; font-size: 14px; transition: transform 0.2s;">▶</span>
+                            <span style="font-weight: 500; flex: 1;">Discipline</span>
+                            <span id="badge-error-discipline" class="text-xs px-2 py-1 rounded" style="background: #ef4444; color: white; display: none;"></span>
+                        </div>
+                        <div id="error-discipline" class="accordion-content" style="display: none; padding: 12px 16px; background: white;">
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Revenge trading" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Revenge trading</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="FOMO (pris un trade par peur)" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">FOMO (pris un trade par peur)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Overtrading (trop de trades)" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Overtrading (trop de trades)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Trade en tilt émotionnel" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Trade en tilt émotionnel</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Exécution -->
+                    <div class="accordion-category mb-2" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div class="accordion-header" onclick="toggleAccordion('error-execution')" style="display: flex; align-items: center; padding: 12px 16px; background: #f9fafb; cursor: pointer; user-select: none;">
+                            <span id="chevron-error-execution" style="margin-right: 8px; font-size: 14px; transition: transform 0.2s;">▶</span>
+                            <span style="font-weight: 500; flex: 1;">Exécution</span>
+                            <span id="badge-error-execution" class="text-xs px-2 py-1 rounded" style="background: #ef4444; color: white; display: none;"></span>
+                        </div>
+                        <div id="error-execution" class="accordion-content" style="display: none; padding: 12px 16px; background: white;">
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Entrée trop tôt" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Entrée trop tôt</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Entrée trop tard" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Entrée trop tard</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Sorti trop tôt (par peur)" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Sorti trop tôt (par peur)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Laissé courir perte trop longtemps" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Laissé courir perte trop longtemps</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Risk Management -->
+                    <div class="accordion-category mb-2" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div class="accordion-header" onclick="toggleAccordion('error-risk')" style="display: flex; align-items: center; padding: 12px 16px; background: #f9fafb; cursor: pointer; user-select: none;">
+                            <span id="chevron-error-risk" style="margin-right: 8px; font-size: 14px; transition: transform 0.2s;">▶</span>
+                            <span style="font-weight: 500; flex: 1;">Risk Management</span>
+                            <span id="badge-error-risk" class="text-xs px-2 py-1 rounded" style="background: #ef4444; color: white; display: none;"></span>
+                        </div>
+                        <div id="error-risk" class="accordion-content" style="display: none; padding: 12px 16px; background: white;">
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Taille de position trop grande" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Taille de position trop grande</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Stop loss trop large" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Stop loss trop large</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Pas mis de stop loss" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Pas mis de stop loss</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Déplacé mon stop loss" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Déplacé mon stop loss (dans le mauvais sens)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Plan de trading -->
+                    <div class="accordion-category mb-2" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div class="accordion-header" onclick="toggleAccordion('error-plan')" style="display: flex; align-items: center; padding: 12px 16px; background: #f9fafb; cursor: pointer; user-select: none;">
+                            <span id="chevron-error-plan" style="margin-right: 8px; font-size: 14px; transition: transform 0.2s;">▶</span>
+                            <span style="font-weight: 500; flex: 1;">Plan de trading</span>
+                            <span id="badge-error-plan" class="text-xs px-2 py-1 rounded" style="background: #ef4444; color: white; display: none;"></span>
+                        </div>
+                        <div id="error-plan" class="accordion-content" style="display: none; padding: 12px 16px; background: white;">
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Sorti du plan de trading" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Sorti du plan de trading</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Trade hors de ma zone/setup" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Trade hors de ma zone/setup</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Trade contre la tendance" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Trade contre la tendance</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Pas attendu ma confirmation" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Pas attendu ma confirmation</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Analyse -->
+                    <div class="accordion-category mb-2" style="border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+                        <div class="accordion-header" onclick="toggleAccordion('error-analyse')" style="display: flex; align-items: center; padding: 12px 16px; background: #f9fafb; cursor: pointer; user-select: none;">
+                            <span id="chevron-error-analyse" style="margin-right: 8px; font-size: 14px; transition: transform 0.2s;">▶</span>
+                            <span style="font-weight: 500; flex: 1;">Analyse</span>
+                            <span id="badge-error-analyse" class="text-xs px-2 py-1 rounded" style="background: #ef4444; color: white; display: none;"></span>
+                        </div>
+                        <div id="error-analyse" class="accordion-content" style="display: none; padding: 12px 16px; background: white;">
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Mauvaise lecture du marché" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Mauvaise lecture du marché</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Ignoré le contexte HTF" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Ignoré le contexte HTF</span>
+                            </label>
+                            <label style="display: flex; align-items: center; padding: 6px 0; cursor: pointer;">
+                                <input type="checkbox" class="error-checkbox" value="Trade sur news sans préparation" onchange="updateErrorsCount()" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;">
+                                <span style="font-size: 14px;">Trade sur news sans préparation</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="form-group">
                     <label>Émotion avant trading</label>
                     <select id="emotionBefore">
@@ -8532,6 +8824,95 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
             }
         }
+
+        // ========================================
+        // FONCTIONS ACCORDION POINTS POSITIFS & ERREURS
+        // ========================================
+        
+        function toggleAccordion(categoryId) {
+            const content = document.getElementById(categoryId);
+            const chevron = document.getElementById(`chevron-${categoryId}`);
+            
+            if (!content || !chevron) {
+                console.warn(`[ACCORDION] Élément non trouvé: ${categoryId}`);
+                return;
+            }
+            
+            if (content.style.display === 'none' || content.style.display === '') {
+                content.style.display = 'block';
+                chevron.textContent = '▼';
+                chevron.style.transform = 'rotate(90deg)';
+            } else {
+                content.style.display = 'none';
+                chevron.textContent = '▶';
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+        
+        function updatePositiveCount() {
+            const checkboxes = document.querySelectorAll('.positive-checkbox:checked');
+            const totalCount = checkboxes.length;
+            
+            // Mettre à jour le compteur global
+            const countBadge = document.getElementById('positivePointsCount');
+            if (countBadge) {
+                countBadge.textContent = `(${totalCount})`;
+            }
+            
+            // Mettre à jour les badges par catégorie
+            const categories = ['discipline', 'execution', 'risk', 'analyse', 'mental'];
+            categories.forEach(cat => {
+                const catCheckboxes = document.querySelectorAll(`#positive-${cat} .positive-checkbox:checked`);
+                const catCount = catCheckboxes.length;
+                const badge = document.getElementById(`badge-positive-${cat}`);
+                
+                if (badge) {
+                    if (catCount > 0) {
+                        badge.textContent = `(${catCount})`;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            });
+            
+            console.log(`[POSITIVE] ${totalCount} points positifs sélectionnés`);
+        }
+        
+        function updateErrorsCount() {
+            const checkboxes = document.querySelectorAll('.error-checkbox:checked');
+            const totalCount = checkboxes.length;
+            
+            // Mettre à jour le compteur global
+            const countBadge = document.getElementById('errorsCount');
+            if (countBadge) {
+                countBadge.textContent = `(${totalCount})`;
+            }
+            
+            // Mettre à jour les badges par catégorie
+            const categories = ['discipline', 'execution', 'risk', 'plan', 'analyse'];
+            categories.forEach(cat => {
+                const catCheckboxes = document.querySelectorAll(`#error-${cat} .error-checkbox:checked`);
+                const catCount = catCheckboxes.length;
+                const badge = document.getElementById(`badge-error-${cat}`);
+                
+                if (badge) {
+                    if (catCount > 0) {
+                        badge.textContent = `(${catCount})`;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            });
+            
+            console.log(`[ERRORS] ${totalCount} erreurs sélectionnées`);
+        }
+        
+        // Exposer les fonctions globalement
+        window.toggleAccordion = toggleAccordion;
+        window.updatePositiveCount = updatePositiveCount;
+        window.updateErrorsCount = updateErrorsCount;
 
         // ========================================
         // Journal functions - DÉSACTIVÉ
