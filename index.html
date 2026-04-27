@@ -9926,7 +9926,8 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 }
                 
                 // ✅ NOUVEAU : Ajouter tooltip détaillé au survol
-                if (isCurrentMonth && journalEntry && (positiveCount > 0 || errorsCount > 0)) {
+                // Afficher tooltip si : trades OU journal OU points positifs/erreurs
+                if (isCurrentMonth && (dayTrades.length > 0 || journalEntry)) {
                     let tooltipText = `📅 ${dateString}\n`;
                     
                     if (dayTrades.length > 0) {
