@@ -6691,7 +6691,9 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
         // FONCTION: Toggle accordion comptes (actifs / cramés)
         // ========================================
         // ✅ FONCTION: Tout cocher/décocher les comptes dans la sidebar
-        function toggleAllSidebarAccounts(checked) {
+        async function toggleAllSidebarAccounts(checked) {
+            console.log('[SIDEBAR] toggleAllSidebarAccounts() - checked:', checked);
+            
             const accountsList = document.getElementById('accountsList');
             if (!accountsList) {
                 console.error('[SIDEBAR] accountsList introuvable');
@@ -6705,12 +6707,63 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 return;
             }
             
-            // Appliquer l'état à toutes les checkboxes des comptes
+            // ✅ ÉTAPE 1: Mettre à jour le tableau window.accounts
+            if (window.accounts && Array.isArray(window.accounts)) {
+                window.accounts.forEach(account => {
+                    account.active = checked;
+                });
+                console.log(`[SIDEBAR] ✅ Mise à jour de ${window.accounts.length} comptes dans window.accounts`);
+            }
+            
+            // ✅ ÉTAPE 2: Appliquer l'état visuel à toutes les checkboxes
             checkboxes.forEach(cb => {
                 cb.checked = checked;
             });
             
-            console.log(`[SIDEBAR] ${checked ? 'Tout coché' : 'Tout décoché'} (${checkboxes.length} comptes)`);
+            // ✅ ÉTAPE 3: Sauvegarder dans Supabase (si client disponible)
+            if (window.supabaseClient && window.accounts && Array.isArray(window.accounts)) {
+                try {
+                    const updates = window.accounts.map(account => ({
+                        id: account.id,
+                        active: checked
+                    }));
+                    
+                    for (const update of updates) {
+                        const { error } = await window.supabaseClient
+                            .from('accounts')
+                            .update({ active: update.active })
+                            .eq('id', update.id);
+                        
+                        if (error) {
+                            console.error(`[SIDEBAR] Erreur Supabase pour compte ${update.id}:`, error);
+                        }
+                    }
+                    
+                    console.log(`[SIDEBAR] ✅ ${updates.length} comptes sauvegardés dans Supabase (active: ${checked})`);
+                } catch (err) {
+                    console.error('[SIDEBAR] Erreur lors de la sauvegarde Supabase:', err);
+                }
+            }
+            
+            // ✅ ÉTAPE 4: Rafraîchir l'interface (métriques, graphiques, tableau)
+            console.log('[SIDEBAR] Rafraîchissement de l\'interface...');
+            if (typeof updateDashboard === 'function') {
+                updateDashboard();
+            }
+            if (typeof updateBanner === 'function') {
+                updateBanner();
+            }
+            if (typeof updateCharts === 'function') {
+                updateCharts();
+            }
+            if (typeof updateCalendar === 'function') {
+                updateCalendar();
+            }
+            if (typeof updateTradesTable === 'function') {
+                updateTradesTable();
+            }
+            
+            console.log(`[SIDEBAR] ✅ ${checked ? 'Tout coché' : 'Tout décoché'} (${checkboxes.length} comptes)`);
         }
         
         window.toggleAllSidebarAccounts = toggleAllSidebarAccounts;
