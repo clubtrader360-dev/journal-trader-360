@@ -317,15 +317,18 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
       border-radius: 6px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 10px;
     }
     .badge {
       background: #ac862b;
       color: white;
-      padding: 2px 8px;
+      padding: 4px 10px;
       border-radius: 12px;
       font-size: 12px;
       font-weight: bold;
+      flex-shrink: 0;
+      margin-left: auto;
     }
     .footer {
       text-align: center;
@@ -405,8 +408,8 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
       <p style="color: #666; font-size: 14px;">Tes forces cette semaine :</p>
       ${topPositives.map(([point, count]) => `
         <div class="list-item">
+          <span style="flex: 1;">${point}</span>
           <span class="badge">${count}×</span>
-          <span>${point}</span>
         </div>
       `).join('')}
     </div>
@@ -418,8 +421,8 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
       <p style="color: #666; font-size: 14px;">⚠️ Points à améliorer :</p>
       ${topErrors.map(([error, count]) => `
         <div class="list-item">
+          <span style="flex: 1;">${error}</span>
           <span class="badge" style="background: #ef4444;">${count}×</span>
-          <span>${error}</span>
         </div>
       `).join('')}
       <p style="color: #ef4444; font-size: 14px; margin-top: 15px; font-weight: bold;">
@@ -442,12 +445,19 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
       </a>
     </div>
     
+    <!-- Citation -->
+    <div style="background: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%); border-left: 4px solid #ac862b; padding: 20px; margin: 30px 0; border-radius: 8px; text-align: center;">
+      <p style="color: #666; font-style: italic; font-size: 15px; line-height: 1.6; margin: 0;">
+        "Le succès est la somme de petits efforts répétés jour après jour."
+      </p>
+      <p style="color: #ac862b; font-weight: bold; font-size: 13px; margin: 10px 0 0 0;">
+        — Robert Collier
+      </p>
+    </div>
+    
     <!-- Footer -->
     <div class="footer">
-      <p><strong>Journal Trader 360</strong> - Ton journal de trading intelligent</p>
-      <p style="margin-top: 10px;">
-        <a href="https://journal-trader-360.vercel.app/settings" style="color: #666;">Gérer mes notifications</a>
-      </p>
+      <p><strong>Journal Trader 360</strong> - Ton allié pour un trading régulier et rentable</p>
     </div>
   </div>
 </body>
