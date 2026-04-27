@@ -176,7 +176,6 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
   const totalPnl = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
   const winningTrades = trades.filter(t => t.pnl > 0);
   const losingTrades = trades.filter(t => t.pnl < 0);
-  const neutralTrades = trades.filter(t => t.pnl === 0);
   const winRate = totalTrades > 0 ? (winningTrades.length / totalTrades * 100).toFixed(0) : 0;
   
   const grossProfit = winningTrades.reduce((sum, t) => sum + t.pnl, 0);
@@ -185,90 +184,6 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
   
   const bestTrade = trades.length > 0 ? Math.max(...trades.map(t => t.pnl)) : 0;
   const worstTrade = trades.length > 0 ? Math.min(...trades.map(t => t.pnl)) : 0;
-  
-  // Nouvelles métriques
-  const avgWin = winningTrades.length > 0 ? (grossProfit / winningTrades.length).toFixed(2) : 0;
-  const avgLoss = losingTrades.length > 0 ? (grossLoss / losingTrades.length).toFixed(2) : 0;
-  const avgWinLossRatio = avgLoss > 0 ? (avgWin / avgLoss).toFixed(2) : (avgWin > 0 ? '∞' : '0');
-  
-  // Calcul des streaks
-  let currentStreak = 0;
-  let longestWinStreak = 0;
-  let longestLossStreak = 0;
-  let currentWinStreak = 0;
-  let currentLossStreak = 0;
-  
-  trades.forEach(trade => {
-    if (trade.pnl > 0) {
-      currentWinStreak++;
-      currentLossStreak = 0;
-      longestWinStreak = Math.max(longestWinStreak, currentWinStreak);
-    } else if (trade.pnl < 0) {
-      currentLossStreak++;
-      currentWinStreak = 0;
-      longestLossStreak = Math.max(longestLossStreak, currentLossStreak);
-    }
-  });
-  
-  // Calcul des jours de trading
-  const tradingDays = [...new Set(trades.map(t => t.date))].length;
-  
-  // Préparer les données pour le graphique (grouper par jour)
-  const dailyPnl = {};
-  trades.forEach(trade => {
-    const date = trade.date;
-    if (!dailyPnl[date]) {
-      dailyPnl[date] = 0;
-    }
-    dailyPnl[date] += trade.pnl;
-  });
-  
-  // Créer l'URL du graphique QuickChart
-  const chartLabels = Object.keys(dailyPnl).sort();
-  const chartData = chartLabels.map(date => dailyPnl[date].toFixed(2));
-  const chartColors = chartData.map(val => parseFloat(val) >= 0 ? '#10b981' : '#ef4444');
-  
-  const chartConfig = {
-    type: 'bar',
-    data: {
-      labels: chartLabels.map(d => {
-        const date = new Date(d);
-        const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-        return days[date.getDay()];
-      }),
-      datasets: [{
-        label: 'P&L Journalier',
-        data: chartData,
-        backgroundColor: chartColors,
-        borderRadius: 4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        title: {
-          display: true,
-          text: 'Évolution du P&L cette semaine',
-          color: '#e5e7eb',
-          font: { size: 16, weight: 'bold' }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: '#374151' },
-          ticks: { color: '#9ca3af' }
-        },
-        x: {
-          grid: { display: false },
-          ticks: { color: '#9ca3af' }
-        }
-      }
-    }
-  };
-  
-  const chartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(chartConfig))}&backgroundColor=%231a1d29&width=560&height=300`;
   
   // ✅ Analyser les points positifs et erreurs
   const allPositives = [];
@@ -315,18 +230,17 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       line-height: 1.6;
-      color: #e5e7eb;
+      color: #333;
       max-width: 600px;
       margin: 0 auto;
       padding: 20px;
-      background-color: #000B25;
+      background-color: #f5f5f5;
     }
     .container {
-      background: #1a1d29;
+      background: white;
       border-radius: 12px;
       padding: 30px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(172, 134, 43, 0.2);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .header {
       text-align: center;
@@ -345,12 +259,12 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
       font-size: 28px;
     }
     .header p {
-      color: #9ca3af;
+      color: #666;
       margin: 0;
       font-size: 14px;
     }
     .metric-card {
-      background: #242938;
+      background: #f9fafb;
       border-left: 4px solid #ac862b;
       padding: 15px;
       margin: 15px 0;
@@ -358,7 +272,7 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
     }
     .metric-card h3 {
       margin: 0 0 10px 0;
-      color: #e5e7eb;
+      color: #333;
       font-size: 16px;
     }
     .metric-grid {
@@ -367,17 +281,8 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
       gap: 10px;
       margin-top: 10px;
     }
-    .metric-grid-3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-      margin-top: 10px;
-    }
     .metric {
       text-align: center;
-      padding: 8px;
-      background: #1a1d29;
-      border-radius: 4px;
     }
     .metric-value {
       font-size: 24px;
@@ -385,10 +290,9 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
       color: #ac862b;
     }
     .metric-label {
-      font-size: 11px;
-      color: #9ca3af;
+      font-size: 12px;
+      color: #666;
       text-transform: uppercase;
-      margin-top: 4px;
     }
     .positive {
       color: #10b981 !important;
@@ -396,23 +300,20 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
     .negative {
       color: #ef4444 !important;
     }
-    .neutral {
-      color: #6b7280 !important;
-    }
     .section {
       margin: 30px 0;
     }
     .section h2 {
-      color: #e5e7eb;
+      color: #333;
       font-size: 20px;
       margin-bottom: 15px;
       padding-bottom: 10px;
-      border-bottom: 2px solid #374151;
+      border-bottom: 2px solid #e5e7eb;
     }
     .list-item {
       padding: 10px;
       margin: 8px 0;
-      background: #242938;
+      background: #f9fafb;
       border-radius: 6px;
       display: flex;
       align-items: center;
@@ -420,45 +321,32 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
     }
     .badge {
       background: #ac862b;
-      color: #000B25;
+      color: white;
       padding: 2px 8px;
       border-radius: 12px;
       font-size: 12px;
       font-weight: bold;
     }
-    .chart-container {
-      margin: 20px 0;
-      text-align: center;
-      background: #242938;
-      padding: 15px;
-      border-radius: 8px;
-    }
-    .chart-container img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 6px;
-    }
     .footer {
       text-align: center;
       margin-top: 40px;
       padding-top: 20px;
-      border-top: 2px solid #374151;
-      color: #9ca3af;
+      border-top: 2px solid #e5e7eb;
+      color: #666;
       font-size: 12px;
     }
     .cta-button {
       display: inline-block;
-      background: linear-gradient(135deg, #ac862b 0%, #b8932c 100%);
-      color: #000B25;
+      background: #ac862b;
+      color: white;
       padding: 12px 30px;
       text-decoration: none;
       border-radius: 6px;
       font-weight: bold;
       margin: 20px 0;
-      box-shadow: 0 4px 12px rgba(172, 134, 43, 0.3);
     }
     .cta-button:hover {
-      background: linear-gradient(135deg, #b8932c 0%, #ac862b 100%);
+      background: #8a6a22;
     }
   </style>
 </head>
@@ -497,57 +385,6 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
       </div>
     </div>
     
-    <!-- Métriques Détaillées -->
-    <div class="metric-card">
-      <h3>💰 MÉTRIQUES DÉTAILLÉES</h3>
-      <div class="metric-grid-3">
-        <div class="metric">
-          <div class="metric-value positive">+${grossProfit.toFixed(2)}$</div>
-          <div class="metric-label">Gross Profit</div>
-        </div>
-        <div class="metric">
-          <div class="metric-value negative">-${grossLoss.toFixed(2)}$</div>
-          <div class="metric-label">Gross Loss</div>
-        </div>
-        <div class="metric">
-          <div class="metric-value">${tradingDays}</div>
-          <div class="metric-label">Jours tradés</div>
-        </div>
-      </div>
-      <div class="metric-grid-3" style="margin-top: 10px;">
-        <div class="metric">
-          <div class="metric-value positive">+${avgWin}$</div>
-          <div class="metric-label">Avg Win</div>
-        </div>
-        <div class="metric">
-          <div class="metric-value negative">-${avgLoss}$</div>
-          <div class="metric-label">Avg Loss</div>
-        </div>
-        <div class="metric">
-          <div class="metric-value">${avgWinLossRatio}</div>
-          <div class="metric-label">R:R Ratio</div>
-        </div>
-      </div>
-      <div class="metric-grid" style="margin-top: 10px;">
-        <div class="metric">
-          <div class="metric-value positive">${longestWinStreak}</div>
-          <div class="metric-label">🔥 Winning Streak</div>
-        </div>
-        <div class="metric">
-          <div class="metric-value negative">${longestLossStreak}</div>
-          <div class="metric-label">❄️ Losing Streak</div>
-        </div>
-      </div>
-    </div>
-    
-    ${totalTrades > 0 && chartLabels.length > 0 ? `
-    <!-- Graphique d'évolution -->
-    <div class="chart-container">
-      <h3 style="color: #e5e7eb; margin: 0 0 15px 0; font-size: 16px;">📊 Évolution du P&L cette semaine</h3>
-      <img src="${chartUrl}" alt="Graphique P&L hebdomadaire" style="width: 100%; height: auto;">
-    </div>
-    ` : ''}
-    
     ${totalTrades > 0 ? `
     <div class="section">
       <h2>🎯 Trades Clés</h2>
@@ -565,11 +402,11 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
     ${topPositives.length > 0 ? `
     <div class="section">
       <h2>✅ Points Positifs (${allPositives.length} au total)</h2>
-      <p style="color: #9ca3af; font-size: 14px;">Tes forces cette semaine :</p>
+      <p style="color: #666; font-size: 14px;">Tes forces cette semaine :</p>
       ${topPositives.map(([point, count]) => `
         <div class="list-item">
           <span class="badge">${count}×</span>
-          <span style="color: #e5e7eb;">${point}</span>
+          <span>${point}</span>
         </div>
       `).join('')}
     </div>
@@ -578,11 +415,11 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
     ${topErrors.length > 0 ? `
     <div class="section">
       <h2>❌ Erreurs Commises (${allErrors.length} au total)</h2>
-      <p style="color: #9ca3af; font-size: 14px;">⚠️ Points à améliorer :</p>
+      <p style="color: #666; font-size: 14px;">⚠️ Points à améliorer :</p>
       ${topErrors.map(([error, count]) => `
         <div class="list-item">
-          <span class="badge" style="background: #ef4444; color: white;">${count}×</span>
-          <span style="color: #e5e7eb;">${error}</span>
+          <span class="badge" style="background: #ef4444;">${count}×</span>
+          <span>${error}</span>
         </div>
       `).join('')}
       <p style="color: #ef4444; font-size: 14px; margin-top: 15px; font-weight: bold;">
@@ -593,8 +430,8 @@ function generateWeeklyReportHTML({ user, trades, journalEntries, startDate, end
     
     ${!totalTrades && !journalEntries.length ? `
     <div class="section" style="text-align: center; padding: 40px 0;">
-      <p style="font-size: 18px; color: #9ca3af;">🤔 Aucune activité cette semaine</p>
-      <p style="color: #6b7280;">N'oublie pas de tenir ton journal à jour !</p>
+      <p style="font-size: 18px; color: #666;">🤔 Aucune activité cette semaine</p>
+      <p style="color: #999;">N'oublie pas de tenir ton journal à jour !</p>
     </div>
     ` : ''}
     
