@@ -46,6 +46,15 @@
         const imageFile2 = document.getElementById('noteImage2')?.files[0];
         const noTradeToday = document.getElementById('noTradeToday')?.checked || false;
         
+        // ✅ NOUVEAUX CHAMPS : Points positifs & Erreurs
+        const selectedPositives = Array.from(
+            document.querySelectorAll('.positive-checkbox:checked')
+        ).map(cb => cb.value);
+        
+        const selectedErrors = Array.from(
+            document.querySelectorAll('.error-checkbox:checked')
+        ).map(cb => cb.value);
+        
         // Validation
         if (!noteDate || !noteText) {
             console.error('[JOURNAL] ❌ Champs obligatoires manquants');
@@ -53,7 +62,18 @@
             return { data: null, error: 'Missing required fields' };
         }
         
-        console.log('[JOURNAL] Données collectées:', { noteDate, noteText, emotionBefore, emotionAfter, sessionRating, hasImage: !!imageFile, hasImage2: !!imageFile2, noTradeToday });
+        console.log('[JOURNAL] Données collectées:', { 
+            noteDate, 
+            noteText, 
+            emotionBefore, 
+            emotionAfter, 
+            sessionRating, 
+            hasImage: !!imageFile, 
+            hasImage2: !!imageFile2, 
+            noTradeToday,
+            positivePoints: selectedPositives.length,
+            errors: selectedErrors.length
+        });
         
         // Upload de l'image si présente
         let imageUrl = null;
@@ -183,7 +203,9 @@
             emotion_after: emotionAfter || null,
             session_rating: sessionRating ? parseInt(sessionRating) : null,
             image_url: imageUrl,
-            no_trade: noTradeToday
+            no_trade: noTradeToday,
+            positive_points: selectedPositives,  // ✅ NOUVEAU
+            errors_committed: selectedErrors     // ✅ NOUVEAU
         };
         
         // ✅ Ajouter image_url_2 UNIQUEMENT si elle existe (pour compatibilité)
@@ -250,6 +272,13 @@
             if (form) {
                 form.reset();
             }
+            
+            // ✅ NOUVEAU : Réinitialiser les checkboxes points positifs & erreurs
+            document.querySelectorAll('.positive-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.error-checkbox').forEach(cb => cb.checked = false);
+            if (window.updatePositiveCount) window.updatePositiveCount();
+            if (window.updateErrorsCount) window.updateErrorsCount();
+            console.log('[JOURNAL] ✅ Checkboxes réinitialisées');
             
             // Réinitialiser l'aperçu de l'image
             const imagePreview = document.getElementById('imagePreview');
@@ -792,6 +821,28 @@ ${data.content}
             const noTradeCheckbox = document.getElementById('noTradeToday');
             if (noTradeCheckbox) {
                 noTradeCheckbox.checked = data.no_trade || false;
+            }
+            
+            // ✅ NOUVEAU : Restaurer les points positifs
+            document.querySelectorAll('.positive-checkbox').forEach(cb => cb.checked = false);
+            if (data.positive_points && Array.isArray(data.positive_points)) {
+                data.positive_points.forEach(value => {
+                    const checkbox = Array.from(document.querySelectorAll('.positive-checkbox')).find(cb => cb.value === value);
+                    if (checkbox) checkbox.checked = true;
+                });
+                updatePositiveCount();
+                console.log('[JOURNAL] ✅ Points positifs restaurés:', data.positive_points.length);
+            }
+            
+            // ✅ NOUVEAU : Restaurer les erreurs
+            document.querySelectorAll('.error-checkbox').forEach(cb => cb.checked = false);
+            if (data.errors_committed && Array.isArray(data.errors_committed)) {
+                data.errors_committed.forEach(value => {
+                    const checkbox = Array.from(document.querySelectorAll('.error-checkbox')).find(cb => cb.value === value);
+                    if (checkbox) checkbox.checked = true;
+                });
+                updateErrorsCount();
+                console.log('[JOURNAL] ✅ Erreurs restaurées:', data.errors_committed.length);
             }
             
             // Mettre à jour les étoiles visuellement
