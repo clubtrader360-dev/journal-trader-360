@@ -218,39 +218,54 @@
                 coachApp: coachApp ? 'OUI' : 'NON'
             });
             
-            // ✅ NETTOYAGE COMPLET : Réinitialiser l'état de coachApp
+            // Masquer l'écran de connexion et l'interface élève
+            if (authScreen) authScreen.style.display = 'none';
+            if (mainApp) {
+                mainApp.style.display = 'none';
+                mainApp.style.visibility = 'hidden';
+            }
+            
+            // Afficher l'interface COACH
             if (coachApp) {
-                // Forcer la visibilité et réinitialiser le style
-                coachApp.style.display = 'none';  // D'abord cacher
+                coachApp.style.display = 'flex';
                 coachApp.style.visibility = 'visible';
                 coachApp.style.opacity = '1';
                 
-                // Réinitialiser toutes les sections
+                // Masquer toutes les sections d'abord
                 const sections = coachApp.querySelectorAll('.section');
                 sections.forEach(section => {
                     section.classList.add('hidden');
                 });
                 
-                console.log('[COACH] ✅ Nettoyage de coachApp effectué');
+                // Forcer l'affichage de la section dashboard
+                const dashboardSection = document.getElementById('coachDashboard');
+                if (dashboardSection) {
+                    dashboardSection.classList.remove('hidden');
+                    console.log('[COACH] ✅ Section coachDashboard affichée');
+                } else {
+                    console.error('[COACH] ❌ Section coachDashboard introuvable!');
+                }
+                
+                // Activer l'item de menu Dashboard
+                const navDashboard = document.getElementById('coachNavDashboard');
+                if (navDashboard) {
+                    navDashboard.classList.add('coach-active');
+                }
+                
+                console.log('[COACH] ✅ Interface coach affichée');
             }
-            
-            if (authScreen) authScreen.style.display = 'none';
-            if (mainApp) {
-                mainApp.style.display = 'none';  // Masquer l'interface élève
-                mainApp.style.visibility = 'hidden';  // Forcer masquage complet
-            }
-            if (coachApp) coachApp.style.display = 'flex';  // Afficher l'interface COACH
 
-            console.log('[DEBUG] showCoachSection existe?', typeof showCoachSection);
             console.log('[DEBUG] loadCoachDashboard existe?', typeof window.loadCoachDashboard);
             
-            // Afficher le Dashboard Coach par défaut
-            if (typeof showCoachSection === 'function') {
-                console.log('[DEBUG] Appel de showCoachSection(coachDashboard)...');
-                await showCoachSection('coachDashboard');
-            } else {
-                console.error('[ERROR] showCoachSection n\'existe pas !');
-            }
+            // Charger les données du dashboard avec un délai pour s'assurer que tout est chargé
+            setTimeout(async () => {
+                if (typeof window.loadCoachDashboard === 'function') {
+                    console.log('[COACH] 🎯 Chargement du dashboard...');
+                    await window.loadCoachDashboard();
+                } else {
+                    console.error('[ERROR] ❌ window.loadCoachDashboard n\'existe pas !');
+                }
+            }, 300);
 
             if (typeof loadCoachRegistrationsFromSupabase === 'function') {
                 await loadCoachRegistrationsFromSupabase();
