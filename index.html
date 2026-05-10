@@ -725,6 +725,48 @@
         .info-icon.active .tooltip {
             display: block;
         }
+        
+        /* Tooltips du calendrier */
+        .calendar-day-with-tooltip {
+            position: relative;
+        }
+        
+        .calendar-tooltip {
+            display: none;
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(0, 11, 37, 0.98) 0%, rgba(0, 24, 69, 0.98) 100%);
+            color: #ffffff;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.5;
+            white-space: normal;
+            min-width: 280px;
+            max-width: 350px;
+            text-align: left;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(172, 134, 43, 0.6);
+            z-index: 1001;
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+        }
+        
+        .calendar-tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 7px solid transparent;
+            border-bottom-color: rgba(0, 11, 37, 0.98);
+        }
+        
+        .calendar-day-with-tooltip:hover .calendar-tooltip {
+            display: block;
+        }
 
         
         /* Modal styles pour boutons Voir */
@@ -9928,36 +9970,71 @@ console.log('[PATCH] ✅ 20 fonctions manquantes exposées');
                 // ✅ NOUVEAU : Ajouter tooltip détaillé au survol
                 // Afficher tooltip si : trades OU journal OU points positifs/erreurs
                 if (isCurrentMonth && (dayTrades.length > 0 || journalEntry)) {
-                    let tooltipText = `📅 ${dateString}\n`;
+                    // Construction du HTML du tooltip
+                    let tooltipHTML = `<strong style="display: block; margin-bottom: 8px; font-size: 13px; color: #ac862b;">📅 ${dateString}</strong>`;
                     
                     if (dayTrades.length > 0) {
-                        tooltipText += `\n💰 P&L : ${dayPnl > 0 ? '+' : ''}${dayPnl.toFixed(2)}$\n`;
-                        tooltipText += `📊 ${dayTrades.length} trade${dayTrades.length > 1 ? 's' : ''}\n`;
+                        const pnlColor = dayPnl > 0 ? '#10b981' : '#ef4444';
+                        tooltipHTML += `<div style="margin: 6px 0;"><strong style="color: ${pnlColor};">💰 P&L : ${dayPnl > 0 ? '+' : ''}${dayPnl.toFixed(2)}$</strong></div>`;
+                        tooltipHTML += `<div style="margin: 4px 0;">📊 ${dayTrades.length} trade${dayTrades.length > 1 ? 's' : ''}</div>`;
                     }
                     
                     if (noTradeEntry) {
-                        tooltipText += `\n🚫 Pas de trade aujourd'hui\n`;
+                        tooltipHTML += `<div style="margin: 6px 0; color: #9ca3af;">🚫 Pas de trade aujourd'hui</div>`;
                     }
                     
                     if (positiveCount > 0) {
-                        tooltipText += `\n✅ Points positifs (${positiveCount}) :\n`;
+                        tooltipHTML += `<div style="margin: 8px 0 4px 0; font-weight: 600; color: #10b981;">✅ Points positifs (${positiveCount}) :</div>`;
+                        tooltipHTML += '<ul style="margin: 4px 0; padding-left: 16px; list-style-type: disc;">';
                         journalEntry.positive_points.forEach(p => {
-                            tooltipText += `• ${p}\n`;
+                            tooltipHTML += `<li style="margin: 2px 0;">${p}</li>`;
                         });
+                        tooltipHTML += '</ul>';
                     }
                     
                     if (errorsCount > 0) {
-                        tooltipText += `\n❌ Erreurs (${errorsCount}) :\n`;
+                        tooltipHTML += `<div style="margin: 8px 0 4px 0; font-weight: 600; color: #ef4444;">❌ Erreurs (${errorsCount}) :</div>`;
+                        tooltipHTML += '<ul style="margin: 4px 0; padding-left: 16px; list-style-type: disc;">';
                         journalEntry.errors_committed.forEach(e => {
-                            tooltipText += `• ${e}\n`;
+                            tooltipHTML += `<li style="margin: 2px 0;">${e}</li>`;
                         });
+                        tooltipHTML += '</ul>';
                     }
                     
-                    tooltipText += `\n[Cliquer pour ouvrir le journal]`;
-                    dayElement.title = tooltipText;
+                    tooltipHTML += `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(172, 134, 43, 0.3); font-size: 10px; color: #d1d5db; text-align: center; font-style: italic;">Cliquer pour ouvrir le journal</div>`;
+                    
+                    // Ajouter une classe spéciale pour gérer le positionnement du tooltip
+                    dayElement.classList.add('calendar-day-with-tooltip');
+                    dayElement.dataset.tooltipContent = tooltipHTML;
                 }
                 
                 dayElement.innerHTML = cellContent;
+                
+                // ✅ Ajouter les gestionnaires de tooltip si nécessaire
+                if (dayElement.classList.contains('calendar-day-with-tooltip')) {
+                    let tooltipElement = null;
+                    
+                    dayElement.addEventListener('mouseenter', () => {
+                        // Créer l'élément tooltip
+                        tooltipElement = document.createElement('div');
+                        tooltipElement.className = 'calendar-tooltip';
+                        tooltipElement.innerHTML = dayElement.dataset.tooltipContent;
+                        dayElement.appendChild(tooltipElement);
+                        
+                        // Afficher le tooltip
+                        setTimeout(() => {
+                            tooltipElement.style.display = 'block';
+                        }, 100);
+                    });
+                    
+                    dayElement.addEventListener('mouseleave', () => {
+                        // Masquer et supprimer le tooltip
+                        if (tooltipElement && tooltipElement.parentNode) {
+                            tooltipElement.remove();
+                            tooltipElement = null;
+                        }
+                    });
+                }
                 
                 // CLICK HANDLER: Ouvrir le Daily Journal à la date cliquée
                 if (isCurrentMonth) {
