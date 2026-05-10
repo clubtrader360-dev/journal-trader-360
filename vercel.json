@@ -1,4 +1,9 @@
 {
+  "framework": null,
+  "installCommand": "npm install",
+  "buildCommand": null,
+  "devCommand": null,
+  "outputDirectory": null,
   "crons": [
     {
       "path": "/api/cron/weekly-report",
