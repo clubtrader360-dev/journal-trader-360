@@ -206,81 +206,115 @@
             }
 
             window.currentUser = coachData;
-            console.log('[OK] Connexion coach réussie:', coachData.email);
+            console.log('[COACH LOGIN] ✅ Authentification réussie:', coachData.email);
 
             // ========================================
-            // AFFICHAGE INTERFACE COACH
+            // AFFICHAGE BRUTAL DE L'INTERFACE COACH
             // ========================================
             const authScreen = document.getElementById('authScreen');
             const mainApp = document.getElementById('mainApp');
             const coachApp = document.getElementById('coachApp');
             
-            console.log('[DEBUG] Elements trouvés:', {
-                authScreen: !!authScreen,
-                mainApp: !!mainApp,
-                coachApp: !!coachApp
-            });
+            console.log('[COACH LOGIN] 📋 État des éléments DOM:');
+            console.log('  - authScreen:', authScreen ? 'TROUVÉ' : '❌ INTROUVABLE');
+            console.log('  - mainApp:', mainApp ? 'TROUVÉ' : '❌ INTROUVABLE');
+            console.log('  - coachApp:', coachApp ? 'TROUVÉ' : '❌ INTROUVABLE');
             
-            // Étape 1: Masquer authScreen et mainApp
-            if (authScreen) authScreen.style.display = 'none';
-            if (mainApp) {
-                mainApp.style.display = 'none';
-                mainApp.style.visibility = 'hidden';
-            }
-            
-            // Étape 2: Afficher coachApp avec styles forcés
-            if (coachApp) {
-                coachApp.style.display = 'flex';
-                coachApp.style.visibility = 'visible';
-                coachApp.style.opacity = '1';
-                coachApp.classList.remove('hidden');
-                
-                console.log('[COACH] ✅ Interface coach affichée');
-                console.log('[COACH] coachApp display:', coachApp.style.display);
-                console.log('[COACH] coachApp visibility:', coachApp.style.visibility);
-            } else {
-                console.error('[COACH] ❌ coachApp introuvable dans le DOM !');
+            if (!coachApp) {
+                alert('❌ ERREUR CRITIQUE: coachApp introuvable dans le DOM!\n\nOuvrez la console (F12) pour plus de détails.');
+                console.error('[COACH LOGIN] ❌ ERREUR FATALE: #coachApp n\'existe pas dans le HTML!');
                 return;
             }
             
-            // Étape 3: Attendre que les scripts soient chargés
-            let attempts = 0;
-            const maxAttempts = 20; // 10 secondes max
+            // ÉTAPE 1: Masquer complètement authScreen et mainApp
+            console.log('[COACH LOGIN] 🔒 Masquage authScreen et mainApp...');
+            if (authScreen) {
+                authScreen.style.display = 'none';
+                authScreen.style.visibility = 'hidden';
+                authScreen.style.opacity = '0';
+            }
+            if (mainApp) {
+                mainApp.style.display = 'none';
+                mainApp.style.visibility = 'hidden';
+                mainApp.style.opacity = '0';
+            }
+            console.log('[COACH LOGIN] ✅ authScreen et mainApp masqués');
             
-            const waitForScripts = setInterval(async () => {
+            // ÉTAPE 2: FORCER l'affichage de coachApp de manière BRUTALE
+            console.log('[COACH LOGIN] 🎯 Affichage FORCÉ de coachApp...');
+            coachApp.style.display = 'flex';
+            coachApp.style.visibility = 'visible';
+            coachApp.style.opacity = '1';
+            coachApp.style.position = 'relative';
+            coachApp.style.width = '100%';
+            coachApp.style.height = '100vh';
+            coachApp.style.zIndex = '9999';
+            coachApp.classList.remove('hidden');
+            
+            // Vérification immédiate
+            const computedStyle = window.getComputedStyle(coachApp);
+            console.log('[COACH LOGIN] 📊 Styles calculés de coachApp:');
+            console.log('  - display:', computedStyle.display);
+            console.log('  - visibility:', computedStyle.visibility);
+            console.log('  - opacity:', computedStyle.opacity);
+            console.log('  - width:', computedStyle.width);
+            console.log('  - height:', computedStyle.height);
+            
+            if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+                console.error('[COACH LOGIN] ⚠️ ATTENTION: coachApp n\'est TOUJOURS PAS VISIBLE malgré les styles forcés!');
+                alert('⚠️ L\'interface coach ne s\'affiche pas correctement.\n\nOuvrez la console (F12) et partagez les logs avec le support.');
+            } else {
+                console.log('[COACH LOGIN] ✅ coachApp est maintenant VISIBLE');
+            }
+            
+            // ÉTAPE 3: Afficher le contenu du dashboard
+            console.log('[COACH LOGIN] 📂 Chargement du contenu dashboard...');
+            
+            // Attendre que les fonctions soient disponibles
+            let attempts = 0;
+            const maxAttempts = 30; // 15 secondes max
+            
+            const checkAndLoad = setInterval(async () => {
                 attempts++;
                 
-                const hasShowSection = typeof window.showCoachSection === 'function';
-                const hasDashboard = typeof window.loadCoachDashboard === 'function';
+                const showSection = window.showCoachSection;
+                const loadDashboard = window.loadCoachDashboard;
                 
-                console.log(`[COACH] Tentative ${attempts}/${maxAttempts}:`, {
-                    showCoachSection: hasShowSection,
-                    loadCoachDashboard: hasDashboard
-                });
+                console.log(`[COACH LOGIN] ⏳ Tentative ${attempts}/${maxAttempts}:`);
+                console.log('  - showCoachSection:', typeof showSection === 'function' ? '✅' : '❌');
+                console.log('  - loadCoachDashboard:', typeof loadDashboard === 'function' ? '✅' : '❌');
                 
-                if (hasShowSection && hasDashboard) {
-                    clearInterval(waitForScripts);
-                    console.log('[COACH] ✅ Tous les scripts sont chargés');
+                if (typeof showSection === 'function' && typeof loadDashboard === 'function') {
+                    clearInterval(checkAndLoad);
+                    console.log('[COACH LOGIN] ✅ Toutes les fonctions sont chargées!');
                     
-                    // Afficher le dashboard coach
                     try {
-                        await window.showCoachSection('coachDashboard');
-                        console.log('[COACH] ✅ Dashboard affiché avec succès');
+                        console.log('[COACH LOGIN] 🚀 Appel de showCoachSection("coachDashboard")...');
+                        await showSection('coachDashboard');
+                        console.log('[COACH LOGIN] ✅ Dashboard affiché avec succès!');
                         
-                        // Charger les inscriptions si disponible
+                        // Charger les inscriptions
                         if (typeof loadCoachRegistrationsFromSupabase === 'function') {
+                            console.log('[COACH LOGIN] 📝 Chargement des inscriptions...');
                             await loadCoachRegistrationsFromSupabase();
                         }
+                        
+                        console.log('[COACH LOGIN] 🎉 CONNEXION COACH TERMINÉE AVEC SUCCÈS!');
+                        
                     } catch (err) {
-                        console.error('[COACH] ❌ Erreur affichage dashboard:', err);
+                        console.error('[COACH LOGIN] ❌ Erreur lors du chargement du dashboard:', err);
+                        console.error('[COACH LOGIN] Stack:', err.stack);
+                        alert('❌ Erreur lors du chargement du dashboard.\n\nOuvrez la console (F12) pour voir les détails.');
                     }
+                    
                 } else if (attempts >= maxAttempts) {
-                    clearInterval(waitForScripts);
-                    console.error('[COACH] ❌ TIMEOUT: Scripts non chargés après 10s');
-                    console.error('[COACH] États finaux:', {
-                        showCoachSection: hasShowSection,
-                        loadCoachDashboard: hasDashboard
-                    });
+                    clearInterval(checkAndLoad);
+                    console.error('[COACH LOGIN] ❌ TIMEOUT: Les scripts ne se sont pas chargés après 15 secondes!');
+                    console.error('[COACH LOGIN] État final:');
+                    console.error('  - showCoachSection:', typeof showSection);
+                    console.error('  - loadCoachDashboard:', typeof loadDashboard);
+                    
+                    alert('❌ TIMEOUT: Les scripts du coach n\'ont pas pu se charger.\n\nVeuillez actualiser la page (F5) et réessayer.\n\nSi le problème persiste, partagez les logs de la console (F12).');
                 }
             }, 500)
 
