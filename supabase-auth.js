@@ -234,12 +234,28 @@
                 console.log('[COACH] ✅ Nettoyage de coachApp effectué');
             }
             
-            if (authScreen) authScreen.style.display = 'none';
-            if (mainApp) {
-                mainApp.style.display = 'none';  // Masquer l'interface élève
-                mainApp.style.visibility = 'hidden';  // Forcer masquage complet
+            if (authScreen) {
+                authScreen.style.display = 'none';
+                authScreen.style.visibility = 'hidden';
             }
-            if (coachApp) coachApp.style.display = 'flex';  // Afficher l'interface COACH
+            if (mainApp) {
+                mainApp.style.display = 'none';
+                mainApp.style.visibility = 'hidden';
+            }
+            if (coachApp) {
+                // FORCER l'affichage avec tous les styles nécessaires
+                coachApp.style.display = 'flex';
+                coachApp.style.visibility = 'visible';
+                coachApp.style.opacity = '1';
+                coachApp.style.position = 'fixed';
+                coachApp.style.top = '0';
+                coachApp.style.left = '0';
+                coachApp.style.width = '100%';
+                coachApp.style.height = '100vh';
+                coachApp.style.zIndex = '1000';
+                coachApp.classList.remove('hidden');
+                console.log('[COACH] ✅ Styles forcés appliqués à coachApp');
+            }
 
             console.log('[DEBUG] showCoachSection existe?', typeof showCoachSection);
             console.log('[DEBUG] loadCoachDashboard existe?', typeof window.loadCoachDashboard);
